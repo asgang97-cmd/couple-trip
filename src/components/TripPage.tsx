@@ -12,6 +12,7 @@ import { DayTabs } from './DayTabs'
 import { HomeHeader } from './HomeHeader'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
+import { OfflineBanner } from './OfflineBanner'
 
 type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 
@@ -113,6 +114,7 @@ export function TripPage({ member }: { member: Member }) {
 
   return (
     <>
+      <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
       <HomeHeader trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={data.items} trip={trip} rate={rate} />

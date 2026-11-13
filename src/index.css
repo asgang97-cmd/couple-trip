@@ -77,6 +77,14 @@ button:disabled { opacity: 0.45; cursor: default; }
 button.ghost { background: transparent; color: var(--primary); padding: 8px 10px; }
 button.danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
 
+.offline-banner {
+  position: sticky; top: 0; z-index: 5;
+  margin: 0 -16px;
+  padding: 8px 16px;
+  background: #3a3040; color: #fff;
+  font-size: 0.9rem; text-align: center;
+}
+
 /* 첫 화면: 커플 사진 + D-day */
 .cover {
   position: relative;

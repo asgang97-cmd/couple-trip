@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
+import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import { TRIP, makeItem } from '../test-fixtures'
+import { memoryStorage } from '../test-utils'
 
 vi.mock('../lib/repo', () => ({}))
 const { useTripData } = await import('./useTripData')
@@ -52,10 +54,53 @@ describe('useTripData', () => {
     expect(unsubscribe).toHaveBeenCalled()
   })
 
-  test('불러오기 실패하면 error', async () => {
+  test('불러오기 실패 + 저장본 없음 → error', async () => {
     const { repo } = fakeRepo([[]])
     repo.fetchTrip.mockRejectedValueOnce(new Error('down'))
-    const { result } = renderHook(() => useTripData({ repo }))
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
     await waitFor(() => expect(result.current.status).toBe('error'))
+  })
+})
+
+describe('useTripData 오프라인', () => {
+  test('성공하면 저장본을 남김', async () => {
+    const storage = memoryStorage()
+    const { repo } = fakeRepo([[makeItem({ place_name: '저장됨' })]])
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(loadSnapshot(storage)?.items[0].place_name).toBe('저장됨')
+  })
+
+  test('불러오기 실패 + 저장본 있음 → 저장본으로 ready, offline', async () => {
+    const storage = memoryStorage()
+    saveSnapshot({ trip: TRIP, items: [makeItem({ place_name: '어제 본 일정' })], hearts: [], comments: [], savedAt: '2027-01-10T01:00:00.000Z' }, storage)
+    const { repo } = fakeRepo([[]])
+    repo.fetchTrip.mockRejectedValue(new Error('offline'))
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(result.current.offline).toBe(true)
+    expect(result.current.savedAt).toBe('2027-01-10T01:00:00.000Z')
+    expect(result.current.items[0].place_name).toBe('어제 본 일정')
+  })
+
+  test('offline 이벤트 → offline, online 이벤트 → 다시 불러오고 해제', async () => {
+    const { repo } = fakeRepo([[makeItem({ place_name: '1' })], [makeItem({ place_name: '2' })]])
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => void window.dispatchEvent(new Event('offline')))
+    expect(result.current.offline).toBe(true)
+    act(() => void window.dispatchEvent(new Event('online')))
+    await waitFor(() => expect(result.current.items[0].place_name).toBe('2'))
+    expect(result.current.offline).toBe(false)
+  })
+
+  test('보는 중에 다시 불러오기 실패하면 화면은 유지하고 offline', async () => {
+    const { repo, fireChange } = fakeRepo([[makeItem({ place_name: '유지' })]])
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    repo.fetchTrip.mockRejectedValueOnce(new Error('offline'))
+    act(() => fireChange())
+    await waitFor(() => expect(result.current.offline).toBe(true))
+    expect(result.current.items[0].place_name).toBe('유지')
   })
 })
