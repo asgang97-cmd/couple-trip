@@ -8,6 +8,7 @@ import { ItemCard } from './ItemCard'
 const base = {
   trip: TRIP, member: 'a' as const, rate: 9.2, disabled: false, onEdit: () => {},
   hearts: [], comments: [], onToggleHeart: async () => {}, onAddComment: async () => {},
+  onEditComment: async () => {}, onDeleteComment: async () => {},
 }
 
 describe('ItemCard 하트·댓글', () => {

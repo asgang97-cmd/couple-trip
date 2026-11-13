@@ -3,7 +3,9 @@ import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, toDateString, tripDays } from '../lib/dates'
 import { resizeImage } from '../lib/image'
-import { addComment, coverUrl as getCoverUrl, deleteItem, toggleHeart, uploadCover, upsertItem } from '../lib/repo'
+import {
+  addComment, coverUrl as getCoverUrl, deleteComment, deleteItem, toggleHeart, updateComment, uploadCover, upsertItem,
+} from '../lib/repo'
 import type { Item, ItemInput, Member } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
@@ -83,15 +85,19 @@ export function TripPage({ member }: { member: Member }) {
     }
   }
 
-  async function comment(itemId: string, body: string) {
+  /** 댓글 작업 공통: 실패하면 알리고 다시 던져서 입력한 글이 지워지지 않게 */
+  async function commentAction(task: () => Promise<unknown>, failMessage: string) {
     try {
-      await addComment(itemId, member, body)
+      await task()
       await data.reload()
-    } catch {
-      alert('댓글을 보내지 못했어요')
-      throw new Error('comment failed') // 입력한 글이 지워지지 않게
+    } catch (e) {
+      alert(failMessage)
+      throw e
     }
   }
+
+  const comment = (itemId: string, body: string) =>
+    commentAction(() => addComment(itemId, member, body), '댓글을 보내지 못했어요')
 
   async function changePhoto(file: File) {
     setUploading(true)
@@ -121,6 +127,8 @@ export function TripPage({ member }: { member: Member }) {
         onEdit={(item) => setForm({ mode: 'edit', item })}
         onToggleHeart={heart}
         onAddComment={comment}
+        onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
+        onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
       />
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>

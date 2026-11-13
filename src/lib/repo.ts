@@ -52,6 +52,14 @@ export async function addComment(itemId: string, member: Member, body: string): 
   return check(await supabase.from('comments').insert({ item_id: itemId, member, body }).select().single()) as Comment
 }
 
+export async function updateComment(id: string, body: string): Promise<void> {
+  check(await supabase.from('comments').update({ body }).eq('id', id))
+}
+
+export async function deleteComment(id: string): Promise<void> {
+  check(await supabase.from('comments').delete().eq('id', id))
+}
+
 /** 커플 사진 올리기: 새 파일 저장 → 여행에 위치 기록 → 예전 파일 삭제 */
 export async function uploadCover(trip: Trip, photo: Blob): Promise<string> {
   const path = `${trip.id}/${Date.now()}.jpg`

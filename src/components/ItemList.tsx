@@ -12,6 +12,8 @@ interface Props {
   onEdit: (item: Item) => void
   onToggleHeart: (itemId: string, on: boolean) => Promise<void>
   onAddComment: (itemId: string, body: string) => Promise<void>
+  onEditComment: (id: string, body: string) => Promise<void>
+  onDeleteComment: (id: string) => Promise<void>
 }
 
 export function ItemList({ items, hearts, comments, onEdit, onToggleHeart, onAddComment, ...rest }: Props) {

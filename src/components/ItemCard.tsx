@@ -15,6 +15,8 @@ interface Props {
   onEdit: () => void
   onToggleHeart: (on: boolean) => Promise<void>
   onAddComment: (body: string) => Promise<void>
+  onEditComment: (id: string, body: string) => Promise<void>
+  onDeleteComment: (id: string) => Promise<void>
 }
 
 function heartLabel(hearts: Heart[]): string {
@@ -32,7 +34,9 @@ function costLabel(amount: number, currency: string, rate: number | null): strin
   return krw === null ? local : `${local} (≈ ${formatMoney(krw, 'KRW')})`
 }
 
-export function ItemCard({ item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment }: Props) {
+export function ItemCard({
+  item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment, onEditComment, onDeleteComment,
+}: Props) {
   const [showComments, setShowComments] = useState(false)
   const mine = hearts.some((h) => h.member === member)
 
@@ -75,7 +79,16 @@ export function ItemCard({ item, member, rate, hearts, comments, disabled, onEdi
         <span className="spacer" />
         <button type="button" className="ghost" onClick={onEdit} disabled={disabled}>수정</button>
       </div>
-      {showComments && <CommentThread comments={comments} member={member} disabled={disabled} onAdd={onAddComment} />}
+      {showComments && (
+        <CommentThread
+          comments={comments}
+          member={member}
+          disabled={disabled}
+          onAdd={onAddComment}
+          onEdit={onEditComment}
+          onDelete={onDeleteComment}
+        />
+      )}
     </article>
   )
 }
