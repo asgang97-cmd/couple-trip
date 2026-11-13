@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 import { directionsUrl } from '../lib/maps'
 import { makeItem } from '../test-fixtures'
@@ -32,6 +33,27 @@ describe('DayMap', () => {
     render(<DayMap items={[located[0], makeItem({ place_name: 'X' }), located[1]]} apiKey="k" mapId="m" />)
     const markers = screen.getAllByTestId('marker')
     expect(markers.map((m) => [m.title, m.textContent])).toEqual([['A', '1'], ['B', '2']])
+  })
+
+  test('기본은 도보: 구간마다 시간·거리', async () => {
+    const loadLeg = vi.fn(async () => ({ path: [], durationSec: 720, distanceM: 900 }))
+    render(<DayMap items={located} apiKey="k" mapId="m" loadLeg={loadLeg} />)
+    expect(await screen.findByText('① → ② 🚶 12분 · 900m')).toBeInTheDocument()
+    expect(loadLeg).toHaveBeenCalledWith({ lat: 1, lng: 1 }, { lat: 2, lng: 2 }, 'walk', undefined)
+  })
+
+  test('대중교통으로 바꾸면 다시 계산 (출발 시각 = 앞 장소의 일정 시각)', async () => {
+    const loadLeg = vi.fn(async () => ({ path: [], durationSec: 3900, distanceM: 12300 }))
+    const items = [makeItem({ lat: 1, lng: 1, time: '09:30', day: '2026-11-16' }), makeItem({ lat: 2, lng: 2 })]
+    render(<DayMap items={items} apiKey="k" mapId="m" loadLeg={loadLeg} now={new Date(2026, 10, 14, 12, 0)} />)
+    await userEvent.click(screen.getByRole('button', { name: '🚇 대중교통' }))
+    expect(await screen.findByText('① → ② 🚇 1시간 5분 · 12.3km')).toBeInTheDocument()
+    expect(loadLeg).toHaveBeenLastCalledWith({ lat: 1, lng: 1 }, { lat: 2, lng: 2 }, 'transit', new Date(2026, 10, 16, 9, 30).toISOString())
+  })
+
+  test('경로를 못 구하면 안내', async () => {
+    render(<DayMap items={located} apiKey="k" mapId="m" loadLeg={async () => null} />)
+    expect(await screen.findByText('① → ② 길을 못 찾아서 직선으로 표시')).toBeInTheDocument()
   })
 
   test('걸어서·대중교통 길찾기 링크', () => {
