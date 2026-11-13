@@ -3,6 +3,7 @@ import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, toDateString, tripDays } from '../lib/dates'
 import { resizeImage } from '../lib/image'
+import { itemsWithLocation } from '../lib/maps'
 import {
   addComment, coverUrl as getCoverUrl, deleteComment, deleteItem, toggleHeart, updateComment, uploadCover, upsertItem,
 } from '../lib/repo'
@@ -14,6 +15,7 @@ import { HomeHeader } from './HomeHeader'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
+import { PlaceSearch } from './PlaceSearch'
 
 type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 
@@ -57,6 +59,9 @@ export function TripPage({ member }: { member: Member }) {
   const dayItems = byDay[day] ?? []
   const nextSortOrder = Math.max(0, ...dayItems.map((i) => i.sort_order)) + 1
   const disabled = data.offline
+  // 장소 검색은 그날(없으면 여행 전체) 첫 장소 근처를 먼저 보여줌
+  const firstLocated = itemsWithLocation(dayItems)[0] ?? itemsWithLocation(data.items)[0]
+  const near = firstLocated ? { lat: firstLocated.lat, lng: firstLocated.lng } : null
 
   async function save(input: ItemInput) {
     try {
@@ -152,6 +157,7 @@ export function TripPage({ member }: { member: Member }) {
           onSave={save}
           onDelete={form.mode === 'edit' ? () => remove(form.item) : undefined}
           onClose={() => setForm(null)}
+          renderPlaceSearch={(onPick) => <PlaceSearch onPick={onPick} near={near} />}
         />
       )}
     </>

@@ -71,6 +71,39 @@ describe('ItemForm', () => {
     )
   })
 
+  describe('장소 검색', () => {
+    // 진짜 구글 검색 대신, 누르면 정해진 장소를 고르는 가짜 버튼
+    const fakeSearch = (pick: { name: string; lat: number; lng: number; placeId: string }) =>
+      (onPick: (p: typeof pick) => void) => <button type="button" onClick={() => onPick(pick)}>가짜검색</button>
+    const SENSOJI = { name: '센소지', lat: 35.71, lng: 139.79, placeId: 'abc' }
+
+    test('장소명이 비어 있으면 검색한 이름으로 채우고 위치 저장', async () => {
+      const { onSave, save } = setup({ renderPlaceSearch: fakeSearch(SENSOJI) })
+      await userEvent.click(screen.getByRole('button', { name: '가짜검색' }))
+      expect(screen.getByLabelText('장소')).toHaveValue('센소지')
+      expect(screen.getByText('📍 지도에 표시돼요')).toBeInTheDocument()
+      await userEvent.click(save())
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ place_name: '센소지', lat: 35.71, lng: 139.79, google_place_id: 'abc' }))
+    })
+
+    test('장소명을 이미 썼으면 그대로 두고 위치만', async () => {
+      const { onSave, save } = setup({ renderPlaceSearch: fakeSearch(SENSOJI) })
+      await userEvent.type(screen.getByLabelText('장소'), '아침 산책')
+      await userEvent.click(screen.getByRole('button', { name: '가짜검색' }))
+      await userEvent.click(save())
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ place_name: '아침 산책', lat: 35.71, google_place_id: 'abc' }))
+    })
+
+    test('위치 지우기 → 세 값 null', async () => {
+      const initial = makeItem({ lat: 1, lng: 2, google_place_id: 'g' })
+      const { onSave, save } = setup({ initial, renderPlaceSearch: fakeSearch(SENSOJI) })
+      await userEvent.click(screen.getByRole('button', { name: '위치 지우기' }))
+      expect(screen.queryByText('📍 지도에 표시돼요')).toBeNull()
+      await userEvent.click(save())
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ lat: null, lng: null, google_place_id: null }))
+    })
+  })
+
   test('통화는 여행 통화와 KRW 두 가지', () => {
     setup()
     const options = Array.from((screen.getByLabelText('통화') as HTMLSelectElement).options).map((o) => o.value)
