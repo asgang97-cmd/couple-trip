@@ -77,9 +77,48 @@ button:disabled { opacity: 0.45; cursor: default; }
 button.ghost { background: transparent; color: var(--primary); padding: 8px 10px; }
 button.danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
 
+/* 첫 화면: 커플 사진 + D-day */
+.cover {
+  position: relative;
+  margin: 0 -16px;
+  height: 260px;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+.cover-text { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35); }
+.cover .greeting { margin: 0; opacity: 0.9; }
+.cover .dday { margin: 0; font-size: 2.6rem; font-weight: 800; line-height: 1.1; }
+.cover h1 { margin: 4px 0 0; font-size: 1.2rem; font-weight: 600; }
+.photo-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.photo-btn.off { opacity: 0.6; cursor: default; }
+.photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: inherit; width: 100%; }
+
+.cost-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.cost-summary small { display: block; color: var(--muted); }
+.cost-summary strong { font-size: 1.15rem; }
+.cost-summary .note { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; color: var(--muted); }
+.card .cost { margin: 0 0 6px; font-weight: 600; }
+
 /* 여행 화면 */
-.trip-head { padding: 20px 0 8px; }
-.trip-head h1 { margin: 0; }
 
 .day-tabs {
   display: flex;

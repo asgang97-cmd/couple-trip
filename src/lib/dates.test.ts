@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { daysUntil, groupItemsByDay, parseLocalDate, toDateString, tripDays } from './dates'
+import { daysUntil, groupItemsByDay, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
 import type { Item } from './types'
 
 describe('parseLocalDate / toDateString', () => {
@@ -18,6 +18,16 @@ describe('daysUntil', () => {
   test('자정 직후', () => expect(daysUntil('2027-01-10', new Date(2027, 0, 1, 0, 30))).toBe(9))
   test('당일 밤', () => expect(daysUntil('2027-01-10', new Date(2027, 0, 10, 23, 59))).toBe(0))
   test('지난 날', () => expect(daysUntil('2027-01-10', new Date(2027, 0, 12, 9, 0))).toBe(-2))
+})
+
+describe('tripPhaseLabel', () => {
+  const S = '2027-01-10'
+  const E = '2027-01-14'
+  test('출발 전', () => expect(tripPhaseLabel(S, E, new Date(2027, 0, 1, 0, 30))).toBe('D-9'))
+  test('출발일', () => expect(tripPhaseLabel(S, E, new Date(2027, 0, 10, 8, 0))).toBe('D-DAY'))
+  test('여행 중', () => expect(tripPhaseLabel(S, E, new Date(2027, 0, 12, 23, 0))).toBe('여행 3일차'))
+  test('마지막 날', () => expect(tripPhaseLabel(S, E, new Date(2027, 0, 14, 9, 0))).toBe('여행 5일차'))
+  test('다녀온 뒤', () => expect(tripPhaseLabel(S, E, new Date(2027, 0, 16, 9, 0))).toBe('다녀온 지 2일'))
 })
 
 describe('tripDays', () => {

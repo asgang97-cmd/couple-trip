@@ -1,3 +1,4 @@
+import { formatMoney, toKrw } from '../lib/money'
 import type { Item, Member, Trip } from '../lib/types'
 import { theme } from '../theme'
 
@@ -5,13 +6,21 @@ interface Props {
   item: Item
   trip: Trip
   member: Member
+  rate: number | null
   disabled: boolean
   onEdit: () => void
 }
 
 const isWebUrl = (u: string) => /^https?:\/\//i.test(u)
 
-export function ItemCard({ item, disabled, onEdit }: Props) {
+function costLabel(amount: number, currency: string, rate: number | null): string {
+  const local = formatMoney(amount, currency)
+  if (currency === 'KRW') return local
+  const krw = toKrw(amount, currency, rate)
+  return krw === null ? local : `${local} (≈ ${formatMoney(krw, 'KRW')})`
+}
+
+export function ItemCard({ item, rate, disabled, onEdit }: Props) {
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(item.booking_code)
@@ -28,6 +37,7 @@ export function ItemCard({ item, disabled, onEdit }: Props) {
       </div>
       <h3>{item.place_name}</h3>
       {item.memo && <p className="memo">{item.memo}</p>}
+      {item.cost_amount !== null && <p className="cost">{costLabel(item.cost_amount, item.cost_currency, rate)}</p>}
       {(item.booking_code || isWebUrl(item.booking_url)) && (
         <div className="booking">
           {item.booking_code && (

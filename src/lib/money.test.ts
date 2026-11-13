@@ -9,7 +9,7 @@ describe('toKrw', () => {
 })
 
 describe('formatMoney', () => {
-  test('엔화', () => expect(formatMoney(1200, 'JPY')).toContain('1,200'))
+  test('엔화는 짧은 기호(JP¥ 아님)', () => expect(formatMoney(1200, 'JPY')).toBe('¥1,200'))
   test('원화', () => expect(formatMoney(11040, 'KRW')).toBe('₩11,040'))
 })
 

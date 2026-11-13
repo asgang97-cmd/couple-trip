@@ -8,6 +8,7 @@ export const TRIP: Trip = {
   end_date: '2027-01-14',
   currency: 'JPY',
   manual_rate: null,
+  cover_path: null,
 }
 
 let n = 0

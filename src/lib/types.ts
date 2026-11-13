@@ -8,6 +8,7 @@ export interface Trip {
   end_date: string // 'YYYY-MM-DD'
   currency: string // 여행 통화, 예: 'JPY'
   manual_rate: number | null // 현지통화 1단위 = 이 값(원)
+  cover_path: string | null // Storage 'covers' 안의 커플 사진 파일 위치
 }
 
 export interface Item {

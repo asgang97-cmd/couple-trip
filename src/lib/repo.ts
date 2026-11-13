@@ -52,10 +52,27 @@ export async function addComment(itemId: string, member: Member, body: string): 
   return check(await supabase.from('comments').insert({ item_id: itemId, member, body }).select().single()) as Comment
 }
 
-/** items/hearts/comments 중 무엇이든 바뀌면 onChange. 반환값을 부르면 구독 해제. */
+/** 커플 사진 올리기: 새 파일 저장 → 여행에 위치 기록 → 예전 파일 삭제 */
+export async function uploadCover(trip: Trip, photo: Blob): Promise<string> {
+  const path = `${trip.id}/${Date.now()}.jpg`
+  const up = await supabase.storage.from('covers').upload(path, photo, { contentType: 'image/jpeg' })
+  if (up.error) throw new Error(up.error.message)
+  check(await supabase.from('trips').update({ cover_path: path }).eq('id', trip.id))
+  if (trip.cover_path) await supabase.storage.from('covers').remove([trip.cover_path]) // 실패해도 무시
+  return path
+}
+
+/** 비공개 사진을 7일간 볼 수 있는 주소 */
+export async function coverUrl(path: string): Promise<string> {
+  const res = await supabase.storage.from('covers').createSignedUrl(path, 60 * 60 * 24 * 7)
+  if (res.error) throw new Error(res.error.message)
+  return res.data.signedUrl
+}
+
+/** trips/items/hearts/comments 중 무엇이든 바뀌면 onChange. 반환값을 부르면 구독 해제. */
 export function subscribe(tripId: string, onChange: () => void): () => void {
   const channel = supabase.channel(`trip-${tripId}`)
-  for (const table of ['items', 'hearts', 'comments']) {
+  for (const table of ['trips', 'items', 'hearts', 'comments']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
   }
   channel.subscribe()

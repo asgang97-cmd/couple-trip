@@ -23,6 +23,16 @@ export function daysUntil(target: string, now: Date): number {
   return Math.round((parseLocalDate(target).getTime() - today.getTime()) / DAY_MS)
 }
 
+/** 첫 화면 문구: 'D-9' / 'D-DAY' / '여행 3일차' / '다녀온 지 2일' */
+export function tripPhaseLabel(start: string, end: string, now: Date): string {
+  const toStart = daysUntil(start, now)
+  if (toStart > 0) return `D-${toStart}`
+  if (toStart === 0) return 'D-DAY'
+  const toEnd = daysUntil(end, now)
+  if (toEnd >= 0) return `여행 ${-toStart + 1}일차`
+  return `다녀온 지 ${-toEnd}일`
+}
+
 /** start~end(포함)의 모든 날짜 */
 export function tripDays(start: string, end: string): string[] {
   const days: string[] = []

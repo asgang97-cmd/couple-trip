@@ -4,9 +4,21 @@ import { TRIP, makeItem } from '../test-fixtures'
 import { theme } from '../theme'
 import { ItemCard } from './ItemCard'
 
-const base = { trip: TRIP, member: 'a' as const, disabled: false, onEdit: () => {} }
+const base = { trip: TRIP, member: 'a' as const, rate: 9.2, disabled: false, onEdit: () => {} }
 
 describe('ItemCard', () => {
+  test('비용: 현지통화 + 원화 환산', () => {
+    render(<ItemCard {...base} item={makeItem({ cost_amount: 1200, cost_currency: 'JPY' })} />)
+    expect(screen.getByText('¥1,200 (≈ ₩11,040)')).toBeInTheDocument()
+  })
+
+  test('비용: 환율 없으면 현지통화만, 원화 항목은 원화만', () => {
+    const { rerender } = render(<ItemCard {...base} rate={null} item={makeItem({ cost_amount: 1200, cost_currency: 'JPY' })} />)
+    expect(screen.getByText('¥1,200')).toBeInTheDocument()
+    rerender(<ItemCard {...base} item={makeItem({ cost_amount: 5000, cost_currency: 'KRW' })} />)
+    expect(screen.getByText('₩5,000')).toBeInTheDocument()
+  })
+
   test('시간·장소·메모·작성자 표시, 시간 없으면 "시간 미정"', () => {
     render(<ItemCard {...base} item={makeItem({ place_name: '센소지', memo: '아침 일찍', created_by: 'b' })} />)
     expect(screen.getByText('센소지')).toBeInTheDocument()

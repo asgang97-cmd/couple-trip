@@ -1,0 +1,44 @@
+import { tripPhaseLabel } from '../lib/dates'
+import type { Trip } from '../lib/types'
+import { theme } from '../theme'
+
+interface Props {
+  trip: Trip
+  coverUrl: string | null // 앱에서 올린 사진(서명된 주소). 없으면 theme.coverPhoto
+  now?: Date
+  uploading: boolean
+  disabled: boolean
+  onPickPhoto: (file: File) => void
+}
+
+export function HomeHeader({ trip, coverUrl, now = new Date(), uploading, disabled, onPickPhoto }: Props) {
+  const photo = coverUrl ?? theme.coverPhoto
+  return (
+    <header
+      className="cover"
+      data-testid="cover"
+      // 사진이 없거나 못 불러오면 아래 그라데이션이 보임
+      style={{ backgroundImage: `linear-gradient(transparent 30%, rgba(0,0,0,0.55)), url("${photo}"), linear-gradient(135deg, var(--primary), #ffb3c1)` }}
+    >
+      <label className={`photo-btn${uploading || disabled ? ' off' : ''}`}>
+        {uploading ? '올리는 중…' : '📷'}
+        <input
+          type="file"
+          accept="image/*"
+          aria-label="사진 바꾸기"
+          disabled={uploading || disabled}
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) onPickPhoto(f)
+            e.target.value = '' // 같은 사진을 다시 골라도 동작하게
+          }}
+        />
+      </label>
+      <div className="cover-text">
+        <p className="greeting">{theme.greeting}</p>
+        <p className="dday">{tripPhaseLabel(trip.start_date, trip.end_date, now)}</p>
+        <h1>{trip.title}</h1>
+      </div>
+    </header>
+  )
+}

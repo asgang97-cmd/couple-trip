@@ -1,9 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, toDateString, tripDays } from '../lib/dates'
-import { deleteItem, upsertItem } from '../lib/repo'
+import { resizeImage } from '../lib/image'
+import { coverUrl as getCoverUrl, deleteItem, uploadCover, upsertItem } from '../lib/repo'
 import type { Item, ItemInput, Member } from '../lib/types'
+import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
+import { HomeHeader } from './HomeHeader'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 
@@ -11,11 +15,25 @@ type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 
 export function TripPage({ member }: { member: Member }) {
   const data = useTripData()
+  const rate = useRate(data.trip)
   const [selected, setSelected] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(null)
+  const [cover, setCover] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   const days = useMemo(() => (data.trip ? tripDays(data.trip.start_date, data.trip.end_date) : []), [data.trip])
   const byDay = useMemo(() => groupItemsByDay(data.items, days), [data.items, days])
+
+  // 사진 위치가 바뀌면(내가 올리든 상대가 올리든) 새 주소 받아오기
+  const coverPath = data.trip?.cover_path ?? null
+  useEffect(() => {
+    if (!coverPath) return setCover(null)
+    let alive = true
+    getCoverUrl(coverPath).then((u) => alive && setCover(u), () => alive && setCover(null))
+    return () => {
+      alive = false
+    }
+  }, [coverPath])
 
   if (data.status === 'loading') return <p className="empty">불러오는 중…</p>
   if (data.status === 'error' || !data.trip) {
@@ -56,13 +74,24 @@ export function TripPage({ member }: { member: Member }) {
     }
   }
 
+  async function changePhoto(file: File) {
+    setUploading(true)
+    try {
+      await uploadCover(trip, await resizeImage(file))
+      await data.reload()
+    } catch {
+      alert('사진을 올리지 못했어요. 다른 사진으로 해보거나 다시 시도해 주세요')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <>
-      <header className="trip-head">
-        <h1>{trip.title}</h1>
-      </header>
+      <HomeHeader trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
-      <ItemList items={dayItems} trip={trip} member={member} disabled={disabled} onEdit={(item) => setForm({ mode: 'edit', item })} />
+      <CostSummary dayItems={dayItems} allItems={data.items} trip={trip} rate={rate} />
+      <ItemList items={dayItems} trip={trip} member={member} rate={rate.rate} disabled={disabled} onEdit={(item) => setForm({ mode: 'edit', item })} />
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>
       </div>
