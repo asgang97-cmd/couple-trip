@@ -3,7 +3,7 @@ import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, toDateString, tripDays } from '../lib/dates'
 import { resizeImage } from '../lib/image'
-import { coverUrl as getCoverUrl, deleteItem, uploadCover, upsertItem } from '../lib/repo'
+import { addComment, coverUrl as getCoverUrl, deleteItem, toggleHeart, uploadCover, upsertItem } from '../lib/repo'
 import type { Item, ItemInput, Member } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
@@ -74,6 +74,25 @@ export function TripPage({ member }: { member: Member }) {
     }
   }
 
+  async function heart(itemId: string, on: boolean) {
+    try {
+      await toggleHeart(itemId, member, on)
+      await data.reload()
+    } catch {
+      alert('하트를 보내지 못했어요')
+    }
+  }
+
+  async function comment(itemId: string, body: string) {
+    try {
+      await addComment(itemId, member, body)
+      await data.reload()
+    } catch {
+      alert('댓글을 보내지 못했어요')
+      throw new Error('comment failed') // 입력한 글이 지워지지 않게
+    }
+  }
+
   async function changePhoto(file: File) {
     setUploading(true)
     try {
@@ -91,7 +110,18 @@ export function TripPage({ member }: { member: Member }) {
       <HomeHeader trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={data.items} trip={trip} rate={rate} />
-      <ItemList items={dayItems} trip={trip} member={member} rate={rate.rate} disabled={disabled} onEdit={(item) => setForm({ mode: 'edit', item })} />
+      <ItemList
+        items={dayItems}
+        trip={trip}
+        member={member}
+        rate={rate.rate}
+        hearts={data.hearts}
+        comments={data.comments}
+        disabled={disabled}
+        onEdit={(item) => setForm({ mode: 'edit', item })}
+        onToggleHeart={heart}
+        onAddComment={comment}
+      />
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>
       </div>

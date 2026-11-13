@@ -1,10 +1,49 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, test } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, test, vi } from 'vitest'
 import { TRIP, makeItem } from '../test-fixtures'
 import { theme } from '../theme'
 import { ItemCard } from './ItemCard'
 
-const base = { trip: TRIP, member: 'a' as const, rate: 9.2, disabled: false, onEdit: () => {} }
+const base = {
+  trip: TRIP, member: 'a' as const, rate: 9.2, disabled: false, onEdit: () => {},
+  hearts: [], comments: [], onToggleHeart: async () => {}, onAddComment: async () => {},
+}
+
+describe('ItemCard 하트·댓글', () => {
+  const item = makeItem({ id: 'it' })
+
+  test('내가 안 눌렀으면 켜기, 눌렀으면 끄기', async () => {
+    const onToggleHeart = vi.fn(async () => {})
+    const { rerender } = render(<ItemCard {...base} item={item} onToggleHeart={onToggleHeart} />)
+    await userEvent.click(screen.getByRole('button', { name: '하트' }))
+    expect(onToggleHeart).toHaveBeenLastCalledWith(true)
+    rerender(<ItemCard {...base} item={item} onToggleHeart={onToggleHeart} hearts={[{ item_id: 'it', member: 'a' }]} />)
+    expect(screen.getByRole('button', { name: '하트' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: '하트' }))
+    expect(onToggleHeart).toHaveBeenLastCalledWith(false)
+  })
+
+  test('둘 다 누르면 💕, 한 명이면 그 사람 이모지 + ❤️', () => {
+    const { rerender } = render(<ItemCard {...base} item={item} hearts={[{ item_id: 'it', member: 'b' }]} />)
+    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent(`${theme.emoji.b}❤️`)
+    rerender(<ItemCard {...base} item={item} hearts={[{ item_id: 'it', member: 'a' }, { item_id: 'it', member: 'b' }]} />)
+    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent('💕')
+  })
+
+  test('댓글 개수 표시, 누르면 펼침', async () => {
+    const comments = [1, 2].map((n) => ({ id: `c${n}`, item_id: 'it', member: 'b' as const, body: `댓글${n}`, created_at: `2026-11-14T0${n}:00:00Z` }))
+    render(<ItemCard {...base} item={item} comments={comments} />)
+    expect(screen.queryByText('댓글1')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: '💬 2' }))
+    expect(screen.getByText('댓글1')).toBeInTheDocument()
+  })
+
+  test('오프라인이면 하트 막힘', () => {
+    render(<ItemCard {...base} item={item} disabled />)
+    expect(screen.getByRole('button', { name: '하트' })).toBeDisabled()
+  })
+})
 
 describe('ItemCard', () => {
   test('비용: 현지통화 + 원화 환산', () => {
