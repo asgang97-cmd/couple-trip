@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import { TRIP, makeItem } from '../test-fixtures'
+import { theme } from '../theme'
 import { ItemCard } from './ItemCard'
 
 const base = { trip: TRIP, member: 'a' as const, disabled: false, onEdit: () => {} }
@@ -11,7 +12,7 @@ describe('ItemCard', () => {
     expect(screen.getByText('센소지')).toBeInTheDocument()
     expect(screen.getByText('아침 일찍')).toBeInTheDocument()
     expect(screen.getByText('시간 미정')).toBeInTheDocument()
-    expect(screen.getByLabelText('작성: 너')).toBeInTheDocument()
+    expect(screen.getByLabelText(`작성: ${theme.names.b}`)).toBeInTheDocument()
   })
 
   test('http(s) 예약 링크만 링크로 보여줌', () => {
