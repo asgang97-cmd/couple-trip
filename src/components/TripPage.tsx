@@ -8,6 +8,7 @@ import {
 } from '../lib/repo'
 import type { Item, ItemInput, Member } from '../lib/types'
 import { CostSummary } from './CostSummary'
+import { DayMap } from './DayMap'
 import { DayTabs } from './DayTabs'
 import { HomeHeader } from './HomeHeader'
 import { ItemForm } from './ItemForm'
@@ -23,6 +24,7 @@ export function TripPage({ member }: { member: Member }) {
   const [form, setForm] = useState<FormState>(null)
   const [cover, setCover] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [view, setView] = useState<'list' | 'map'>('list')
 
   const days = useMemo(() => (data.trip ? tripDays(data.trip.start_date, data.trip.end_date) : []), [data.trip])
   const byDay = useMemo(() => groupItemsByDay(data.items, days), [data.items, days])
@@ -118,7 +120,12 @@ export function TripPage({ member }: { member: Member }) {
       <HomeHeader trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={data.items} trip={trip} rate={rate} />
-      <ItemList
+      <div className="view-toggle" role="group" aria-label="보기">
+        <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>📋 목록</button>
+        <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}>🗺️ 지도</button>
+      </div>
+      {view === 'map' && <DayMap items={dayItems} />}
+      {view === 'list' && <ItemList
         items={dayItems}
         trip={trip}
         member={member}
@@ -131,7 +138,7 @@ export function TripPage({ member }: { member: Member }) {
         onAddComment={comment}
         onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
         onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
-      />
+      />}
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>
       </div>

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
+import { directionsUrl } from '../lib/maps'
 import { TRIP, makeItem } from '../test-fixtures'
 import { theme } from '../theme'
 import { ItemCard } from './ItemCard'
@@ -72,6 +73,14 @@ describe('ItemCard', () => {
     expect(screen.getByRole('link', { name: '예약 페이지' })).toHaveAttribute('href', 'https://booking.com/x')
     rerender(<ItemCard {...base} item={makeItem({ booking_url: 'javascript:alert(1)' })} />)
     expect(screen.queryByRole('link', { name: '예약 페이지' })).toBeNull()
+  })
+
+  test('위치가 있으면 "여기로 길찾기" 링크, 없으면 없음', () => {
+    const it = makeItem({ lat: 35.7, lng: 139.8 })
+    const { rerender } = render(<ItemCard {...base} item={it} />)
+    expect(screen.getByRole('link', { name: '📍 여기로 길찾기' })).toHaveAttribute('href', directionsUrl([it]))
+    rerender(<ItemCard {...base} item={makeItem()} />)
+    expect(screen.queryByRole('link', { name: '📍 여기로 길찾기' })).toBeNull()
   })
 
   test('예약 번호 표시', () => {

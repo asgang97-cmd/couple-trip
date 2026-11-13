@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { directionsUrl } from '../lib/maps'
 import { formatMoney, toKrw } from '../lib/money'
 import type { Comment, Heart, Item, Member, Trip } from '../lib/types'
 import { theme } from '../theme'
@@ -57,6 +58,9 @@ export function ItemCard({
       <h3>{item.place_name}</h3>
       {item.memo && <p className="memo">{item.memo}</p>}
       {item.cost_amount !== null && <p className="cost">{costLabel(item.cost_amount, item.cost_currency, rate)}</p>}
+      {item.lat !== null && item.lng !== null && (
+        <a className="go-link" href={directionsUrl([item])!} target="_blank" rel="noopener noreferrer">📍 여기로 길찾기</a>
+      )}
       {(item.booking_code || isWebUrl(item.booking_url)) && (
         <div className="booking">
           {item.booking_code && (
