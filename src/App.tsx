@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { MemberPicker } from './components/MemberPicker'
 import { PasswordGate } from './components/PasswordGate'
+import { TripPage } from './components/TripPage'
 import { getMember, isSignedIn, setMember } from './lib/session'
 import type { Member } from './lib/types'
 import { theme } from './theme'
@@ -24,13 +25,7 @@ export default function App() {
   if (signedIn === null) screen = null
   else if (!signedIn) screen = <PasswordGate onSuccess={() => setSignedIn(true)} />
   else if (!member) screen = <MemberPicker onPick={pick} />
-  else
-    screen = (
-      <main className="center-screen">
-        <h1>준비 완료 {theme.emoji[member]}</h1>
-        <p>{theme.names[member]}(으)로 들어왔어요. 일정 화면은 다음 단계에서 만들어요.</p>
-      </main>
-    )
+  else screen = <TripPage member={member} />
 
   return (
     <div className="app" style={themeVars}>

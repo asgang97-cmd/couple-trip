@@ -73,3 +73,79 @@ button:disabled { opacity: 0.45; cursor: default; }
   border: 2px solid var(--border);
 }
 .big-choice .emoji { font-size: 3rem; }
+
+button.ghost { background: transparent; color: var(--primary); padding: 8px 10px; }
+button.danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
+
+/* 여행 화면 */
+.trip-head { padding: 20px 0 8px; }
+.trip-head h1 { margin: 0; }
+
+.day-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0 12px;
+  margin: 0 -16px;
+  padding-inline: 16px;
+  scrollbar-width: none;
+}
+.tab {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 72px;
+  padding: 8px 12px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.tab small { font-weight: 400; color: var(--muted); }
+.tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.tab.active small { color: rgba(255, 255, 255, 0.85); }
+
+.item-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 96px; }
+.empty { text-align: center; color: var(--muted); padding: 40px 0; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px 8px;
+}
+.card h3 { margin: 2px 0 4px; font-size: 1.1rem; overflow-wrap: anywhere; }
+.card-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.9rem; }
+.card .memo { margin: 0 0 6px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.booking { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+.booking a { color: var(--primary); }
+.chip { background: var(--bg); color: var(--text); border: 1px dashed var(--border); padding: 4px 10px; font-weight: 500; }
+.card-actions { display: flex; justify-content: flex-end; }
+
+.bottom-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 35%);
+  display: flex;
+  justify-content: center;
+}
+.bottom-bar button { width: 100%; max-width: 448px; padding: 14px; }
+
+/* 아래에서 올라오는 입력 창 */
+.sheet-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(20, 10, 20, 0.35);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 10;
+}
+.sheet {
+  width: 100%; max-width: 480px; max-height: 92dvh; overflow-y: auto;
+  background: var(--bg);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+}
+.sheet.stack { max-width: 480px; } /* .stack의 320px 제한 덮어쓰기 */
+.sheet label { font-size: 0.9rem; color: var(--muted); margin-bottom: -6px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; }
+.sheet-head h2 { margin: 0; font-size: 1.2rem; }
