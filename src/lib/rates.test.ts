@@ -1,17 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
+import { memoryStorage } from '../test-utils'
 import { getRate } from './rates'
-
-function memoryStorage(init: Record<string, string> = {}): Storage {
-  const m = new Map(Object.entries(init))
-  return {
-    get length() { return m.size },
-    clear: () => m.clear(),
-    getItem: (k) => m.get(k) ?? null,
-    key: (i) => [...m.keys()][i] ?? null,
-    removeItem: (k) => void m.delete(k),
-    setItem: (k, v) => void m.set(k, String(v)),
-  }
-}
 
 const NOW = new Date('2027-01-05T03:00:00Z')
 const okFetch = (krw: number) =>
