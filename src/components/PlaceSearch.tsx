@@ -1,5 +1,5 @@
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps'
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { PickedPlace } from './ItemForm'
 
 interface Props {
@@ -20,12 +20,17 @@ function SearchBox({ onPick, near }: Omit<Props, 'apiKey'>) {
   const places = useMapsLibrary('places')
   const box = useRef<HTMLDivElement>(null)
   const onPickRef = useRef(onPick)
-  onPickRef.current = onPick
+  useLayoutEffect(() => {
+    onPickRef.current = onPick
+  })
+  // 객체 대신 숫자로 비교: 화면이 다시 그려질 때마다 검색창이 새로 만들어져 입력이 지워지지 않게
+  const nearLat = near?.lat
+  const nearLng = near?.lng
 
   useEffect(() => {
     if (!places || !box.current) return
     const el = new places.PlaceAutocompleteElement(
-      near ? { locationBias: { center: near, radius: 50_000 } } : {},
+      nearLat != null && nearLng != null ? { locationBias: { center: { lat: nearLat, lng: nearLng }, radius: 50_000 } } : {},
     ) as unknown as HTMLElement
     el.setAttribute('placeholder', '장소 검색 (예: 센소지)')
 
@@ -51,7 +56,7 @@ function SearchBox({ onPick, near }: Omit<Props, 'apiKey'>) {
     el.addEventListener('gmp-placeselect', onSelect)
     box.current.appendChild(el)
     return () => el.remove()
-  }, [places, near])
+  }, [places, nearLat, nearLng])
 
   return <div ref={box} className="place-search" aria-label="장소 검색" />
 }

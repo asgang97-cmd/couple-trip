@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { MemberPicker } from './components/MemberPicker'
 import { PasswordGate } from './components/PasswordGate'
 import { TripPage } from './components/TripPage'
-import { getMember, isSignedIn, setMember } from './lib/session'
+import { getMember, isSignedIn, onSignedOut, setMember } from './lib/session'
 import type { Member } from './lib/types'
 import { theme } from './theme'
 
@@ -14,6 +14,7 @@ export default function App() {
 
   useEffect(() => {
     isSignedIn().then(setSignedIn, () => setSignedIn(false))
+    return onSignedOut(() => setSignedIn(false))
   }, [])
 
   function pick(m: Member) {

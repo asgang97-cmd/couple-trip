@@ -13,6 +13,7 @@ interface Props {
   mapId?: string
   loadLeg?: LoadLeg // 테스트에서 바꿔 끼우기용
   now?: Date
+  timeZone?: string | null // 여행지 시간대 (대중교통 출발 시각 계산용)
 }
 
 type Located = ReturnType<typeof itemsWithLocation>[number]
@@ -74,31 +75,40 @@ export function DayMap({
   mapId = import.meta.env.VITE_GOOGLE_MAP_ID,
   loadLeg,
   now,
+  timeZone,
 }: Props) {
   const [mode, setMode] = useState<RouteMode>('walk')
-  const [legs, setLegs] = useState<(Leg | null | undefined)[]>([])
+  // 계산 결과 + 어떤 요청(장소·이동수단)에 대한 결과인지
+  const [result, setResult] = useState<{ key: object; legs: (Leg | null)[] } | null>(null)
 
   // 좌표·시간이 바뀔 때만 다시 계산하도록 안정된 키로 묶기
   const located = itemsWithLocation(items)
   const signature = located.map((p) => `${p.id}:${p.lat},${p.lng}@${p.day} ${p.time ?? ''}`).join('|')
   const points = useMemo(() => located, [signature]) // eslint-disable-line react-hooks/exhaustive-deps -- signature가 located를 대표함
 
+  // 요청이 바뀌면 새 객체 → 예전 결과는 자동으로 무시됨 (계산 중엔 undefined = 아직)
+  const request = useMemo(() => ({ points, mode, timeZone }), [points, mode, timeZone])
+  const canRoute = !!apiKey && points.length >= 2
+  const legs: (Leg | null | undefined)[] = !canRoute
+    ? []
+    : result?.key === request ? result.legs : points.slice(0, -1).map(() => undefined)
+
   useEffect(() => {
-    if (!apiKey || points.length < 2) return setLegs([])
+    if (!apiKey || request.points.length < 2) return
+    const { points, mode, timeZone } = request
     const load: LoadLeg = loadLeg ?? ((a, b, m, dep) => getLeg(a, b, m, { apiKey, departureTime: dep }))
     const at = now ?? new Date()
     let alive = true
-    setLegs(points.slice(0, -1).map(() => undefined))
     Promise.all(
       points.slice(0, -1).map((p, i) => {
-        const dep = mode === 'transit' ? transitDeparture(p.day, p.time, at) : undefined
+        const dep = mode === 'transit' ? transitDeparture(p.day, p.time, at, timeZone) : undefined
         return load({ lat: p.lat, lng: p.lng }, { lat: points[i + 1].lat, lng: points[i + 1].lng }, mode, dep)
       }),
-    ).then((r) => alive && setLegs(r))
+    ).then((r) => alive && setResult({ key: request, legs: r }))
     return () => {
       alive = false
     }
-  }, [points, mode, apiKey, loadLeg, now])
+  }, [request, apiKey, loadLeg, now])
 
   if (!apiKey) return <p className="empty">지도를 쓰려면 구글맵 API 키가 필요해요</p>
   if (points.length === 0) return <p className="empty">일정에 장소를 검색해서 넣으면 지도에 보여요</p>

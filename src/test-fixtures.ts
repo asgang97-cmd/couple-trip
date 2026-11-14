@@ -9,6 +9,7 @@ export const TRIP: Trip = {
   currency: 'JPY',
   manual_rate: null,
   cover_path: null,
+  timezone: null,
 }
 
 let n = 0

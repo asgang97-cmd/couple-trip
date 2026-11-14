@@ -10,6 +10,7 @@ describe('toKrw', () => {
 
 describe('formatMoney', () => {
   test('엔화는 짧은 기호(JP¥ 아님)', () => expect(formatMoney(1200, 'JPY')).toBe('¥1,200'))
+  test('잘못된 통화 코드여도 화면이 멈추지 않고 숫자+코드로', () => expect(formatMoney(1200, 'JP')).toBe('1,200 JP'))
   test('원화', () => expect(formatMoney(11040, 'KRW')).toBe('₩11,040'))
 })
 

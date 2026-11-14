@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { daysUntil, groupItemsByDay, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
+import { daysUntil, groupItemsByDay, itemsInTrip, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
+import { makeItem } from '../test-fixtures'
 import type { Item } from './types'
 
 describe('parseLocalDate / toDateString', () => {
@@ -74,5 +75,13 @@ describe('groupItemsByDay', () => {
     expect(Object.keys(g)).toEqual([D1, D2])
     expect(g[D1].map((i) => i.place_name)).toEqual(['p0930', 'p14', 'n1', 'n2'])
     expect(g[D2]).toEqual([])
+  })
+})
+
+describe('itemsInTrip', () => {
+  test('여행 기간 밖(목록에 안 보이는) 일정은 빼서, 전체 비용 합계와 목록이 맞게', () => {
+    const inside = makeItem({ day: '2027-01-11' })
+    const outside = makeItem({ day: '2027-01-20' })
+    expect(itemsInTrip([inside, outside], ['2027-01-10', '2027-01-11'])).toEqual([inside])
   })
 })

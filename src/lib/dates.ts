@@ -61,3 +61,9 @@ export function groupItemsByDay(items: Item[], days: string[]): Record<string, I
   for (const day of days) groups[day].sort(compareItems)
   return groups
 }
+
+/** 여행 기간(days) 안의 일정만. 기간이 줄어 목록에서 안 보이는 일정은 합계에서도 뺀다. */
+export function itemsInTrip(items: Item[], days: string[]): Item[] {
+  const set = new Set(days)
+  return items.filter((it) => set.has(it.day))
+}

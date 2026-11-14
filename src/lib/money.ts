@@ -8,7 +8,12 @@ export function toKrw(amount: number, currency: string, rate: number | null): nu
 }
 
 export function formatMoney(amount: number, currency: string): string {
-  return new Intl.NumberFormat('ko-KR', { style: 'currency', currency, currencyDisplay: 'narrowSymbol' }).format(amount)
+  try {
+    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency, currencyDisplay: 'narrowSymbol' }).format(amount)
+  } catch {
+    // 통화 코드가 잘못돼도 화면이 멈추지 않게
+    return `${new Intl.NumberFormat('ko-KR').format(amount)} ${currency}`
+  }
 }
 
 /** 비용 있는 항목의 원화 합계. 환율이 없어 환산 못 한 항목은 개수로 따로 센다. */

@@ -16,10 +16,17 @@ describe('HomeHeader', () => {
   })
 
   test('올린 사진이 있으면 그 사진, 없으면 기본 사진 경로를 배경으로', () => {
-    const { rerender } = render(<HomeHeader {...base} coverUrl="https://x/signed.jpg" />)
+    const { rerender } = render(<HomeHeader {...base} coverUrl="https://x/signed.jpg" fallbackPhoto="/us.jpg" />)
     expect(screen.getByTestId('cover').style.backgroundImage).toContain('https://x/signed.jpg')
-    rerender(<HomeHeader {...base} coverUrl={null} />)
-    expect(screen.getByTestId('cover').style.backgroundImage).toContain(theme.coverPhoto)
+    rerender(<HomeHeader {...base} coverUrl={null} fallbackPhoto="/us.jpg" />)
+    expect(screen.getByTestId('cover').style.backgroundImage).toContain('/us.jpg')
+  })
+
+  test('사진이 하나도 없으면 없는 파일을 요청하지 않고 그라데이션만', () => {
+    render(<HomeHeader {...base} coverUrl={null} fallbackPhoto={null} />)
+    const bg = screen.getByTestId('cover').style.backgroundImage
+    expect(bg).not.toContain('url(')
+    expect(bg).toContain('linear-gradient')
   })
 
   test('사진 고르면 onPickPhoto(file)', async () => {

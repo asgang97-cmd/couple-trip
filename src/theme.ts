@@ -8,8 +8,9 @@ export const theme = {
   primary: '#ff6b81', // 버튼·강조색
   background: '#fff7f8', // 배경색
 
-  // public 폴더에 넣은 커플 사진 파일 이름
-  coverPhoto: '/cover.jpg',
+  // 앱에서 사진을 올리기 전에 보일 기본 사진.
+  // public 폴더에 사진(예: cover.jpg)을 넣고 '/cover.jpg' 로 바꾸세요. null이면 분홍 그라데이션만.
+  coverPhoto: null as string | null,
 
   // 문구
   appName: '우리 여행',

@@ -1,8 +1,14 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { parseLocalDate } from '../lib/dates'
 import type { Item, ItemInput, Member, Trip } from '../lib/types'
+
+const dayFmt = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
 
 interface Props {
   trip: Trip
+  /** 여행 날짜 목록 (날짜 고르기 칸) */
+  days: string[]
+  /** 지금 보고 있는 날 (새 일정의 기본 날짜) */
   day: string
   member: Member
   nextSortOrder: number
@@ -28,12 +34,13 @@ function parseCost(raw: string): number | null {
   return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN
 }
 
-export function ItemForm({ trip, day, member, nextSortOrder, initial, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
+export function ItemForm({ trip, days, day, member, nextSortOrder, initial, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
   const [location, setLocation] = useState(
     initial?.lat != null && initial?.lng != null
       ? { lat: initial.lat, lng: initial.lng, placeId: initial.google_place_id }
       : null,
   )
+  const [itemDay, setItemDay] = useState(initial?.day ?? day)
   const [time, setTime] = useState(initial?.time ?? '')
   const [placeName, setPlaceName] = useState(initial?.place_name ?? '')
   const [memo, setMemo] = useState(initial?.memo ?? '')
@@ -55,7 +62,7 @@ export function ItemForm({ trip, day, member, nextSortOrder, initial, onSave, on
       await onSave({
         ...(initial ? { id: initial.id } : {}),
         trip_id: trip.id,
-        day: initial?.day ?? day,
+        day: itemDay,
         time: time || null,
         place_name: placeName.trim(),
         memo: memo.trim(),
@@ -94,6 +101,15 @@ export function ItemForm({ trip, day, member, nextSortOrder, initial, onSave, on
         )}
         <label htmlFor="f-place">장소</label>
         <input id="f-place" value={placeName} onChange={(e) => setPlaceName(e.target.value)} maxLength={200} placeholder="예: 센소지" />
+
+        <label htmlFor="f-day">날짜</label>
+        <select id="f-day" value={itemDay} onChange={(e) => setItemDay(e.target.value)}>
+          {/* 여행 기간이 줄어 원래 날짜가 목록에 없어도 그대로 고를 수 있게 */}
+          {(days.includes(itemDay) ? days : [itemDay, ...days]).map((d) => {
+            const n = days.indexOf(d)
+            return <option key={d} value={d}>{n >= 0 ? `${n + 1}일차 · ` : ''}{dayFmt.format(parseLocalDate(d))}</option>
+          })}
+        </select>
 
         <label htmlFor="f-time">시간</label>
         <input id="f-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />

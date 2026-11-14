@@ -5,10 +5,11 @@ import { TRIP, makeItem } from '../test-fixtures'
 import { ItemForm } from './ItemForm'
 
 const DAY = '2027-01-11'
+const DAYS = ['2027-01-10', '2027-01-11', '2027-01-12', '2027-01-13', '2027-01-14']
 
 function setup(over: Partial<Parameters<typeof ItemForm>[0]> = {}) {
   const onSave = vi.fn(async () => {})
-  render(<ItemForm trip={TRIP} day={DAY} member="b" nextSortOrder={3} onSave={onSave} onClose={() => {}} {...over} />)
+  render(<ItemForm trip={TRIP} days={DAYS} day={DAY} member="b" nextSortOrder={3} onSave={onSave} onClose={() => {}} {...over} />)
   return { onSave, save: () => screen.getByRole('button', { name: '저장' }) }
 }
 
@@ -101,6 +102,28 @@ describe('ItemForm', () => {
       expect(screen.queryByText('📍 지도에 표시돼요')).toBeNull()
       await userEvent.click(save())
       expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ lat: null, lng: null, google_place_id: null }))
+    })
+  })
+
+  describe('날짜', () => {
+    test('새 일정은 지금 보고 있는 날이 기본', () => {
+      setup()
+      expect(screen.getByLabelText('날짜')).toHaveValue(DAY)
+    })
+
+    test('여행 날짜들 중에서 고를 수 있음', () => {
+      setup()
+      const options = Array.from((screen.getByLabelText('날짜') as HTMLSelectElement).options).map((o) => o.value)
+      expect(options).toEqual(DAYS)
+    })
+
+    test('수정할 때 다른 날로 옮기면 그 날짜로 저장 (하트·댓글은 그대로 유지됨)', async () => {
+      const initial = makeItem({ id: 'keep', day: '2027-01-10' })
+      const { onSave, save } = setup({ initial })
+      expect(screen.getByLabelText('날짜')).toHaveValue('2027-01-10')
+      await userEvent.selectOptions(screen.getByLabelText('날짜'), '2027-01-13')
+      await userEvent.click(save())
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ id: 'keep', day: '2027-01-13' }))
     })
   })
 

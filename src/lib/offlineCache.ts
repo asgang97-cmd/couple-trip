@@ -1,3 +1,4 @@
+import { clearRouteCache } from './routes'
 import type { Comment, Heart, Item, Trip } from './types'
 
 /** 마지막으로 불러온 여행 데이터. 인터넷이 끊기면 이걸 보여준다. */
@@ -12,10 +13,17 @@ export interface Snapshot {
 const KEY = 'snapshot:v1'
 
 export function saveSnapshot(s: Snapshot, storage: Storage = globalThis.localStorage): void {
+  const raw = JSON.stringify(s)
   try {
-    storage.setItem(KEY, JSON.stringify(s))
+    storage.setItem(KEY, raw)
   } catch {
-    // 저장 공간이 막혀도 앱은 계속 동작
+    // 공간이 꽉 찼으면 지도 경로 저장본(다시 받을 수 있음)을 비우고 한 번 더
+    clearRouteCache(storage)
+    try {
+      storage.setItem(KEY, raw)
+    } catch {
+      // 저장 공간이 막혀도 앱은 계속 동작
+    }
   }
 }
 
