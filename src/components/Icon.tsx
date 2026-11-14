@@ -14,6 +14,8 @@ const PATHS = {
   trash: 'M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3',
   heart: 'M12 20s-7.5-4.6-9.2-9.3C1.7 7.6 3.6 4.5 6.8 4.5c2 0 3.4 1.2 5.2 3.1 1.8-1.9 3.2-3.1 5.2-3.1 3.2 0 5.1 3.1 4 6.2C19.5 15.4 12 20 12 20Z',
   plus: 'M12 5v14 M5 12h14',
+  plane: 'M10.5 21l1.5-1v-5.5l7.5 3V16l-7.5-5V5a1.5 1.5 0 0 0-3 0v6L1.5 16v1.5l7.5-3V20l1.5 1Z',
+  copy: 'M9 9h10v12H9z M5 15V3h10',
 } as const
 
 export type IconName = keyof typeof PATHS
