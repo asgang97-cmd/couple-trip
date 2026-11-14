@@ -30,18 +30,17 @@ export function useExpenses(server: Expense[], offline: boolean, deps: Deps) {
     }
     flushing.current = true
     try {
-      const d = ref.current
-      const r = await flushQueue({ add: d.add, remove: d.remove }, storage)
-      setQueue(loadQueue(storage))
-      if (r.sent > 0) await d.reload()
+      do {
+        again.current = false
+        const d = ref.current
+        const r = await flushQueue({ add: d.add, remove: d.remove }, storage)
+        setQueue(loadQueue(storage))
+        if (r.sent > 0) await d.reload()
+      } while (again.current)
     } finally {
       flushing.current = false
     }
-    if (again.current) {
-      again.current = false
-      await flush()
-    }
-  }, [storage]) // eslint-disable-line react-hooks/exhaustive-deps -- 자기 자신을 다시 부름
+  }, [storage])
 
   // 앱을 열 때·인터넷이 돌아올 때 남은 것 올리기
   useEffect(() => {
