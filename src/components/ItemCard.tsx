@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { directionsUrl } from '../lib/maps'
 import { formatMoney, toKrw } from '../lib/money'
-import type { Comment, Heart, Item, Member, Trip } from '../lib/types'
+import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
 import { theme } from '../theme'
 import { CommentThread } from './CommentThread'
 import { Icon } from './Icon'
@@ -19,6 +19,9 @@ interface Props {
   onAddComment: (body: string) => Promise<void>
   onEditComment: (id: string, body: string) => Promise<void>
   onDeleteComment: (id: string) => Promise<void>
+  vouchers: Voucher[] // 이 일정에 붙은 바우처
+  onOpenVoucher: (v: Voucher) => void
+  onAddVoucher: (file: File) => void
 }
 
 /** 하트: 둘 다 → 하트 두 개, 한 명 → 그 사람 이모지 + 하트, 없음 → 빈 하트 */
@@ -58,6 +61,7 @@ function costLabel(amount: number, currency: string, rate: number | null): strin
 
 export function ItemCard({
   item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment, onEditComment, onDeleteComment,
+  vouchers, onOpenVoucher, onAddVoucher,
 }: Props) {
   const [showComments, setShowComments] = useState(false)
   const mine = hearts.some((h) => h.member === member)
@@ -94,6 +98,29 @@ export function ItemCard({
           )}
         </div>
       )}
+      <div className="card-vouchers">
+        {vouchers.map((v) => (
+          <button key={v.id} type="button" className="chip voucher-chip" aria-label={`${v.title} 열기`} onClick={() => onOpenVoucher(v)}>
+            <Icon name="ticket" size={16} />
+            <span>{v.title}</span>
+          </button>
+        ))}
+        <label className={`chip voucher-add${disabled ? ' off' : ''}`}>
+          <Icon name="plus" size={16} />
+          바우처
+          <input
+            type="file"
+            accept="image/*,application/pdf,.pdf"
+            aria-label={`${item.place_name}에 바우처 올리기`}
+            disabled={disabled}
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) onAddVoucher(f)
+              e.target.value = ''
+            }}
+          />
+        </label>
+      </div>
       <div className="card-actions">
         <button type="button" className="ghost" aria-label="하트" aria-pressed={mine} disabled={disabled} onClick={() => void onToggleHeart(!mine)}>
           <HeartLabel hearts={hearts} />

@@ -10,6 +10,7 @@ const base = {
   trip: TRIP, member: 'a' as const, rate: 9.2, disabled: false, onEdit: () => {},
   hearts: [], comments: [], onToggleHeart: async () => {}, onAddComment: async () => {},
   onEditComment: async () => {}, onDeleteComment: async () => {},
+  vouchers: [], onOpenVoucher: () => {}, onAddVoucher: () => {},
 }
 
 describe('ItemCard 하트·댓글', () => {
@@ -86,5 +87,27 @@ describe('ItemCard', () => {
   test('예약 번호 표시', () => {
     render(<ItemCard {...base} item={makeItem({ booking_code: 'ABC123' })} />)
     expect(screen.getByText('ABC123')).toBeInTheDocument()
+  })
+})
+
+describe('ItemCard 바우처', () => {
+  const item = makeItem({ id: 'it', place_name: '디즈니랜드' })
+  const v = { id: 'v1', trip_id: 't', item_id: 'it', day: null, title: '입장권 QR', kind: 'image' as const, path: 'p', pages: [], size: 1, created_at: 'x' }
+
+  test('붙은 바우처를 바로 열 수 있음', async () => {
+    const onOpenVoucher = vi.fn()
+    render(<ItemCard {...base} item={item} vouchers={[v]} onOpenVoucher={onOpenVoucher} />)
+    await userEvent.click(screen.getByRole('button', { name: '입장권 QR 열기' }))
+    expect(onOpenVoucher).toHaveBeenCalledWith(v)
+  })
+
+  test('이 일정에 바우처 올리기, 오프라인이면 막힘', async () => {
+    const onAddVoucher = vi.fn()
+    const { rerender } = render(<ItemCard {...base} item={item} onAddVoucher={onAddVoucher} />)
+    const file = new File(['x'], 'qr.png', { type: 'image/png' })
+    await userEvent.upload(screen.getByLabelText('디즈니랜드에 바우처 올리기'), file)
+    expect(onAddVoucher).toHaveBeenCalledWith(file)
+    rerender(<ItemCard {...base} item={item} disabled onAddVoucher={onAddVoucher} />)
+    expect(screen.getByLabelText('디즈니랜드에 바우처 올리기')).toBeDisabled()
   })
 })

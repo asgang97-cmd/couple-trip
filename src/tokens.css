@@ -21,7 +21,7 @@
   /* 캐릭터·연잎 */
   --color-frog: oklch(74% 0.16 132); --color-frog-belly: oklch(93% 0.07 112); --color-pond: oklch(62% 0.1 175);
   --color-pad: oklch(70% 0.14 138); --color-pad-active: oklch(48% 0.13 146);
-  --color-scrim: oklch(20% 0.04 160 / 0.72); --color-backdrop: oklch(20% 0.04 160 / 0.4); --color-glass: oklch(20% 0.04 160 / 0.42);
+  --color-scrim: oklch(20% 0.04 160 / 0.72); --color-backdrop: oklch(20% 0.04 160 / 0.4); --color-viewer: oklch(99.5% 0.003 128); --color-glass: oklch(20% 0.04 160 / 0.42);
 
   --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
   --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;

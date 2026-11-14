@@ -63,7 +63,7 @@ export function VoucherSheet({ mode, trip: _trip, items, days, presetItemId = nu
           const it = items.find((i) => i.id === s.itemId)
           setItemId(s.itemId)
           setDay(s.day)
-          setNote(`PDF에서 예약번호 ${s.code}를 찾아서 "${it?.place_name ?? ''}" 일정에 붙였어요`)
+          setNote(`PDF에서 예약번호 ${s.code} 확인, "${it?.place_name ?? ''}" 일정에 붙였어요`)
         } else if (s.reason === 'date') {
           setDay(s.day)
           setNote(`PDF에서 ${dayFmt.format(parseLocalDate(s.day))} 날짜를 찾았어요. 일정도 고를 수 있어요`)

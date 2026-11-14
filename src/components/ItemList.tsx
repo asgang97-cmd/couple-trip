@@ -1,4 +1,4 @@
-import type { Comment, Heart, Item, Member, Trip } from '../lib/types'
+import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
 import { Frog, LilyPad } from './Frog'
 import { ItemCard } from './ItemCard'
 
@@ -15,9 +15,12 @@ interface Props {
   onAddComment: (itemId: string, body: string) => Promise<void>
   onEditComment: (id: string, body: string) => Promise<void>
   onDeleteComment: (id: string) => Promise<void>
+  vouchers: Voucher[]
+  onOpenVoucher: (v: Voucher) => void
+  onAddVoucher: (itemId: string, file: File) => void
 }
 
-export function ItemList({ items, hearts, comments, onEdit, onToggleHeart, onAddComment, ...rest }: Props) {
+export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, ...rest }: Props) {
   if (items.length === 0) {
     return (
       <div className="empty-pond">
@@ -42,6 +45,8 @@ export function ItemList({ items, hearts, comments, onEdit, onToggleHeart, onAdd
           onEdit={() => onEdit(it)}
           onToggleHeart={(on) => onToggleHeart(it.id, on)}
           onAddComment={(body) => onAddComment(it.id, body)}
+          vouchers={vouchers.filter((v) => v.item_id === it.id)}
+          onAddVoucher={(file) => onAddVoucher(it.id, file)}
         />
       ))}
     </div>

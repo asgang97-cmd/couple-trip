@@ -1,13 +1,14 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNow } from '../hooks/useNow'
+import { useVoucherCache } from '../hooks/useVoucherCache'
 import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, addPacking, addPackingMany, deleteComment, deleteItem, deletePacking, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addPacking, addPackingMany, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
-import type { Item, ItemInput, Member, PackingItem, TripInput } from '../lib/types'
+import type { Item, ItemInput, Member, PackingItem, TripInput, Voucher } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { CoverCropper } from './CoverCropper'
 import { DayTabs } from './DayTabs'
@@ -19,6 +20,9 @@ import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
 import { PackingList } from './PackingList'
 import { TripSettings } from './TripSettings'
+import { VaultView } from './VaultView'
+import { VoucherSheet, type VoucherFields } from './VoucherSheet'
+import { VoucherViewer } from './VoucherViewer'
 import { VisitJapanSheet } from './VisitJapanSheet'
 
 // 구글 지도 코드는 커서 필요할 때(지도 보기·장소 검색)만 불러옴 → 첫 화면이 빨리 뜸
@@ -30,11 +34,17 @@ type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 export function TripPage({ member }: { member: Member }) {
   const data = useTripData()
   const rate = useRate(data.trip)
+  const voucherFiles = useVoucherCache(data.vouchers, data.offline, { download: downloadVoucherFile })
   const [selected, setSelected] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(null)
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [view, setView] = useState<'list' | 'map' | 'packing'>('list')
+  const [view, setView] = useState<'list' | 'map' | 'packing' | 'vault'>('list')
+  // 바우처: 올리기·수정 창, 크게 보기
+  const [voucherSheet, setVoucherSheet] = useState<
+    { kind: 'new'; file: File; presetItemId: string | null } | { kind: 'edit'; voucher: Voucher } | null
+  >(null)
+  const [viewing, setViewing] = useState<Voucher | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [vjwOpen, setVjwOpen] = useState(false)
   const [cropFile, setCropFile] = useState<File | null>(null) // 자르는 중인 사진
@@ -177,6 +187,35 @@ export function TripPage({ member }: { member: Member }) {
     onDelete: (id: string) => packingAction(() => deletePacking(id), '지우지 못했어요').catch(() => {}),
   }
 
+  /** 바우처 저장(새로 올리기 또는 수정). 실패하면 알리고 다시 던져서 창이 남게 */
+  async function saveVoucher(f: VoucherFields) {
+    const sheet = voucherSheet
+    if (!sheet) return
+    try {
+      if (sheet.kind === 'new' && f.prepared) {
+        await uploadVoucher({ tripId: trip.id, prepared: f.prepared, title: f.title, itemId: f.itemId, day: f.day })
+      } else if (sheet.kind === 'edit') {
+        await updateVoucher(sheet.voucher.id, { title: f.title, item_id: f.itemId, day: f.day })
+      }
+      setVoucherSheet(null)
+      await data.reload()
+    } catch (e) {
+      alert('바우처를 저장하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요')
+      throw e
+    }
+  }
+
+  async function removeVoucher(v: Voucher) {
+    try {
+      await deleteVoucher(v)
+      setVoucherSheet(null)
+      await data.reload()
+    } catch (e) {
+      alert('바우처를 지우지 못했어요')
+      throw e
+    }
+  }
+
   /** 자른 사진 올리기. 실패하면 알리고 다시 던져서 자르기 창이 그대로 남게 */
   async function uploadCropped(photo: Blob) {
     setUploading(true)
@@ -202,6 +241,7 @@ export function TripPage({ member }: { member: Member }) {
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
         <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}><Icon name="map" />지도</button>
         <button type="button" aria-pressed={view === 'packing'} onClick={() => setView('packing')}><Icon name="bag" />준비물</button>
+        <button type="button" aria-pressed={view === 'vault'} onClick={() => setView('vault')}><Icon name="ticket" />보관함</button>
       </div>
       {view === 'map' && (
         <Suspense fallback={<p className="empty">지도 불러오는 중…</p>}>
@@ -221,13 +261,43 @@ export function TripPage({ member }: { member: Member }) {
         onAddComment={comment}
         onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
         onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
+        vouchers={data.vouchers}
+        onOpenVoucher={setViewing}
+        onAddVoucher={(itemId, file) => setVoucherSheet({ kind: 'new', file, presetItemId: itemId })}
       />}
+      {view === 'vault' && (
+        <VaultView
+          vouchers={data.vouchers}
+          items={tripItems}
+          days={days}
+          disabled={disabled}
+          loadError={data.voucherError}
+          isSaved={voucherFiles.isSaved}
+          onPick={(file) => setVoucherSheet({ kind: 'new', file, presetItemId: null })}
+          onOpen={setViewing}
+          onEdit={(v) => setVoucherSheet({ kind: 'edit', voucher: v })}
+        />
+      )}
       {view === 'packing' && <PackingList items={data.packing} disabled={disabled} loadError={data.packingError} {...packing} />}
-      {view !== 'packing' && (
+      {(view === 'list' || view === 'map') && (
         <div className="bottom-bar">
           <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}
+      {voucherSheet && (
+        <VoucherSheet
+          key={voucherSheet.kind === 'new' ? voucherSheet.file.name + voucherSheet.file.lastModified : voucherSheet.voucher.id}
+          mode={voucherSheet.kind === 'new' ? { kind: 'new', file: voucherSheet.file } : { kind: 'edit', voucher: voucherSheet.voucher }}
+          trip={trip}
+          items={tripItems}
+          days={days}
+          presetItemId={voucherSheet.kind === 'new' ? voucherSheet.presetItemId : null}
+          onClose={() => setVoucherSheet(null)}
+          onSave={saveVoucher}
+          onDelete={voucherSheet.kind === 'edit' ? () => removeVoucher(voucherSheet.voucher) : undefined}
+        />
+      )}
+      {viewing && <VoucherViewer voucher={viewing} read={voucherFiles.read} onClose={() => setViewing(null)} />}
       {cropFile && <CoverCropper file={cropFile} onCancel={() => setCropFile(null)} onDone={uploadCropped} />}
       {vjwOpen && <VisitJapanSheet trip={trip} items={data.items} onClose={() => setVjwOpen(false)} />}
       {settingsOpen && (
