@@ -5,7 +5,7 @@ import { TRIP } from '../test-fixtures'
 import { theme } from '../theme'
 import { HomeHeader } from './HomeHeader'
 
-const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {} }
+const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {}, onOpenSettings: () => {} }
 
 describe('HomeHeader', () => {
   test('인사말·D-day·제목', () => {
@@ -43,5 +43,19 @@ describe('HomeHeader', () => {
     expect(screen.getByLabelText('사진 바꾸기')).toBeDisabled()
     rerender(<HomeHeader {...base} disabled />)
     expect(screen.getByLabelText('사진 바꾸기')).toBeDisabled()
+  })
+})
+
+describe('HomeHeader 여행 설정 버튼', () => {
+  test('누르면 onOpenSettings', async () => {
+    const onOpenSettings = vi.fn()
+    render(<HomeHeader {...base} onOpenSettings={onOpenSettings} />)
+    await userEvent.click(screen.getByRole('button', { name: '여행 설정' }))
+    expect(onOpenSettings).toHaveBeenCalled()
+  })
+
+  test('오프라인이면 막힘', () => {
+    render(<HomeHeader {...base} disabled />)
+    expect(screen.getByRole('button', { name: '여행 설정' })).toBeDisabled()
   })
 })

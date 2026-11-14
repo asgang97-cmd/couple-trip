@@ -6,15 +6,16 @@ import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } f
 import { resizeImage } from '../lib/image'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, deleteComment, deleteItem, ITEM_GONE, saveItem, toggleHeart, updateComment, uploadCover,
+  addComment, coverUrl as getCoverUrl, deleteComment, deleteItem, ITEM_GONE, saveItem, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
-import type { Item, ItemInput, Member } from '../lib/types'
+import type { Item, ItemInput, Member, TripInput } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
 import { HomeHeader } from './HomeHeader'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
+import { TripSettings } from './TripSettings'
 
 // 구글 지도 코드는 커서 필요할 때(지도 보기·장소 검색)만 불러옴 → 첫 화면이 빨리 뜸
 const DayMap = lazy(() => import('./DayMap').then((m) => ({ default: m.DayMap })))
@@ -30,6 +31,7 @@ export function TripPage({ member }: { member: Member }) {
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [view, setView] = useState<'list' | 'map'>('list')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const now = useNow()
   const today = toDateString(now)
 
@@ -64,7 +66,8 @@ export function TripPage({ member }: { member: Member }) {
 
   const trip = data.trip
   // 기본 선택: 오늘이 여행 중이면 오늘, 아니면 첫날
-  const day = selected ?? (days.includes(today) ? today : days[0])
+  // 보던 날이 (기간을 바꿔서) 없어졌으면 기본 선택으로
+  const day = selected && days.includes(selected) ? selected : days.includes(today) ? today : days[0]
   const dayItems = byDay[day] ?? []
   const disabled = data.offline
   // 장소 검색은 그날(없으면 여행 전체) 첫 장소 근처를 먼저 보여줌
@@ -124,6 +127,18 @@ export function TripPage({ member }: { member: Member }) {
   const comment = (itemId: string, body: string) =>
     commentAction(() => addComment(itemId, member, body), '댓글을 보내지 못했어요')
 
+  /** 여행 정보 저장. 실패하면 알리고 다시 던져서 설정 창의 입력이 남게 */
+  async function saveTrip(input: TripInput) {
+    try {
+      await updateTrip(trip.id, input)
+    } catch (e) {
+      alert('여행 정보를 저장하지 못했어요. 다시 시도해 주세요')
+      throw e
+    }
+    setSettingsOpen(false)
+    await data.reload()
+  }
+
   async function changePhoto(file: File) {
     setUploading(true)
     try {
@@ -139,7 +154,7 @@ export function TripPage({ member }: { member: Member }) {
   return (
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
-      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
+      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} onOpenSettings={() => setSettingsOpen(true)} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle" role="group" aria-label="보기">
@@ -168,6 +183,9 @@ export function TripPage({ member }: { member: Member }) {
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>
       </div>
+      {settingsOpen && (
+        <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />
+      )}
       {form && (
         <ItemForm
           trip={trip}
