@@ -12,6 +12,7 @@ interface Props {
 export function VoucherViewer({ voucher, read, onClose }: Props) {
   const [urls, setUrls] = useState<string[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null) // 원본 PDF (미리 읽어서 진짜 링크로: 아이폰에서도 열리게)
   const shown = voucher.kind === 'pdf' && voucher.pages.length > 0 ? voucher.pages : voucher.kind === 'image' ? [voucher.path] : []
 
   useEffect(() => {
@@ -31,19 +32,26 @@ export function VoucherViewer({ voucher, read, onClose }: Props) {
     }
   }, [voucher.id]) // eslint-disable-line react-hooks/exhaustive-deps -- 바우처가 바뀔 때만
 
-  async function openOriginal() {
-    try {
-      const blob = await read(voucher.path)
-      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }))
-      window.open(url, '_blank', 'noopener')
-      setTimeout(() => URL.revokeObjectURL(url), 60_000)
-    } catch {
-      setFailed(true)
+  useEffect(() => {
+    if (voucher.kind !== 'pdf') return
+    let alive = true
+    let url: string | null = null
+    read(voucher.path).then(
+      (blob) => {
+        url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }))
+        if (alive) setPdfUrl(url)
+        else URL.revokeObjectURL(url)
+      },
+      () => {},
+    )
+    return () => {
+      alive = false
+      if (url) URL.revokeObjectURL(url)
     }
-  }
+  }, [voucher.id]) // eslint-disable-line react-hooks/exhaustive-deps -- 바우처가 바뀔 때만
 
   return (
-    <div className="viewer" role="dialog" aria-label={voucher.title}>
+    <div className="viewer" role="dialog" aria-modal="true" aria-label={voucher.title}>
       <div className="viewer-head">
         <h2>{voucher.title}</h2>
         <button type="button" className="ghost" onClick={onClose}>닫기</button>
@@ -54,8 +62,8 @@ export function VoucherViewer({ voucher, read, onClose }: Props) {
         {urls?.map((u, i) => (
           <img key={u} src={u} alt={urls.length > 1 ? `${voucher.title} ${i + 1}쪽` : voucher.title} />
         ))}
-        {voucher.kind === 'pdf' && (
-          <button type="button" className="viewer-original" onClick={() => void openOriginal()}>원본 PDF 열기</button>
+        {voucher.kind === 'pdf' && pdfUrl && (
+          <a className="viewer-original" href={pdfUrl} target="_blank" rel="noopener" download={`${voucher.title}.pdf`}>원본 PDF 열기</a>
         )}
       </div>
     </div>

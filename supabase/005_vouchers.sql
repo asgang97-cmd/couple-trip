@@ -23,7 +23,7 @@ create policy "us only" on vouchers for all to authenticated using (true) with c
 -- 2) 파일 보관함: 비공개, 파일당 10MB, 사진·PDF만
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('vouchers', 'vouchers', false, 10485760, array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
-on conflict (id) do nothing;
+on conflict (id) do update set file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "us read vouchers" on storage.objects;
 drop policy if exists "us upload vouchers" on storage.objects;

@@ -61,6 +61,7 @@ export async function syncVouchers(
   vouchers: Voucher[],
   cache: FileCache,
   download: (path: string) => Promise<Blob>,
+  opts: { prune?: () => boolean } = {},
 ): Promise<{ saved: Set<string>; failed: number }> {
   const saved = new Set<string>()
   let failed = 0
@@ -76,6 +77,8 @@ export async function syncVouchers(
     if (ok) saved.add(v.id)
     else failed++
   }
+  // 목록이 믿을 만할 때만 정리 (불러오는 중·예전 목록·겹친 받기에서는 지우지 않음)
+  if (opts.prune && !opts.prune()) return { saved, failed }
   try {
     const keep = new Set(vouchers.flatMap(filesOf))
     for (const k of await cache.keys()) if (!keep.has(k)) await cache.delete(k)

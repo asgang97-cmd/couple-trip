@@ -1,7 +1,7 @@
 // 올릴 바우처 파일 준비: 사진은 JPEG로 줄이고, PDF는 글자(일정 추천용)와 페이지 그림(오프라인 보기용)을 만든다.
 
 export const MAX_BYTES = 10 * 1024 * 1024
-const MAX_PAGES = 5 // 페이지 그림은 앞 5쪽까지
+const MAX_PAGES = 10 // 페이지 그림은 앞 10쪽까지 (오프라인 보기용)
 const IMAGE_MAX = 2000 // 사진 긴 변 (QR이 선명하게)
 const PAGE_WIDTH = 1600 // PDF 페이지 그림 너비
 
@@ -33,9 +33,15 @@ export interface Prepared {
   text: string // PDF 글자 (사진이면 '')
 }
 
+/** 그림 파일로 만들고 캔버스 메모리는 바로 돌려줌 (오래된 아이폰 메모리 한도) */
 function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('그림 변환 실패'))), 'image/jpeg', quality),
+    canvas.toBlob((b) => {
+      canvas.width = 0
+      canvas.height = 0
+      if (b) resolve(b)
+      else reject(new Error('그림 변환 실패'))
+    }, 'image/jpeg', quality),
   )
 }
 
@@ -62,6 +68,16 @@ async function prepareImage(file: File): Promise<Prepared> {
 
 /** PDF → 글자 + 앞 5쪽 그림. pdf.js는 이때만 불러옴(앱 첫 화면을 무겁게 하지 않게) */
 async function preparePdf(file: File): Promise<Prepared> {
+  // iOS 17.4 미만 아이폰에도 있는 기능으로 채워 넣기 (pdf.js가 씀)
+  const P = Promise as unknown as { withResolvers?: () => unknown }
+  if (!P.withResolvers) {
+    P.withResolvers = () => {
+      let resolve!: (v: unknown) => void
+      let reject!: (e: unknown) => void
+      const promise = new Promise((res, rej) => { resolve = res; reject = rej })
+      return { promise, resolve, reject }
+    }
+  }
   const pdfjs = await import('pdfjs-dist')
   const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default

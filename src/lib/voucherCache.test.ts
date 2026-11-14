@@ -56,3 +56,11 @@ describe('readVoucherFile: 폰 저장본 먼저', () => {
     expect(await cache.has('t/a.jpg')).toBe(true)
   })
 })
+
+describe('syncVouchers 정리 끄기', () => {
+  test('prune이 false면 목록에 없는 파일도 남김', async () => {
+    const cache = memoryFileCache({ 't/old.jpg': new Blob(['o']) })
+    await syncVouchers([], cache, vi.fn(), { prune: () => false })
+    expect(await cache.has('t/old.jpg')).toBe(true)
+  })
+})

@@ -34,7 +34,11 @@ type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 export function TripPage({ member }: { member: Member }) {
   const data = useTripData()
   const rate = useRate(data.trip)
-  const voucherFiles = useVoucherCache(data.vouchers, data.offline, { download: downloadVoucherFile })
+  // 불러오기 전(null)과 예전 목록(voucherError)일 때는 폰의 파일을 정리하지 않음
+  const voucherFiles = useVoucherCache(data.status === 'ready' ? data.vouchers : null, data.offline, {
+    download: downloadVoucherFile,
+    prune: !data.voucherError,
+  })
   const [selected, setSelected] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(null)
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)

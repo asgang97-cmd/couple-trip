@@ -81,7 +81,8 @@ describe('VoucherViewer', () => {
     const read = vi.fn(async () => new Blob(['img']))
     render(<VoucherViewer voucher={V('t', { kind: 'pdf', path: 't/t.pdf', pages: ['t/t-p1.jpg', 't/t-p2.jpg'] })} read={read} onClose={() => {}} />)
     expect(await screen.findAllByRole('img')).toHaveLength(2)
-    expect(screen.getByRole('button', { name: '원본 PDF 열기' })).toBeInTheDocument()
+    const link = await screen.findByRole('link', { name: '원본 PDF 열기' })
+    expect(link.getAttribute('href')).toMatch(/^blob:/)
   })
 
   test('폰에 없고 인터넷도 안 되면 안내', async () => {
