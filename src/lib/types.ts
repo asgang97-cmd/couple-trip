@@ -12,6 +12,9 @@ export interface Trip {
   timezone?: string | null // 여행지 시간대(예: 'Asia/Tokyo'). 없으면 기기 시간대 (003 실행 전 데이터엔 칸 자체가 없음)
 }
 
+/** 앱의 여행 설정에서 바꿀 수 있는 칸 */
+export type TripInput = Pick<Trip, 'title' | 'destination' | 'start_date' | 'end_date'>
+
 export interface Item {
   id: string
   trip_id: string

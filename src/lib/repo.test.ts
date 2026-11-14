@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { coverUrl, saveItem, uploadCover } = await import('./repo')
+const { coverUrl, saveItem, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -138,5 +138,24 @@ describe('coverUrl (사진 주소를 기기에 저장해 재사용 → 브라우
     queue = [{ data: { signedUrl: 'https://s/1' }, error: null }, { data: null, error: { message: 'Failed to fetch' } }]
     await coverUrl('trip-1/a.jpg', { storage, now: 0 })
     expect(await coverUrl('trip-1/a.jpg', { storage, now: 30 * DAY })).toBe('https://s/1')
+  })
+})
+
+describe('updateTrip', () => {
+  const input = { title: '오사카', destination: '오사카', start_date: '2027-02-01', end_date: '2027-02-03' }
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('그 여행만 이름·여행지·기간 수정', async () => {
+    queue = [{ data: null, error: null }]
+    await updateTrip('trip-1', input)
+    expect(calls).toContainEqual(['from', 'trips'])
+    expect(calls).toContainEqual(['update', input])
+    expect(calls).toContainEqual(['eq', 'id', 'trip-1'])
+  })
+  test('실패하면 throw', async () => {
+    queue = [{ data: null, error: { message: 'denied' } }]
+    await expect(updateTrip('trip-1', input)).rejects.toThrow('denied')
   })
 })

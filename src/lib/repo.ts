@@ -1,6 +1,6 @@
 // 데이터베이스 읽기/쓰기. 함수 하나 = 쿼리 하나. 실패하면 throw.
 import { supabase } from './supabase'
-import type { Comment, Heart, Item, ItemInput, Member, Trip } from './types'
+import type { Comment, Heart, Item, ItemInput, Member, Trip, TripInput } from './types'
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message)
@@ -11,6 +11,11 @@ export async function fetchTrip(): Promise<Trip> {
   const trip = check(await supabase.from('trips').select('*').order('start_date').limit(1).maybeSingle())
   if (!trip) throw new Error('여행이 아직 없어요. schema.sql의 insert를 실행했는지 확인하세요.')
   return trip as Trip
+}
+
+/** 여행 이름·여행지·기간 바꾸기 */
+export async function updateTrip(id: string, input: TripInput): Promise<void> {
+  check(await supabase.from('trips').update(input).eq('id', id))
 }
 
 export async function listItems(tripId: string): Promise<Item[]> {

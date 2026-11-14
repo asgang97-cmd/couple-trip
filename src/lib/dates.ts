@@ -72,3 +72,8 @@ export function itemsInTrip(items: Item[], days: string[]): Item[] {
 export function nextSortOrder(dayItems: Item[]): number {
   return Math.max(0, ...dayItems.map((i) => i.sort_order)) + 1
 }
+
+/** 기간을 start~end로 바꾸면 밖으로 밀려나(숨겨지)는 일정 개수 */
+export function countHiddenItems(items: Item[], start: string, end: string): number {
+  return items.length - itemsInTrip(items, tripDays(start, end)).length
+}

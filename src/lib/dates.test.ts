@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { daysUntil, groupItemsByDay, itemsInTrip, nextSortOrder, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
+import { countHiddenItems, daysUntil, groupItemsByDay, itemsInTrip, nextSortOrder, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
 import { makeItem } from '../test-fixtures'
 import type { Item } from './types'
 
@@ -90,5 +90,15 @@ describe('itemsInTrip', () => {
     const inside = makeItem({ day: '2027-01-11' })
     const outside = makeItem({ day: '2027-01-20' })
     expect(itemsInTrip([inside, outside], ['2027-01-10', '2027-01-11'])).toEqual([inside])
+  })
+})
+
+describe('countHiddenItems', () => {
+  const items = [makeItem({ day: '2027-01-10' }), makeItem({ day: '2027-01-13' }), makeItem({ day: '2027-01-14' })]
+  test('새 기간 밖으로 밀려나는 일정 개수', () => {
+    expect(countHiddenItems(items, '2027-01-10', '2027-01-12')).toBe(2)
+  })
+  test('모두 기간 안이면 0', () => {
+    expect(countHiddenItems(items, '2027-01-09', '2027-01-14')).toBe(0)
   })
 })
