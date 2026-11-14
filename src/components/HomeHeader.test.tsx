@@ -5,7 +5,7 @@ import { TRIP } from '../test-fixtures'
 import { theme } from '../theme'
 import { HomeHeader } from './HomeHeader'
 
-const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {}, onOpenSettings: () => {} }
+const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {}, onOpenSettings: () => {}, onOpenVisitJapan: () => {} }
 
 describe('HomeHeader', () => {
   test('인사말·D-day·제목', () => {
@@ -57,5 +57,16 @@ describe('HomeHeader 여행 설정 버튼', () => {
   test('오프라인이면 막힘', () => {
     render(<HomeHeader {...base} disabled />)
     expect(screen.getByRole('button', { name: '여행 설정' })).toBeDisabled()
+  })
+})
+
+describe('HomeHeader 비짓재팬 버튼', () => {
+  test('누르면 onOpenVisitJapan, 오프라인이어도 열림 (폰에 저장된 정보라서)', async () => {
+    const onOpenVisitJapan = vi.fn()
+    render(<HomeHeader {...base} disabled onOpenVisitJapan={onOpenVisitJapan} />)
+    const btn = screen.getByRole('button', { name: '비짓재팬 준비' })
+    expect(btn).toBeEnabled()
+    await userEvent.click(btn)
+    expect(onOpenVisitJapan).toHaveBeenCalled()
   })
 })

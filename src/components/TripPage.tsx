@@ -18,6 +18,7 @@ import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
 import { TripSettings } from './TripSettings'
+import { VisitJapanSheet } from './VisitJapanSheet'
 
 // 구글 지도 코드는 커서 필요할 때(지도 보기·장소 검색)만 불러옴 → 첫 화면이 빨리 뜸
 const DayMap = lazy(() => import('./DayMap').then((m) => ({ default: m.DayMap })))
@@ -34,6 +35,7 @@ export function TripPage({ member }: { member: Member }) {
   const [uploading, setUploading] = useState(false)
   const [view, setView] = useState<'list' | 'map'>('list')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [vjwOpen, setVjwOpen] = useState(false)
   const now = useNow()
   const today = toDateString(now)
 
@@ -164,7 +166,7 @@ export function TripPage({ member }: { member: Member }) {
   return (
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
-      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} onOpenSettings={() => setSettingsOpen(true)} />
+      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle" role="group" aria-label="보기">
@@ -193,6 +195,7 @@ export function TripPage({ member }: { member: Member }) {
       <div className="bottom-bar">
         <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
       </div>
+      {vjwOpen && <VisitJapanSheet trip={trip} items={data.items} onClose={() => setVjwOpen(false)} />}
       {settingsOpen && (
         <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />
       )}

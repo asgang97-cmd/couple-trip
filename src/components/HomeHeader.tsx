@@ -14,9 +14,11 @@ interface Props {
   disabled: boolean
   onPickPhoto: (file: File) => void
   onOpenSettings: () => void
+  /** 비짓재팬 준비 (폰에 저장된 정보라 오프라인에서도 열림) */
+  onOpenVisitJapan: () => void
 }
 
-export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, now, uploading, disabled, onPickPhoto, onOpenSettings }: Props) {
+export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, now, uploading, disabled, onPickPhoto, onOpenSettings, onOpenVisitJapan }: Props) {
   const photo = coverUrl ?? fallbackPhoto
   const layers = [
     'linear-gradient(transparent 25%, var(--color-scrim))',
@@ -31,6 +33,7 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
       style={{ backgroundImage: layers.join(', ') }}
     >
       <div className="cover-actions">
+        <button type="button" className="photo-btn" aria-label="비짓재팬 준비" onClick={onOpenVisitJapan}><Icon name="plane" /></button>
         <button type="button" className="photo-btn" aria-label="여행 설정" disabled={disabled} onClick={onOpenSettings}><Icon name="gear" /></button>
         <label className={`photo-btn${uploading || disabled ? ' off' : ''}`}>
           {uploading ? '올리는 중…' : <Icon name="camera" />}

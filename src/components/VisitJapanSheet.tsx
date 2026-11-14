@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { Item, Member, Trip } from '../lib/types'
 import {
   clearVjw, FIELD_GROUPS, flightCandidates, hotelCandidates, loadVjw, maskPassport, saveVjw, SHARED_KEYS,
@@ -33,6 +33,13 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
   const [who, setWho] = useState<Member>('a')
   const [draft, setDraft] = useState<VjwPerson | null>(null) // null = 보기 모드
   const [notice, setNotice] = useState('')
+
+  // 알림은 2.5초 뒤 사라짐
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(''), 2500)
+    return () => clearTimeout(t)
+  }, [notice])
 
   const person = data[who]
   const flights = flightCandidates(items)
@@ -149,8 +156,6 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
           ))}
         </div>
 
-        <p role="status" className="vjw-notice">{notice}</p>
-
         {draft ? (
           <form className="stack vjw-form" onSubmit={save}>
             {FIELD_GROUPS.map((g) => (
@@ -190,6 +195,8 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
             <button type="button" className="danger" onClick={wipe}>이 폰에서 지우기</button>
           </>
         )}
+        {/* 아래에 떠 있는 알림: 어디를 보고 있든 "복사했어요"가 보이게 */}
+        <p role="status" className={notice ? "vjw-notice" : "vjw-notice visually-hidden"}>{notice}</p>
       </div>
     </div>
   )

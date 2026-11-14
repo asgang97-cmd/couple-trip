@@ -397,3 +397,23 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; }
 .sheet-head h2 { font-size: var(--text-xl); }
 .sheet button[type='submit'] { min-height: 52px; font-size: var(--text-lg); margin-top: var(--space-xs); }
+
+/* ── 비짓재팬 준비 ──────────────────────────────────── */
+.vjw .view-toggle { margin-bottom: 0; }
+.vjw-notice { position: sticky; bottom: 0; z-index: var(--z-raised); margin-top: var(--space-xs); padding: var(--space-xs) var(--space-md); border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-paper); font-size: var(--text-sm); text-align: center; }
+.vjw-form { max-width: none; }
+.vjw-group { display: flex; flex-direction: column; gap: var(--space-xs); padding-top: var(--space-sm); border-top: var(--rule-hair) solid var(--color-rule); }
+.vjw-group h3 { font-size: var(--text-lg); }
+.vjw-group dl { margin: 0; display: flex; flex-direction: column; }
+.vjw-row { display: grid; grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); gap: var(--space-sm); align-items: center; padding-block: var(--space-2xs); }
+.vjw-row dt { font-size: var(--text-sm); color: var(--color-ink-2); }
+.vjw-row dd { margin: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); min-width: 0; }
+.vjw-value { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; user-select: all; }
+.vjw-empty { color: var(--color-muted); user-select: none; }
+.vjw-copy { flex: 0 0 auto; min-height: 36px; padding: 0 var(--space-sm); background: var(--color-paper); color: var(--color-accent); border-color: var(--color-accent); font-size: var(--text-sm); }
+.vjw-copy:hover { background: var(--color-paper-2); }
+.vjw-field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+.vjw-field select { color: var(--color-ink-2); }
+.vjw-form .vjw-group { gap: var(--space-sm); }
+.vjw-actions { display: flex; gap: var(--space-xs); padding-top: var(--space-sm); }
+.vjw-actions button { flex: 1; }
