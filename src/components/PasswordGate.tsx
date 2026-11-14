@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { signIn } from '../lib/session'
 import { theme } from '../theme'
-import { Mascot, Seat } from './Mascot'
+import { Mascot } from './Mascot'
 
 export function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
@@ -22,8 +22,7 @@ export function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   return (
     <main className="center-screen">
       <div className="gate-perch" aria-hidden="true">
-        <Mascot size={120} />
-        <Seat size={180} />
+        <Mascot slot="gate" size={140} />
       </div>
       <h1>{theme.appName}</h1>
       <form onSubmit={submit} className="stack">

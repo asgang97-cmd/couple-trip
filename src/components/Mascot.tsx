@@ -1,23 +1,25 @@
-// 앱 캐릭터 고르기: theme.ts 의 mascot 값('manju' 또는 'frog')에 따라
-import { theme } from '../theme'
-import { Frog, LilyPad } from './Frog'
-import { Manju, Plate } from './Manju'
-
-type Kind = 'manju' | 'frog'
+// 캐릭터 자리: 밍석이 "꾸미기"에서 넣은 사진을 보여줌. 안 넣은 자리는 비워 둠.
+import type { DecorSlot } from '../lib/decor'
+import { useDecor } from './DecorContext'
 
 interface Props {
-  size?: number
-  pose?: 'sit' | 'peek'
+  slot: Exclude<DecorSlot, 'background'>
+  size?: number // 가로·세로 최대 크기(px)
   className?: string
-  bow?: boolean
-  kind?: Kind // 테스트용 (기본: theme.mascot)
 }
 
-export function Mascot({ kind = theme.mascot, ...p }: Props) {
-  return kind === 'frog' ? <Frog {...p} /> : <Manju {...p} />
-}
-
-/** 캐릭터가 앉는 자리 (만쥬는 접시, 개구리는 연잎) */
-export function Seat({ size, className, kind = theme.mascot }: { size?: number; className?: string; kind?: Kind }) {
-  return kind === 'frog' ? <LilyPad size={size} className={className} /> : <Plate size={size} className={className} />
+export function Mascot({ slot, size = 96, className }: Props) {
+  const item = useDecor()[slot]
+  if (!item) return null
+  return (
+    <img
+      className={['mascot', item.round ? 'round' : '', className].filter(Boolean).join(' ')}
+      src={item.url}
+      alt=""
+      width={size}
+      height={size}
+      draggable={false}
+      style={{ width: size, height: size }}
+    />
+  )
 }

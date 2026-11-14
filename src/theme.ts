@@ -9,9 +9,6 @@ export const theme = {
   primary: '#7b4b2d', // 버튼·강조색 (밤 껍질 갈색)
   background: '#fbf6ec', // 배경색 (만쥬 크림색)
 
-  // 앱 캐릭터: 'manju' (밤만쥬) 또는 'frog' (개구리)
-  mascot: 'manju' as 'manju' | 'frog',
-
   // 앱에서 사진을 올리기 전에 보일 기본 사진.
   // public 폴더에 사진(예: cover.jpg)을 넣고 '/cover.jpg' 로 바꾸세요. null이면 분홍 그라데이션만.
   coverPhoto: null as string | null,

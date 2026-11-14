@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import type { PackingItem } from '../lib/types'
 import { STARTER_ITEMS } from '../lib/packing'
 import { theme } from '../theme'
-import { Mascot, Seat } from './Mascot'
+import { Mascot } from './Mascot'
 import { Icon } from './Icon'
 
 type Owner = PackingItem['owner']
@@ -124,8 +124,7 @@ export function PackingList({ items: saved, disabled, onAdd, onAddMany, onToggle
       {items.length === 0 && !loadError ? (
         <div className="empty-pond">
           <div className="pond-perch" aria-hidden="true">
-            <Mascot size={80} />
-            <Seat size={140} />
+            <Mascot slot="empty" size={80} />
           </div>
           <p className="empty-title">아직 준비물이 없어요</p>
           <p className="empty">위에 하나씩 적거나, 자주 챙기는 것부터 넣어 보세요</p>

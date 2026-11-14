@@ -15,7 +15,7 @@ export function DayTabs({ days, selected, onSelect }: { days: string[]; selected
           onClick={() => onSelect(d)}
         >
           {/* 선택한 날 위에 우리 캐릭터. key가 바뀌면 새로 그려져 폴짝 뛰어옴 */}
-          {d === selected && <Mascot key={d} size={40} className="tab-frog" />}
+          {d === selected && <Mascot key={d} slot="day" size={40} className="tab-mascot" />}
           <strong>{i + 1}일차</strong>
           <small>{fmt.format(parseLocalDate(d))}</small>
         </button>

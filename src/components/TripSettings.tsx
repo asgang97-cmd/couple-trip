@@ -8,6 +8,8 @@ interface Props {
   /** 실패하면 throw (알림은 부르는 쪽에서). 입력값은 그대로 남는다. */
   onSave: (input: TripInput) => Promise<void>
   onClose: () => void
+  /** 캐릭터·배경 꾸미기 열기 */
+  onOpenDecor?: () => void
 }
 
 const MIN_DATE = '2000-01-01'
@@ -18,7 +20,7 @@ const MAX_DAYS = 365
 const inRange = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= MIN_DATE && d <= MAX_DATE
 
 /** 여행 이름·여행지·기간 바꾸기 */
-export function TripSettings({ trip, items, onSave, onClose }: Props) {
+export function TripSettings({ trip, items, onSave, onClose, onOpenDecor }: Props) {
   const [title, setTitle] = useState(trip.title)
   const [destination, setDestination] = useState(trip.destination)
   const [start, setStart] = useState(trip.start_date)
@@ -81,6 +83,9 @@ export function TripSettings({ trip, items, onSave, onClose }: Props) {
         {hidden > 0 && <p className="note">기간 밖 일정 {hidden}개가 숨겨져요 (지워지진 않아요)</p>}
 
         <button type="submit" disabled={!canSave}>저장</button>
+        {onOpenDecor && (
+          <button type="button" className="ghost" onClick={onOpenDecor}>캐릭터·배경 꾸미기</button>
+        )}
       </form>
     </div>
   )

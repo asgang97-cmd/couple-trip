@@ -1,13 +1,12 @@
-/* Hallmark · shape: app screen · genre: playful · theme: custom · redesign: full · idea: "밤만쥬가 날짜를 하나씩 맛보며 여행해요: 날짜는 한 입 베어 문 만쥬, 고른 날 위에 우리 밤만쥬" · vibe: "만쥬 가게, 노릇노릇, 볼 빨간 만쥬 커플"
+/* Hallmark · shape: app screen · genre: playful · theme: custom · redesign: full · idea: "우리가 고른 캐릭터와 날짜를 하나씩 맛보며 여행해요: 날짜는 한 입 베어 문 만쥬, 고른 날 위에 우리 캐릭터" · vibe: "만쥬 가게, 노릇노릇, 볼 빨간 만쥬 커플"
  * paper: oklch(97% 0.016 80) · accent: oklch(46% 0.09 50) · display: Jua · body: Gowun Dodum
- * nav: kept (커버 + 날짜 탭 + 아래 버튼) · signature: 고른 날짜 위의 밤만쥬, 고르면 폴짝 · states: loading, empty, error, offline, full
+ * nav: kept (커버 + 날짜 탭 + 아래 버튼) · signature: 고른 날짜 위에 밍석이 넣은 캐릭터 사진, 고르면 폴짝 · states: loading, empty, error, offline, full
  * axes: light/rounded-sans/warm · posture: full palette (field cream, signal chestnut brown, seal blush pink, ink) · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V5 · weakest: E, 한글 둥근 글꼴은 굵기가 하나뿐이라 위계를 글꼴 차이와 크기로만 만듦 */
 /* Hallmark · waive 39b · two round member buttons on the picker screen, 136px · the big-choice buttons are the whole member picker: two round faces with the emoji, sized to be tapped at a glance */
 /* Hallmark · finish-review: subagent · 7 findings · 7 resolved (notch moved, blush on D-day/my comments/picker hover, frog couple on cover, 56px emoji, search field shell, bottom clearance, visible disabled button) · gap: none */
 /* Hallmark · dismissed 40 · the cover text sits on the bottom scrim over the couple photo, measured light only at the top of the gradient · checked at 375 and 1280 on the cover screenshots */
 /* Hallmark · dismissed F4 · .photo-btn is a translucent glass chip over the couple photo, not a filled primary · 커버 사진 위 반투명 아이콘 버튼 */
-/* Hallmark · waive 80 · an original frog character drawn in inline SVG · the user asked for a cute frog theme, so the frog sits on the lily pad day tabs, the empty pond and the password gate */
 @import url("./tokens.css");
 @import url("./base.css");
 
@@ -100,7 +99,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .note { margin: 0; font-size: var(--text-sm); color: var(--color-muted); }
 
 .gate-perch, .pond-perch { display: grid; justify-items: center; }
-.gate-perch .frog, .pond-perch .frog, .gate-perch .manju, .pond-perch .manju { margin-bottom: calc(-1 * var(--space-md)); position: relative; z-index: var(--z-raised); }
+
 
 .big-choice {
   flex-direction: column;
@@ -143,8 +142,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .cover .dday { color: var(--color-blush-soft); font-family: var(--font-display); font-size: var(--text-display); line-height: 1; font-variant-numeric: tabular-nums; }
 .cover h1 { margin-top: var(--space-2xs); font-size: var(--text-lg); line-height: 1.3; }
 .cover-frogs { position: absolute; right: var(--space-md); bottom: -2px; display: flex; align-items: flex-end; }
-.cover-frogs .frog + .frog, .cover-frogs .manju + .manju { margin-left: calc(-1 * var(--space-sm)); }
-.frog-bow { fill: var(--color-blush); }
+.cover-frogs .mascot + .mascot { margin-left: calc(-1 * var(--space-xs)); }
 .cover-actions { position: absolute; top: var(--space-sm); right: var(--space-sm); display: flex; gap: var(--space-xs); }
 .photo-btn {
   position: relative;
@@ -203,7 +201,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .tab small { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-muted); }
 .tab.active { background: var(--color-pad-active); border-color: var(--color-pad-active); color: var(--color-accent-ink); }
 .tab.active small { color: var(--color-accent-ink); }
-.tab-frog { position: absolute; top: -28px; left: 50%; margin-left: -20px; animation: hop-in var(--dur-long) var(--ease-out); }
+.tab-mascot { position: absolute; top: -30px; left: 50%; margin-left: -20px; animation: hop-in var(--dur-long) var(--ease-out); }
 
 @keyframes hop-in {
   0% { transform: translateY(-14px) scale(0.85); opacity: 0; }
@@ -311,39 +309,12 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .empty-pond { display: grid; justify-items: center; gap: var(--space-2xs); padding: var(--space-xl) 0 var(--space-3xl); text-align: center; }
 .empty-title { font-family: var(--font-display); font-size: var(--text-lg); margin-top: var(--space-sm); }
 .empty { color: var(--color-muted); }
-.frog-hop { animation: frog-hop 900ms var(--ease-in-out) infinite; }
+.mascot-hop { animation: frog-hop 900ms var(--ease-in-out) infinite; }
 @keyframes frog-hop {
   0%, 100% { transform: translateY(0); }
   45% { transform: translateY(-16px); }
 }
-@media (prefers-reduced-motion: reduce) { .frog-hop { animation: none; } }
-
-/* ── 개구리 캐릭터 ──────────────────────────────────── */
-.frog { flex-shrink: 0; overflow: visible; }
-.frog-body { fill: var(--color-frog); }
-.frog-belly { fill: var(--color-frog-belly); }
-.frog-eye { fill: var(--color-accent-ink); }
-.frog-pupil { fill: var(--color-ink); }
-.frog-cheek { fill: var(--color-blush-soft); }
-.frog-smile { fill: none; stroke: var(--color-ink); stroke-width: 3; stroke-linecap: round; }
-.lilypad-leaf { fill: var(--color-pad); }
-.lilypad-vein { fill: none; stroke: var(--color-paper-3); stroke-width: 2; stroke-linecap: round; }
-
-/* ── 밤만쥬 캐릭터 ──────────────────────────────────── */
-.manju { flex-shrink: 0; overflow: visible; }
-.manju-body { fill: var(--color-bun); }
-.manju-top { fill: var(--color-bun-top); }
-.manju-shine { fill: var(--color-bun-shine); opacity: 0.7; }
-.manju-seed { fill: var(--color-plate-well); }
-.manju-leaf { fill: var(--color-leaf); }
-.manju-stem { fill: none; stroke: var(--color-leaf); stroke-width: 3; stroke-linecap: round; }
-.manju-eye { fill: var(--color-ink); }
-.manju-glint { fill: var(--color-accent-ink); }
-.manju-cheek { fill: var(--color-blush-soft); }
-.manju-mouth { fill: none; stroke: var(--color-ink); stroke-width: 2.5; stroke-linecap: round; }
-.manju-bow { fill: var(--color-blush); }
-.plate-rim { fill: var(--color-plate); }
-.plate-well { fill: var(--color-plate-well); }
+@media (prefers-reduced-motion: reduce) { .mascot-hop { animation: none; } }
 
 /* ── 아래 고정 버튼 ─────────────────────────────────── */
 .bottom-bar {
@@ -549,3 +520,26 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .expense-failed { display: flex; flex-direction: column; gap: var(--space-2xs); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-card); background: var(--color-paper-2); }
 .expense-failed ul { list-style: none; margin: 0; padding: 0; }
 .expense-failed li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); }
+
+/* ── 꾸미기: 밍석이 넣은 캐릭터 사진·배경 ───────────── */
+.mascot { flex-shrink: 0; object-fit: contain; pointer-events: none; user-select: none; }
+.mascot.round { object-fit: cover; border-radius: 50%; border: 2px solid var(--color-paper); }
+.gate-perch, .pond-perch { min-height: var(--space-md); }
+.app-bg { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; }
+.app-bg::after { content: ""; position: absolute; inset: 0; background: var(--color-bg-veil); }
+html:has(.app-bg), body:has(.app-bg) { background: transparent; }
+.decor-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.decor-list li { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-sm); padding-block: var(--space-xs); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.decor-thumb { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-input); background: var(--color-paper-2); overflow: hidden; }
+.decor-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.decor-thumb img.round { object-fit: cover; border-radius: 50%; }
+.decor-thumb.wide img { object-fit: cover; }
+.decor-empty { font-size: var(--text-xs); color: var(--color-muted); text-align: center; }
+.decor-label { font-size: var(--text-sm); overflow-wrap: anywhere; }
+.decor-pick { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-sm); border-radius: var(--radius-pill); background: var(--color-accent); color: var(--color-accent-ink); font-family: var(--font-display); font-size: var(--text-sm); cursor: pointer; white-space: nowrap; }
+.sheet .decor-pick { color: var(--color-accent-ink); margin-bottom: 0; font-size: var(--text-sm); }
+.sheet .decor-pick.off { color: var(--color-muted); }
+.decor-pick:focus-within { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.decor-pick.off { background: var(--color-paper-2); color: var(--color-muted); cursor: not-allowed; }
+.decor-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; min-height: 0; cursor: inherit; }
+.decor-remove { min-height: 40px; }

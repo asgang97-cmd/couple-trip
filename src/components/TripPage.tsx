@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNow } from '../hooks/useNow'
+import { useDecorUrls } from '../hooks/useDecorUrls'
 import { useExpenses } from '../hooks/useExpenses'
+import { prepareDecor, type DecorSlot, type DecorUrls } from '../lib/decor'
 import { useVoucherCache } from '../hooks/useVoucherCache'
 import { newExpense } from '../lib/expenseQueue'
 import { useRate } from '../hooks/useRate'
@@ -8,12 +10,13 @@ import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, addExpense, addPacking, addPackingMany, deleteExpense, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addExpense, removeDecor, signedUrl, uploadDecor, addPacking, addPackingMany, deleteExpense, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
 import type { Item, ItemInput, Member, PackingItem, TripInput, Voucher } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { CoverCropper } from './CoverCropper'
 import { DayTabs } from './DayTabs'
+import { DecorSheet } from './DecorSheet'
 import { ExpenseView } from './ExpenseView'
 import { Mascot } from './Mascot'
 import { HomeHeader } from './HomeHeader'
@@ -34,9 +37,11 @@ const PlaceSearch = lazy(() => import('./PlaceSearch').then((m) => ({ default: m
 
 type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 
-export function TripPage({ member }: { member: Member }) {
+export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls: DecorUrls) => void }) {
   const data = useTripData()
   const rate = useRate(data.trip)
+  // 꾸미기 사진 주소 받기 (여행을 불러온 뒤에만: 불러오는 중엔 예전 사진 그대로)
+  useDecorUrls(data.status === 'ready' && data.trip ? (data.trip.decor ?? {}) : undefined, (u) => onDecor?.(u), (p) => signedUrl(p))
   // 가계부: 인터넷이 없어도 적고, 연결되면 자동으로 올림
   const expenses = useExpenses(data.expenses, data.offline, { add: addExpense, remove: deleteExpense, reload: data.reload })
   // 불러오기 전(null)과 예전 목록(voucherError)일 때는 폰의 파일을 정리하지 않음
@@ -55,6 +60,7 @@ export function TripPage({ member }: { member: Member }) {
   >(null)
   const [viewing, setViewing] = useState<Voucher | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [decorOpen, setDecorOpen] = useState(false)
   const [vjwOpen, setVjwOpen] = useState(false)
   const [cropFile, setCropFile] = useState<File | null>(null) // 자르는 중인 사진
   const now = useNow()
@@ -82,7 +88,7 @@ export function TripPage({ member }: { member: Member }) {
   if (data.status === 'loading') {
     return (
       <div className="center-screen" role="status">
-        <Mascot size={96} className="frog-hop keep-motion" />
+        <Mascot slot="empty" size={96} className="mascot-hop keep-motion" />
         <p className="empty">일정 불러오는 중…</p>
       </div>
     )
@@ -90,7 +96,7 @@ export function TripPage({ member }: { member: Member }) {
   if (data.status === 'error' || !data.trip) {
     return (
       <div className="center-screen">
-        <Mascot size={96} />
+        <Mascot slot="empty" size={96} />
         <p>일정을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.</p>
         <button onClick={() => void data.reload()}>다시 시도</button>
       </div>
@@ -225,6 +231,28 @@ export function TripPage({ member }: { member: Member }) {
     }
   }
 
+  /** 꾸미기 사진 넣기·빼기. 실패하면 알리고 다시 던짐 */
+  async function pickDecor(slot: DecorSlot, file: File) {
+    try {
+      const { blob, round } = await prepareDecor(file, slot)
+      await uploadDecor(trip.id, slot, blob, round)
+      await data.reload()
+    } catch (e) {
+      alert('사진을 넣지 못했어요. 다른 사진으로 해 보거나 다시 시도해 주세요')
+      throw e
+    }
+  }
+
+  async function dropDecor(slot: DecorSlot) {
+    try {
+      await removeDecor(trip.id, slot)
+      await data.reload()
+    } catch (e) {
+      alert('사진을 빼지 못했어요')
+      throw e
+    }
+  }
+
   /** 자른 사진 올리기. 실패하면 알리고 다시 던져서 자르기 창이 그대로 남게 */
   async function uploadCropped(photo: Blob) {
     setUploading(true)
@@ -311,6 +339,7 @@ export function TripPage({ member }: { member: Member }) {
           <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}
+      {decorOpen && <DecorSheet disabled={disabled} onPick={pickDecor} onRemove={dropDecor} onClose={() => setDecorOpen(false)} />}
       {voucherSheet && (
         <VoucherSheet
           key={voucherSheet.kind === 'new' ? voucherSheet.file.name + voucherSheet.file.lastModified : voucherSheet.voucher.id}
@@ -328,7 +357,16 @@ export function TripPage({ member }: { member: Member }) {
       {cropFile && <CoverCropper file={cropFile} onCancel={() => setCropFile(null)} onDone={uploadCropped} />}
       {vjwOpen && <VisitJapanSheet trip={trip} items={data.items} onClose={() => setVjwOpen(false)} />}
       {settingsOpen && (
-        <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />
+        <TripSettings
+          trip={trip}
+          items={data.items}
+          onSave={saveTrip}
+          onClose={() => setSettingsOpen(false)}
+          onOpenDecor={() => {
+            setSettingsOpen(false)
+            setDecorOpen(true)
+          }}
+        />
       )}
       {form && (
         <ItemForm

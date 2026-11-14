@@ -1,24 +1,33 @@
 import { render } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
-import { Mascot, Seat } from './Mascot'
+import { DecorContext } from './DecorContext'
+import { Mascot } from './Mascot'
 
-describe('Mascot', () => {
-  test('밤만쥬: 만쥬와 접시', () => {
-    const { container } = render(<><Mascot kind="manju" /><Seat kind="manju" /></>)
-    expect(container.querySelector('svg.manju')).not.toBeNull()
-    expect(container.querySelector('svg.plate')).not.toBeNull()
+describe('Mascot: 밍석이 넣은 캐릭터 사진', () => {
+  test('넣은 사진이 있으면 그 사진', () => {
+    const { container } = render(
+      <DecorContext.Provider value={{ gate: { url: 'https://s/g.png', round: false } }}>
+        <Mascot slot="gate" size={120} />
+      </DecorContext.Provider>,
+    )
+    const img = container.querySelector('img')!
+    expect(img.getAttribute('src')).toBe('https://s/g.png')
+    expect(img.className).not.toContain('round')
   })
-  test('개구리로 되돌리기: 개구리와 연잎', () => {
-    const { container } = render(<><Mascot kind="frog" /><Seat kind="frog" /></>)
-    expect(container.querySelector('svg.frog')).not.toBeNull()
-    expect(container.querySelector('svg.lilypad')).not.toBeNull()
+  test('배경 있는 사진이면 동그랗게', () => {
+    const { container } = render(
+      <DecorContext.Provider value={{ day: { url: 'https://s/d.jpg', round: true } }}>
+        <Mascot slot="day" size={40} />
+      </DecorContext.Provider>,
+    )
+    expect(container.querySelector('img')!.className).toContain('round')
   })
-  test('커플 리본', () => {
-    const { container } = render(<Mascot kind="manju" bow />)
-    expect(container.querySelectorAll('.manju-bow').length).toBe(2)
-  })
-  test('그림이라 화면 읽기에서는 숨김', () => {
-    const { container } = render(<Mascot kind="manju" />)
-    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+  test('안 넣은 자리는 비워 둠 (그린 캐릭터 없음)', () => {
+    const { container } = render(
+      <DecorContext.Provider value={{}}>
+        <Mascot slot="empty" />
+      </DecorContext.Provider>,
+    )
+    expect(container).toBeEmptyDOMElement()
   })
 })
