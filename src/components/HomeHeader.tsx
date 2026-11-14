@@ -1,7 +1,7 @@
 import { tripPhaseLabel } from '../lib/dates'
 import type { Trip } from '../lib/types'
 import { theme } from '../theme'
-import { Frog } from './Frog'
+import { Mascot } from './Mascot'
 import { Icon } from './Icon'
 
 interface Props {
@@ -55,10 +55,10 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
         <p className="dday">{tripPhaseLabel(trip.start_date, trip.end_date, now)}</p>
         <h1>{trip.title}</h1>
       </div>
-      {/* 우리 둘 (개구리 커플) */}
+      {/* 우리 둘 (캐릭터 커플) */}
       <div className="cover-frogs" aria-hidden="true">
-        <Frog pose="peek" size={72} />
-        <Frog pose="peek" size={64} bow />
+        <Mascot pose="peek" size={72} />
+        <Mascot pose="peek" size={64} bow />
       </div>
     </header>
   )

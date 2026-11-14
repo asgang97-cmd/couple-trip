@@ -9,19 +9,24 @@
   --container: 480px; --gutter: 16px; --gap-columns: 16px; --section-gap-s: 24px; --section-gap: 40px; --section-gap-l: 64px;
   --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
 
-  /* 연못: 연한 연둣빛 바탕, 진한 연못빛 글씨 */
-  --color-paper: oklch(97% 0.014 128); --color-paper-2: oklch(94.5% 0.024 130); --color-paper-3: oklch(90.5% 0.036 132);
-  --color-ink: oklch(25% 0.035 155); --color-ink-2: oklch(38% 0.035 155); --color-muted: oklch(47% 0.03 155);
-  --color-rule: oklch(86% 0.035 135); --color-field-edge: oklch(60% 0.04 150);
-  /* 개구리 초록: 주요 버튼·선택한 것 */
-  --color-accent: oklch(48% 0.13 146); --color-accent-ink: oklch(98% 0.012 128); --color-accent-2: oklch(42% 0.12 148);
-  --color-focus: oklch(50% 0.18 146);
+  /* 만쥬 가게: 크림색 바탕, 진한 밤색 글씨 */
+  --color-paper: oklch(97% 0.016 80); --color-paper-2: oklch(94% 0.026 76); --color-paper-3: oklch(90% 0.038 72);
+  --color-ink: oklch(27% 0.035 50); --color-ink-2: oklch(40% 0.035 50); --color-muted: oklch(48% 0.03 55);
+  --color-rule: oklch(86% 0.03 70); --color-field-edge: oklch(60% 0.04 60);
+  /* 밤 껍질 갈색: 주요 버튼·선택한 것 */
+  --color-accent: oklch(46% 0.09 50); --color-accent-ink: oklch(98% 0.012 80); --color-accent-2: oklch(40% 0.085 48);
+  --color-focus: oklch(50% 0.14 45);
   /* 분홍: 볼터치·하트 (남긴 분홍 포인트) */
   --color-blush: oklch(58% 0.19 3); --color-blush-soft: oklch(84% 0.09 3); --color-blush-wash: oklch(94% 0.03 3);
   /* 캐릭터·연잎 */
   --color-frog: oklch(74% 0.16 132); --color-frog-belly: oklch(93% 0.07 112); --color-pond: oklch(62% 0.1 175);
-  --color-pad: oklch(70% 0.14 138); --color-pad-active: oklch(48% 0.13 146);
-  --color-scrim: oklch(20% 0.04 160 / 0.72); --color-backdrop: oklch(20% 0.04 160 / 0.4); --color-viewer: oklch(99.5% 0.003 128); --color-glass: oklch(20% 0.04 160 / 0.42);
+  /* 밤만쥬 */
+  --color-bun: oklch(84% 0.07 78); --color-bun-top: oklch(58% 0.11 52); --color-bun-shine: oklch(78% 0.08 60);
+  --color-leaf: oklch(58% 0.12 135); --color-plate: oklch(92% 0.012 80); --color-plate-well: oklch(97% 0.008 80);
+  /* 날짜 탭(한 입 베어 문 만쥬 모양)·커버 */
+  --color-pad: oklch(80% 0.07 70); --color-pad-active: oklch(46% 0.09 50);
+  --color-pond: oklch(66% 0.09 62);
+  --color-scrim: oklch(20% 0.03 45 / 0.72); --color-backdrop: oklch(20% 0.03 45 / 0.4); --color-viewer: oklch(99.5% 0.004 80); --color-glass: oklch(20% 0.03 45 / 0.42);
 
   --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
   --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;

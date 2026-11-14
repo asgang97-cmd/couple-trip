@@ -1,5 +1,5 @@
 import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
-import { Frog, LilyPad } from './Frog'
+import { Mascot, Seat } from './Mascot'
 import { ItemCard } from './ItemCard'
 
 interface Props {
@@ -25,11 +25,11 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
     return (
       <div className="empty-pond">
         <div className="pond-perch" aria-hidden="true">
-          <Frog size={88} />
-          <LilyPad size={150} />
+          <Mascot size={88} />
+          <Seat size={150} />
         </div>
         <p className="empty-title">이 날은 아직 비어 있어요</p>
-        <p className="empty">아래 일정 추가로 첫 연잎을 띄워 보세요</p>
+        <p className="empty">아래 일정 추가로 첫 일정을 넣어 보세요</p>
       </div>
     )
   }

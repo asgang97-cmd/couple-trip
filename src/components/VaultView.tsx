@@ -1,6 +1,6 @@
 import { parseLocalDate } from '../lib/dates'
 import type { Item, Voucher } from '../lib/types'
-import { Frog, LilyPad } from './Frog'
+import { Mascot, Seat } from './Mascot'
 import { Icon } from './Icon'
 
 interface Props {
@@ -56,8 +56,8 @@ export function VaultView({ vouchers, items, days, disabled, loadError, isSaved,
       {vouchers.length === 0 ? (
         <div className="empty-pond">
           <div className="pond-perch" aria-hidden="true">
-            <Frog size={80} />
-            <LilyPad size={140} />
+            <Mascot size={80} />
+            <Seat size={140} />
           </div>
           <p className="empty-title">아직 모아 둔 바우처가 없어요</p>
           <p className="empty">PDF를 올리면 예약번호와 날짜를 읽어서 일정에 붙여 줘요</p>

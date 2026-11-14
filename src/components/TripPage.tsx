@@ -15,7 +15,7 @@ import { CostSummary } from './CostSummary'
 import { CoverCropper } from './CoverCropper'
 import { DayTabs } from './DayTabs'
 import { ExpenseView } from './ExpenseView'
-import { Frog } from './Frog'
+import { Mascot } from './Mascot'
 import { HomeHeader } from './HomeHeader'
 import { Icon } from './Icon'
 import { ItemForm } from './ItemForm'
@@ -82,7 +82,7 @@ export function TripPage({ member }: { member: Member }) {
   if (data.status === 'loading') {
     return (
       <div className="center-screen" role="status">
-        <Frog size={96} className="frog-hop keep-motion" />
+        <Mascot size={96} className="frog-hop keep-motion" />
         <p className="empty">일정 불러오는 중…</p>
       </div>
     )
@@ -90,7 +90,7 @@ export function TripPage({ member }: { member: Member }) {
   if (data.status === 'error' || !data.trip) {
     return (
       <div className="center-screen">
-        <Frog size={96} />
+        <Mascot size={96} />
         <p>일정을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.</p>
         <button onClick={() => void data.reload()}>다시 시도</button>
       </div>

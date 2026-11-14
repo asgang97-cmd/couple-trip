@@ -1,7 +1,7 @@
-/* Hallmark · shape: app screen · genre: playful · theme: custom · redesign: full · idea: "개구리가 연잎을 건너뛰며 여행해요: 날짜는 연잎, 고른 날 위에 우리 개구리" · vibe: "연못가, 동글동글, 볼 빨간 개구리 커플"
- * paper: oklch(97% 0.014 128) · accent: oklch(48% 0.13 146) · display: Jua · body: Gowun Dodum
- * nav: kept (커버 + 날짜 탭 + 아래 버튼) · signature: 날짜 연잎 위의 개구리, 고르면 폴짝 · states: loading, empty, error, offline, full
- * axes: light/rounded-sans/chromatic-green · posture: full palette (field pond, signal frog green, seal blush pink, ink) · contrast: pass · v2.0.0 */
+/* Hallmark · shape: app screen · genre: playful · theme: custom · redesign: full · idea: "밤만쥬가 날짜를 하나씩 맛보며 여행해요: 날짜는 한 입 베어 문 만쥬, 고른 날 위에 우리 밤만쥬" · vibe: "만쥬 가게, 노릇노릇, 볼 빨간 만쥬 커플"
+ * paper: oklch(97% 0.016 80) · accent: oklch(46% 0.09 50) · display: Jua · body: Gowun Dodum
+ * nav: kept (커버 + 날짜 탭 + 아래 버튼) · signature: 고른 날짜 위의 밤만쥬, 고르면 폴짝 · states: loading, empty, error, offline, full
+ * axes: light/rounded-sans/warm · posture: full palette (field cream, signal chestnut brown, seal blush pink, ink) · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V5 · weakest: E, 한글 둥근 글꼴은 굵기가 하나뿐이라 위계를 글꼴 차이와 크기로만 만듦 */
 /* Hallmark · waive 39b · two round member buttons on the picker screen, 136px · the big-choice buttons are the whole member picker: two round faces with the emoji, sized to be tapped at a glance */
 /* Hallmark · finish-review: subagent · 7 findings · 7 resolved (notch moved, blush on D-day/my comments/picker hover, frog couple on cover, 56px emoji, search field shell, bottom clearance, visible disabled button) · gap: none */
@@ -100,7 +100,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .note { margin: 0; font-size: var(--text-sm); color: var(--color-muted); }
 
 .gate-perch, .pond-perch { display: grid; justify-items: center; }
-.gate-perch .frog, .pond-perch .frog { margin-bottom: calc(-1 * var(--space-md)); position: relative; z-index: var(--z-raised); }
+.gate-perch .frog, .pond-perch .frog, .gate-perch .manju, .pond-perch .manju { margin-bottom: calc(-1 * var(--space-md)); position: relative; z-index: var(--z-raised); }
 
 .big-choice {
   flex-direction: column;
@@ -143,7 +143,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .cover .dday { color: var(--color-blush-soft); font-family: var(--font-display); font-size: var(--text-display); line-height: 1; font-variant-numeric: tabular-nums; }
 .cover h1 { margin-top: var(--space-2xs); font-size: var(--text-lg); line-height: 1.3; }
 .cover-frogs { position: absolute; right: var(--space-md); bottom: -2px; display: flex; align-items: flex-end; }
-.cover-frogs .frog + .frog { margin-left: calc(-1 * var(--space-sm)); }
+.cover-frogs .frog + .frog, .cover-frogs .manju + .manju { margin-left: calc(-1 * var(--space-sm)); }
 .frog-bow { fill: var(--color-blush); }
 .cover-actions { position: absolute; top: var(--space-sm); right: var(--space-sm); display: flex; gap: var(--space-xs); }
 .photo-btn {
@@ -328,6 +328,22 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .frog-smile { fill: none; stroke: var(--color-ink); stroke-width: 3; stroke-linecap: round; }
 .lilypad-leaf { fill: var(--color-pad); }
 .lilypad-vein { fill: none; stroke: var(--color-paper-3); stroke-width: 2; stroke-linecap: round; }
+
+/* ── 밤만쥬 캐릭터 ──────────────────────────────────── */
+.manju { flex-shrink: 0; overflow: visible; }
+.manju-body { fill: var(--color-bun); }
+.manju-top { fill: var(--color-bun-top); }
+.manju-shine { fill: var(--color-bun-shine); opacity: 0.7; }
+.manju-seed { fill: var(--color-plate-well); }
+.manju-leaf { fill: var(--color-leaf); }
+.manju-stem { fill: none; stroke: var(--color-leaf); stroke-width: 3; stroke-linecap: round; }
+.manju-eye { fill: var(--color-ink); }
+.manju-glint { fill: var(--color-accent-ink); }
+.manju-cheek { fill: var(--color-blush-soft); }
+.manju-mouth { fill: none; stroke: var(--color-ink); stroke-width: 2.5; stroke-linecap: round; }
+.manju-bow { fill: var(--color-blush); }
+.plate-rim { fill: var(--color-plate); }
+.plate-well { fill: var(--color-plate-well); }
 
 /* ── 아래 고정 버튼 ─────────────────────────────────── */
 .bottom-bar {
