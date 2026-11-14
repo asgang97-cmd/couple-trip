@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { signIn } from '../lib/session'
 import { theme } from '../theme'
+import { Frog, LilyPad } from './Frog'
 
 export function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
@@ -20,6 +21,10 @@ export function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <main className="center-screen">
+      <div className="gate-perch" aria-hidden="true">
+        <Frog size={120} />
+        <LilyPad size={180} />
+      </div>
       <h1>{theme.appName}</h1>
       <form onSubmit={submit} className="stack">
         <label htmlFor="pw">비밀번호</label>

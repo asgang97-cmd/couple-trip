@@ -1,0 +1,31 @@
+:root {
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  /* 앱 화면: 1.2 비율, 16px 본문 */
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --text-display-s: 1.44rem; --text-display: 3rem; --text-section: 1.2rem; --text-title: 1.125rem; --text-lead: 1rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(50% 0.18 27); --color-success: oklch(50% 0.12 150);
+  --container: 480px; --gutter: 16px; --gap-columns: 16px; --section-gap-s: 24px; --section-gap: 40px; --section-gap-l: 64px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* 연못: 연한 연둣빛 바탕, 진한 연못빛 글씨 */
+  --color-paper: oklch(97% 0.014 128); --color-paper-2: oklch(94.5% 0.024 130); --color-paper-3: oklch(90.5% 0.036 132);
+  --color-ink: oklch(25% 0.035 155); --color-ink-2: oklch(38% 0.035 155); --color-muted: oklch(47% 0.03 155);
+  --color-rule: oklch(86% 0.035 135); --color-field-edge: oklch(60% 0.04 150);
+  /* 개구리 초록: 주요 버튼·선택한 것 */
+  --color-accent: oklch(48% 0.13 146); --color-accent-ink: oklch(98% 0.012 128); --color-accent-2: oklch(42% 0.12 148);
+  --color-focus: oklch(50% 0.18 146);
+  /* 분홍: 볼터치·하트 (남긴 분홍 포인트) */
+  --color-blush: oklch(58% 0.19 3); --color-blush-soft: oklch(84% 0.09 3); --color-blush-wash: oklch(94% 0.03 3);
+  /* 캐릭터·연잎 */
+  --color-frog: oklch(74% 0.16 132); --color-frog-belly: oklch(93% 0.07 112); --color-pond: oklch(62% 0.1 175);
+  --color-pad: oklch(70% 0.14 138); --color-pad-active: oklch(48% 0.13 146);
+  --color-scrim: oklch(20% 0.04 160 / 0.72); --color-backdrop: oklch(20% 0.04 160 / 0.4); --color-glass: oklch(20% 0.04 160 / 0.42);
+
+  --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
+  --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;
+  --font-outlier: var(--font-display);
+  --radius-card: 22px; --radius-input: 14px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;
+  --tracking-display: 0;
+}

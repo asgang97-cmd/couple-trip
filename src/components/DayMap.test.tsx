@@ -38,7 +38,7 @@ describe('DayMap', () => {
   test('기본은 도보: 구간마다 시간·거리', async () => {
     const loadLeg = vi.fn(async () => ({ path: [], durationSec: 720, distanceM: 900 }))
     render(<DayMap items={located} apiKey="k" mapId="m" loadLeg={loadLeg} />)
-    expect(await screen.findByText('① → ② 🚶 12분 · 900m')).toBeInTheDocument()
+    expect(await screen.findByText('① → ② 도보 12분, 900m')).toBeInTheDocument()
     expect(loadLeg).toHaveBeenCalledWith({ lat: 1, lng: 1 }, { lat: 2, lng: 2 }, 'walk', undefined)
   })
 
@@ -46,8 +46,8 @@ describe('DayMap', () => {
     const loadLeg = vi.fn(async () => ({ path: [], durationSec: 3900, distanceM: 12300 }))
     const items = [makeItem({ lat: 1, lng: 1, time: '09:30', day: '2026-11-16' }), makeItem({ lat: 2, lng: 2 })]
     render(<DayMap items={items} apiKey="k" mapId="m" loadLeg={loadLeg} now={new Date(2026, 10, 14, 12, 0)} />)
-    await userEvent.click(screen.getByRole('button', { name: '🚇 대중교통' }))
-    expect(await screen.findByText('① → ② 🚇 1시간 5분 · 12.3km')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '대중교통' }))
+    expect(await screen.findByText('① → ② 대중교통 1시간 5분, 12.3km')).toBeInTheDocument()
     expect(loadLeg).toHaveBeenLastCalledWith({ lat: 1, lng: 1 }, { lat: 2, lng: 2 }, 'transit', new Date(2026, 10, 16, 9, 30).toISOString())
   })
 
@@ -58,7 +58,7 @@ describe('DayMap', () => {
 
   test('걸어서·대중교통 길찾기 링크', () => {
     render(<DayMap items={located} apiKey="k" mapId="m" />)
-    expect(screen.getByRole('link', { name: '🚶 걸어서 길찾기' })).toHaveAttribute('href', directionsUrl(located, 'walking'))
-    expect(screen.getByRole('link', { name: '🚇 대중교통 길찾기' })).toHaveAttribute('href', directionsUrl(located, 'transit'))
+    expect(screen.getByRole('link', { name: '걸어서 길찾기' })).toHaveAttribute('href', directionsUrl(located, 'walking'))
+    expect(screen.getByRole('link', { name: '대중교통 길찾기' })).toHaveAttribute('href', directionsUrl(located, 'transit'))
   })
 })

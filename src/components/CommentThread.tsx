@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Comment, Member } from '../lib/types'
 import { theme } from '../theme'
+import { Icon } from './Icon'
 
 interface Props {
   comments: Comment[]
@@ -77,8 +78,8 @@ export function CommentThread({ comments, member, disabled, onAdd, onEdit, onDel
                 <span className="bubble">{c.body}</span>
                 {mine && !disabled && (
                   <span className="comment-tools">
-                    <button type="button" className="mini" aria-label="댓글 수정" onClick={() => setEditing({ id: c.id, text: c.body })}>✏️</button>
-                    <button type="button" className="mini" aria-label="댓글 삭제" disabled={busy} onClick={() => remove(c.id)}>🗑️</button>
+                    <button type="button" className="mini" aria-label="댓글 수정" onClick={() => setEditing({ id: c.id, text: c.body })}><Icon name="pencil" size={16} /></button>
+                    <button type="button" className="mini" aria-label="댓글 삭제" disabled={busy} onClick={() => remove(c.id)}><Icon name="trash" size={16} /></button>
                   </span>
                 )}
               </li>

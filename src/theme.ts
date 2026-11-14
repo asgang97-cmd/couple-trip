@@ -5,8 +5,9 @@ export const theme = {
   emoji: { a: '💩', b: '🐷' },
 
   // 색 (https://htmlcolorcodes.com 에서 골라 '#xxxxxx' 로)
-  primary: '#ff6b81', // 버튼·강조색
-  background: '#fff7f8', // 배경색
+  // (세부 색은 src/tokens.css 에 있어요. 여기 두 개는 주요 버튼색·바탕색만 덮어써요)
+  primary: '#3f7f43', // 버튼·강조색 (개구리 초록)
+  background: '#f3f7ee', // 배경색 (연못 연두)
 
   // 앱에서 사진을 올리기 전에 보일 기본 사진.
   // public 폴더에 사진(예: cover.jpg)을 넣고 '/cover.jpg' 로 바꾸세요. null이면 분홍 그라데이션만.

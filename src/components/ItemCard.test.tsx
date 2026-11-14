@@ -26,18 +26,18 @@ describe('ItemCard 하트·댓글', () => {
     expect(onToggleHeart).toHaveBeenLastCalledWith(false)
   })
 
-  test('둘 다 누르면 💕, 한 명이면 그 사람 이모지 + ❤️', () => {
+  test('둘 다 누르면 "둘 다", 한 명이면 그 사람 이모지 + 하트', () => {
     const { rerender } = render(<ItemCard {...base} item={item} hearts={[{ item_id: 'it', member: 'b' }]} />)
-    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent(`${theme.emoji.b}❤️`)
+    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent(theme.emoji.b)
     rerender(<ItemCard {...base} item={item} hearts={[{ item_id: 'it', member: 'a' }, { item_id: 'it', member: 'b' }]} />)
-    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent('💕')
+    expect(screen.getByRole('button', { name: '하트' })).toHaveTextContent('둘 다 좋아해요')
   })
 
   test('댓글 개수 표시, 누르면 펼침', async () => {
     const comments = [1, 2].map((n) => ({ id: `c${n}`, item_id: 'it', member: 'b' as const, body: `댓글${n}`, created_at: `2026-11-14T0${n}:00:00Z` }))
     render(<ItemCard {...base} item={item} comments={comments} />)
     expect(screen.queryByText('댓글1')).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: '💬 2' }))
+    await userEvent.click(screen.getByRole('button', { name: '댓글 2개' }))
     expect(screen.getByText('댓글1')).toBeInTheDocument()
   })
 
@@ -78,9 +78,9 @@ describe('ItemCard', () => {
   test('위치가 있으면 "여기로 길찾기" 링크, 없으면 없음', () => {
     const it = makeItem({ lat: 35.7, lng: 139.8 })
     const { rerender } = render(<ItemCard {...base} item={it} />)
-    expect(screen.getByRole('link', { name: '📍 여기로 길찾기' })).toHaveAttribute('href', directionsUrl([it]))
+    expect(screen.getByRole('link', { name: '여기로 길찾기' })).toHaveAttribute('href', directionsUrl([it]))
     rerender(<ItemCard {...base} item={makeItem()} />)
-    expect(screen.queryByRole('link', { name: '📍 여기로 길찾기' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '여기로 길찾기' })).toBeNull()
   })
 
   test('예약 번호 표시', () => {

@@ -4,7 +4,7 @@ export function OfflineBanner({ offline, savedAt }: { offline: boolean; savedAt:
   if (!offline) return null
   return (
     <div role="status" className="offline-banner">
-      오프라인이에요{savedAt ? ` · ${fmt.format(new Date(savedAt))} 기준 일정` : ''} (보기만 가능)
+      오프라인이에요. {savedAt ? `${fmt.format(new Date(savedAt))}에 저장한 일정을 보여줘요 (보기만 가능)` : '보기만 가능해요'}
     </div>
   )
 }

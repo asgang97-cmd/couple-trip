@@ -24,3 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Hallmark 미리보기 도구(가짜 데이터)
+.hallmark/preview/

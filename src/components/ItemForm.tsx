@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { parseLocalDate } from '../lib/dates'
+import { Icon } from './Icon'
 import type { Item, ItemInput, Member, Trip } from '../lib/types'
 
 const dayFmt = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
@@ -95,7 +96,7 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, onSa
         })}
         {location && (
           <div className="location-chip">
-            <span>📍 지도에 표시돼요</span>
+            <span className="with-icon"><Icon name="pin" size={16} />지도에 표시돼요</span>
             <button type="button" className="ghost" onClick={() => setLocation(null)}>위치 지우기</button>
           </div>
         )}
@@ -107,7 +108,7 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, onSa
           {/* 여행 기간이 줄어 원래 날짜가 목록에 없어도 그대로 고를 수 있게 */}
           {(days.includes(itemDay) ? days : [itemDay, ...days]).map((d) => {
             const n = days.indexOf(d)
-            return <option key={d} value={d}>{n >= 0 ? `${n + 1}일차 · ` : ''}{dayFmt.format(parseLocalDate(d))}</option>
+            return <option key={d} value={d}>{n >= 0 ? `${n + 1}일차, ` : ''}{dayFmt.format(parseLocalDate(d))}</option>
           })}
         </select>
 

@@ -11,7 +11,9 @@ import {
 import type { Item, ItemInput, Member, TripInput } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
+import { Frog } from './Frog'
 import { HomeHeader } from './HomeHeader'
+import { Icon } from './Icon'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
@@ -54,11 +56,19 @@ export function TripPage({ member }: { member: Member }) {
   }, [coverPath])
   const cover = coverPath && coverState?.path === coverPath ? coverState.url : null
 
-  if (data.status === 'loading') return <p className="empty">불러오는 중…</p>
+  if (data.status === 'loading') {
+    return (
+      <div className="center-screen" role="status">
+        <Frog size={96} className="frog-hop keep-motion" />
+        <p className="empty">일정 불러오는 중…</p>
+      </div>
+    )
+  }
   if (data.status === 'error' || !data.trip) {
     return (
       <div className="center-screen">
-        <p>일정을 불러오지 못했어요.</p>
+        <Frog size={96} />
+        <p>일정을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.</p>
         <button onClick={() => void data.reload()}>다시 시도</button>
       </div>
     )
@@ -158,8 +168,8 @@ export function TripPage({ member }: { member: Member }) {
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle" role="group" aria-label="보기">
-        <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>📋 목록</button>
-        <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}>🗺️ 지도</button>
+        <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
+        <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}><Icon name="map" />지도</button>
       </div>
       {view === 'map' && (
         <Suspense fallback={<p className="empty">지도 불러오는 중…</p>}>
@@ -181,7 +191,7 @@ export function TripPage({ member }: { member: Member }) {
         onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
       />}
       <div className="bottom-bar">
-        <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}>+ 일정 추가</button>
+        <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
       </div>
       {settingsOpen && (
         <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />

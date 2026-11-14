@@ -1,0 +1,18 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "custom",
+  "axes": "light/rounded-sans/chromatic-green",
+  "nav": "kept",
+  "signature": "frog on the selected lily-pad day tab, hops on change",
+  "waived": [
+   "39b",
+   "80"
+  ],
+  "prompt": "couple travel itinerary PWA, cute frog theme",
+  "date": "2026-11-14"
+ }
+]

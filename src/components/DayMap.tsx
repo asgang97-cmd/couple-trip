@@ -4,6 +4,7 @@ import { directionsUrl, itemsWithLocation } from '../lib/maps'
 import { getLeg, transitDeparture, type LatLng, type Leg, type RouteMode } from '../lib/routes'
 import type { Item } from '../lib/types'
 import { theme } from '../theme'
+import { Icon } from './Icon'
 
 type LoadLeg = (a: LatLng, b: LatLng, mode: RouteMode, departureTime: string | undefined) => Promise<Leg | null>
 
@@ -115,14 +116,14 @@ export function DayMap({
 
   const walk = directionsUrl(points, 'walking')!
   const transit = directionsUrl(points, 'transit')!
-  const icon = mode === 'walk' ? '🚶' : '🚇'
+  const modeLabel = mode === 'walk' ? '도보' : '대중교통'
 
   return (
     <section className="day-map">
       {points.length >= 2 && (
         <div className="view-toggle" role="group" aria-label="이동 수단">
-          <button type="button" aria-pressed={mode === 'walk'} onClick={() => setMode('walk')}>🚶 도보</button>
-          <button type="button" aria-pressed={mode === 'transit'} onClick={() => setMode('transit')}>🚇 대중교통</button>
+          <button type="button" aria-pressed={mode === 'walk'} onClick={() => setMode('walk')}><Icon name="walk" />도보</button>
+          <button type="button" aria-pressed={mode === 'transit'} onClick={() => setMode('transit')}><Icon name="train" />대중교통</button>
         </div>
       )}
       <APIProvider apiKey={apiKey} language="ko" region="KR">
@@ -154,15 +155,15 @@ export function DayMap({
                   ? `${label} 계산 중…`
                   : leg === null
                     ? `${label} 길을 못 찾아서 직선으로 표시`
-                    : `${label} ${icon} ${formatDuration(leg.durationSec)} · ${formatDistance(leg.distanceM)}`}
+                    : `${label} ${modeLabel} ${formatDuration(leg.durationSec)}, ${formatDistance(leg.distanceM)}`}
               </li>
             )
           })}
         </ul>
       )}
       <div className="row map-links">
-        <a className="btn-link" href={walk} target="_blank" rel="noopener noreferrer">🚶 걸어서 길찾기</a>
-        <a className="btn-link" href={transit} target="_blank" rel="noopener noreferrer">🚇 대중교통 길찾기</a>
+        <a className="btn-link" href={walk} target="_blank" rel="noopener noreferrer"><Icon name="walk" />걸어서 길찾기</a>
+        <a className="btn-link" href={transit} target="_blank" rel="noopener noreferrer"><Icon name="train" />대중교통 길찾기</a>
       </div>
     </section>
   )

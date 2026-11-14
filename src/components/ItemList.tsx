@@ -1,4 +1,5 @@
 import type { Comment, Heart, Item, Member, Trip } from '../lib/types'
+import { Frog, LilyPad } from './Frog'
 import { ItemCard } from './ItemCard'
 
 interface Props {
@@ -17,7 +18,18 @@ interface Props {
 }
 
 export function ItemList({ items, hearts, comments, onEdit, onToggleHeart, onAddComment, ...rest }: Props) {
-  if (items.length === 0) return <p className="empty">아직 일정이 없어요. 아래에서 추가해 보세요 ✨</p>
+  if (items.length === 0) {
+    return (
+      <div className="empty-pond">
+        <div className="pond-perch" aria-hidden="true">
+          <Frog size={88} />
+          <LilyPad size={150} />
+        </div>
+        <p className="empty-title">이 날은 아직 비어 있어요</p>
+        <p className="empty">아래 일정 추가로 첫 연잎을 띄워 보세요</p>
+      </div>
+    )
+  }
   return (
     <div className="item-list">
       {items.map((it) => (

@@ -4,6 +4,7 @@ import { formatMoney, toKrw } from '../lib/money'
 import type { Comment, Heart, Item, Member, Trip } from '../lib/types'
 import { theme } from '../theme'
 import { CommentThread } from './CommentThread'
+import { Icon } from './Icon'
 
 interface Props {
   item: Item
@@ -20,10 +21,30 @@ interface Props {
   onDeleteComment: (id: string) => Promise<void>
 }
 
-function heartLabel(hearts: Heart[]): string {
-  if (hearts.length >= 2) return '💕'
-  if (hearts.length === 1) return `${theme.emoji[hearts[0].member]}❤️`
-  return '🤍'
+/** 하트: 둘 다 → 하트 두 개, 한 명 → 그 사람 이모지 + 하트, 없음 → 빈 하트 */
+function HeartLabel({ hearts }: { hearts: Heart[] }) {
+  if (hearts.length >= 2) {
+    return (
+      <span className="hearts both">
+        <Icon name="heart" filled />
+        <Icon name="heart" filled />
+        <span className="visually-hidden">둘 다 좋아해요</span>
+      </span>
+    )
+  }
+  if (hearts.length === 1) {
+    return (
+      <span className="hearts">
+        {theme.emoji[hearts[0].member]}
+        <Icon name="heart" filled />
+      </span>
+    )
+  }
+  return (
+    <span className="hearts">
+      <Icon name="heart" />
+    </span>
+  )
 }
 
 const isWebUrl = (u: string) => /^https?:\/\//i.test(u)
@@ -59,13 +80,13 @@ export function ItemCard({
       {item.memo && <p className="memo">{item.memo}</p>}
       {item.cost_amount !== null && <p className="cost">{costLabel(item.cost_amount, item.cost_currency, rate)}</p>}
       {item.lat !== null && item.lng !== null && (
-        <a className="go-link" href={directionsUrl([item])!} target="_blank" rel="noopener noreferrer">📍 여기로 길찾기</a>
+        <a className="go-link" href={directionsUrl([item])!} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={16} />여기로 길찾기</a>
       )}
       {(item.booking_code || isWebUrl(item.booking_url)) && (
         <div className="booking">
           {item.booking_code && (
             <button type="button" className="chip" onClick={copyCode} title="눌러서 복사">
-              🎫 <span>{item.booking_code}</span>
+              <Icon name="ticket" size={16} /><span>{item.booking_code}</span>
             </button>
           )}
           {isWebUrl(item.booking_url) && (
@@ -75,10 +96,10 @@ export function ItemCard({
       )}
       <div className="card-actions">
         <button type="button" className="ghost" aria-label="하트" aria-pressed={mine} disabled={disabled} onClick={() => void onToggleHeart(!mine)}>
-          {heartLabel(hearts)}
+          <HeartLabel hearts={hearts} />
         </button>
-        <button type="button" className="ghost" aria-expanded={showComments} onClick={() => setShowComments((v) => !v)}>
-          💬 {comments.length}
+        <button type="button" className="ghost" aria-label={`댓글 ${comments.length}개`} aria-expanded={showComments} onClick={() => setShowComments((v) => !v)}>
+          <Icon name="chat" /> {comments.length}
         </button>
         <span className="spacer" />
         <button type="button" className="ghost" onClick={onEdit} disabled={disabled}>수정</button>

@@ -6,7 +6,8 @@ import { getMember, hasStoredSession, isSignedIn, onSignedOut, setMember } from 
 import type { Member } from './lib/types'
 import { theme } from './theme'
 
-const themeVars = { '--primary': theme.primary, '--bg': theme.background } as CSSProperties
+// theme.ts에서 고른 색을 디자인 토큰에 연결
+const themeVars = { '--color-accent': theme.primary, '--color-paper': theme.background } as CSSProperties
 
 export default function App() {
   // 로그인 기록이 있으면 바로 일정 화면 (오프라인에서도 빈 화면 없이)

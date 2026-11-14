@@ -1,6 +1,8 @@
 import { tripPhaseLabel } from '../lib/dates'
 import type { Trip } from '../lib/types'
 import { theme } from '../theme'
+import { Frog } from './Frog'
+import { Icon } from './Icon'
 
 interface Props {
   trip: Trip
@@ -17,9 +19,9 @@ interface Props {
 export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, now, uploading, disabled, onPickPhoto, onOpenSettings }: Props) {
   const photo = coverUrl ?? fallbackPhoto
   const layers = [
-    'linear-gradient(transparent 30%, rgba(0,0,0,0.55))',
+    'linear-gradient(transparent 25%, var(--color-scrim))',
     ...(photo ? [`url("${photo}")`] : []),
-    'linear-gradient(135deg, var(--primary), #ffb3c1)',
+    'linear-gradient(160deg, var(--color-pond), var(--color-accent))',
   ]
   return (
     <header
@@ -29,9 +31,9 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
       style={{ backgroundImage: layers.join(', ') }}
     >
       <div className="cover-actions">
-        <button type="button" className="photo-btn" aria-label="여행 설정" disabled={disabled} onClick={onOpenSettings}>⚙️</button>
+        <button type="button" className="photo-btn" aria-label="여행 설정" disabled={disabled} onClick={onOpenSettings}><Icon name="gear" /></button>
         <label className={`photo-btn${uploading || disabled ? ' off' : ''}`}>
-          {uploading ? '올리는 중…' : '📷'}
+          {uploading ? '올리는 중…' : <Icon name="camera" />}
           <input
             type="file"
             accept="image/*"
@@ -49,6 +51,11 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
         <p className="greeting">{theme.greeting}</p>
         <p className="dday">{tripPhaseLabel(trip.start_date, trip.end_date, now)}</p>
         <h1>{trip.title}</h1>
+      </div>
+      {/* 우리 둘 (개구리 커플) */}
+      <div className="cover-frogs" aria-hidden="true">
+        <Frog pose="peek" size={72} />
+        <Frog pose="peek" size={64} bow />
       </div>
     </header>
   )
