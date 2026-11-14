@@ -1,6 +1,7 @@
 // 데이터베이스 읽기/쓰기. 함수 하나 = 쿼리 하나. 실패하면 throw.
 import { supabase } from './supabase'
-import type { Comment, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput } from './types'
+import type { Comment, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput, Voucher } from './types'
+import type { Prepared } from './voucherFile'
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message)
@@ -103,6 +104,63 @@ export async function deletePacking(id: string): Promise<void> {
   check(await supabase.from('packing_items').delete().eq('id', id))
 }
 
+/** 보관함 목록 (올린 순서) */
+export async function listVouchers(tripId: string): Promise<Voucher[]> {
+  return check(await supabase.from('vouchers').select('*').eq('trip_id', tripId).order('created_at')) as Voucher[]
+}
+
+/** 바우처 올리기: 원본 → 페이지 그림 → 목록에 한 줄. 중간에 실패하면 올린 파일을 지우고 throw */
+export async function uploadVoucher(o: {
+  tripId: string
+  prepared: Prepared
+  title: string
+  itemId: string | null
+  day: string | null
+}): Promise<void> {
+  const base = `${o.tripId}/${crypto.randomUUID()}`
+  const isPdf = o.prepared.kind === 'pdf'
+  const files = [
+    { path: `${base}.${isPdf ? 'pdf' : 'jpg'}`, blob: o.prepared.main, type: isPdf ? 'application/pdf' : 'image/jpeg' },
+    ...o.prepared.pages.map((blob, i) => ({ path: `${base}-p${i + 1}.jpg`, blob, type: 'image/jpeg' })),
+  ]
+  const done: string[] = []
+  try {
+    for (const f of files) {
+      const up = await supabase.storage.from('vouchers').upload(f.path, f.blob, { contentType: f.type })
+      if (up.error) throw new Error(up.error.message)
+      done.push(f.path)
+    }
+    check(
+      await supabase.from('vouchers').insert({
+        trip_id: o.tripId, item_id: o.itemId, day: o.day, title: o.title.trim(), kind: o.prepared.kind,
+        path: files[0].path, pages: files.slice(1).map((f) => f.path), size: o.prepared.main.size,
+      }),
+    )
+  } catch (e) {
+    if (done.length) await supabase.storage.from('vouchers').remove(done) // 정리 실패는 무시
+    throw e
+  }
+}
+
+/** 이름·연결된 일정·날짜 바꾸기. 그 사이 상대가 지웠으면 throw */
+export async function updateVoucher(id: string, fields: Pick<Voucher, 'title' | 'item_id' | 'day'>): Promise<void> {
+  const rows = check(await supabase.from('vouchers').update(fields).eq('id', id).select('id')) as unknown[]
+  if (rows.length === 0) throw new Error('이미 지워진 바우처예요')
+}
+
+/** 목록에서 지우고 파일도 정리 (파일 정리 실패는 무시) */
+export async function deleteVoucher(v: Pick<Voucher, 'id' | 'path' | 'pages'>): Promise<void> {
+  check(await supabase.from('vouchers').delete().eq('id', v.id))
+  await supabase.storage.from('vouchers').remove([v.path, ...v.pages])
+}
+
+/** 보관함 파일 받기 (오프라인 저장용) */
+export async function downloadVoucherFile(path: string): Promise<Blob> {
+  const res = await supabase.storage.from('vouchers').download(path)
+  if (res.error || !res.data) throw new Error(res.error?.message ?? '받기 실패')
+  return res.data
+}
+
 /** 커플 사진 올리기: 새 파일 저장 → 여행에 위치 기록 → 안 쓰는 파일 정리 */
 export async function uploadCover(trip: Trip, photo: Blob): Promise<string> {
   const path = `${trip.id}/${Date.now()}.jpg`
@@ -180,11 +238,15 @@ export function subscribe(tripId: string, onChange: () => void): () => void {
   }
   channel.subscribe()
   // 준비물은 따로: 표가 아직 없어도(SQL 실행 전) 다른 실시간 알림은 멀쩡하게
-  const packing = supabase.channel(`trip-${tripId}-packing`)
-  packing.on('postgres_changes', { event: '*', schema: 'public', table: 'packing_items' }, onChange)
-  packing.subscribe()
+  // 나중에 생긴 표(준비물·보관함)는 따로: 표가 아직 없어도(SQL 실행 전) 다른 실시간 알림은 멀쩡하게
+  const extras = ['packing_items', 'vouchers'].map((table) => {
+    const ch = supabase.channel(`trip-${tripId}-${table}`)
+    ch.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
+    ch.subscribe()
+    return ch
+  })
   return () => {
     void supabase.removeChannel(channel)
-    void supabase.removeChannel(packing)
+    extras.forEach((ch) => void supabase.removeChannel(ch))
   }
 }

@@ -3,9 +3,9 @@ import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import * as realRepo from '../lib/repo'
 import { isMissingTableError } from '../lib/packing'
 import { onSessionRefreshed } from '../lib/session'
-import type { Comment, Heart, Item, PackingItem, Trip } from '../lib/types'
+import type { Comment, Heart, Item, PackingItem, Trip, Voucher } from '../lib/types'
 
-type RepoLike = Pick<typeof realRepo, 'fetchTrip' | 'listItems' | 'listHearts' | 'listComments' | 'listPacking' | 'subscribe'>
+type RepoLike = Pick<typeof realRepo, 'fetchTrip' | 'listItems' | 'listHearts' | 'listComments' | 'listPacking' | 'listVouchers' | 'subscribe'>
 
 export interface TripData {
   status: 'loading' | 'ready' | 'error'
@@ -15,6 +15,8 @@ export interface TripData {
   comments: Comment[]
   packing: PackingItem[]
   packingError: boolean // 준비물만 불러오지 못함 (보이는 목록은 이전 것)
+  vouchers: Voucher[]
+  voucherError: boolean // 보관함 목록만 불러오지 못함 (보이는 목록은 이전 것)
   offline: boolean
   savedAt: string | null // 오프라인일 때 보여주는 데이터의 저장 시각
   reload: () => Promise<void>
@@ -31,36 +33,44 @@ export function useTripData(
   const storageRef = useRef(deps.storage ?? globalThis.localStorage)
   const onAuthRefreshRef = useRef(deps.onAuthRefresh ?? onSessionRefreshed)
   const [state, setState] = useState<Omit<TripData, 'reload'>>({
-    status: 'loading', trip: null, items: [], hearts: [], comments: [], packing: [], packingError: false, offline: false, savedAt: null,
+    status: 'loading', trip: null, items: [], hearts: [], comments: [], packing: [], packingError: false, vouchers: [], voucherError: false, offline: false, savedAt: null,
   })
   // 요청 번호: 늦게 도착한 예전 응답이 새 응답을 덮어쓰지 않게
   const requestId = useRef(0)
   // 마지막으로 제대로 불러온 준비물 (준비물만 실패했을 때 빈 목록으로 덮지 않게)
   const lastPacking = useRef<PackingItem[] | null>(null)
+  const lastVouchers = useRef<Voucher[] | null>(null)
 
   const reload = useCallback(async () => {
     const id = ++requestId.current
     const r = repoRef.current
     try {
       const trip = await r.fetchTrip()
-      const [items, hearts, comments, packing] = await Promise.all([
+      const [items, hearts, comments, packing, vouchers] = await Promise.all([
         r.listItems(trip.id), r.listHearts(trip.id), r.listComments(trip.id),
         // 준비물 표가 아직 없으면 빈 목록, 그 밖의 실패는 null (이전 목록 유지)
         r.listPacking(trip.id).catch((e): PackingItem[] | null => (isMissingTableError(e) ? [] : null)),
+        r.listVouchers(trip.id).catch((e): Voucher[] | null => (isMissingTableError(e, 'vouchers') ? [] : null)),
       ])
       if (id !== requestId.current) return
       const savedAt = new Date().toISOString()
       const packingError = packing === null
       const keptPacking = packing ?? lastPacking.current ?? loadSnapshot(storageRef.current)?.packing ?? []
       if (packing) lastPacking.current = packing
-      saveSnapshot({ trip, items, hearts, comments, packing: keptPacking, savedAt }, storageRef.current)
-      setState({ status: 'ready', trip, items, hearts, comments, packing: keptPacking, packingError, offline: false, savedAt })
+      const voucherError = vouchers === null
+      const keptVouchers = vouchers ?? lastVouchers.current ?? loadSnapshot(storageRef.current)?.vouchers ?? []
+      if (vouchers) lastVouchers.current = vouchers
+      saveSnapshot({ trip, items, hearts, comments, packing: keptPacking, vouchers: keptVouchers, savedAt }, storageRef.current)
+      setState({
+        status: 'ready', trip, items, hearts, comments, packing: keptPacking, packingError,
+        vouchers: keptVouchers, voucherError, offline: false, savedAt,
+      })
     } catch {
       if (id !== requestId.current) return
       setState((s) => {
         if (s.status === 'ready') return { ...s, offline: true } // 보던 화면 유지
         const snap = loadSnapshot(storageRef.current)
-        if (snap) return { status: 'ready', ...snap, packing: snap.packing ?? [], packingError: false, offline: true }
+        if (snap) return { status: 'ready', ...snap, packing: snap.packing ?? [], packingError: false, vouchers: snap.vouchers ?? [], voucherError: false, offline: true }
         return { ...s, status: 'error' }
       })
     }

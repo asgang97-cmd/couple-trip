@@ -4,8 +4,8 @@ export const STARTER_ITEMS = [
   '돼지코 (일본 콘센트용 플러그)', '유심 또는 이심', '상비약', '세면도구', '우산',
 ]
 
-/** 준비물 표가 아직 없음 (004_packing.sql 실행 전) */
-export function isMissingTableError(e: unknown): boolean {
+/** 표가 아직 없음 (그 기능의 SQL 실행 전). table 기본값은 준비물 표 */
+export function isMissingTableError(e: unknown, table = 'packing_items'): boolean {
   const m = e instanceof Error ? e.message : String(e)
-  return /packing_items/.test(m) && /(does not exist|schema cache)/.test(m)
+  return new RegExp(`\\b${table}\\b`).test(m) && /(does not exist|schema cache)/.test(m)
 }

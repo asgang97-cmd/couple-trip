@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import { TRIP, makeItem } from '../test-fixtures'
 import { memoryStorage } from '../test-utils'
-import type { PackingItem } from '../lib/types'
+import type { PackingItem, Voucher } from '../lib/types'
 
 vi.mock('../lib/repo', () => ({}))
 const { useTripData } = await import('./useTripData')
@@ -19,6 +19,7 @@ function fakeRepo(itemsSequence: ReturnType<typeof makeItem>[][]) {
       listHearts: vi.fn(async () => []),
       listComments: vi.fn(async () => []),
       listPacking: vi.fn(async (): Promise<PackingItem[]> => []),
+      listVouchers: vi.fn(async (): Promise<Voucher[]> => []),
       subscribe: vi.fn((_id: string, cb: () => void) => {
         onChange = cb
         return unsubscribe
@@ -177,5 +178,38 @@ describe('useTripData 준비물 불러오기 실패', () => {
     await waitFor(() => expect(result.current.status).toBe('ready'))
     expect(result.current.packing).toEqual([])
     expect(result.current.packingError).toBe(false)
+  })
+})
+
+describe('useTripData 바우처', () => {
+  const V: Voucher = { id: 'v1', trip_id: TRIP.id, item_id: null, day: '2027-01-10', title: 'QR', kind: 'image', path: 't/v1.jpg', pages: [], size: 1, created_at: 'x' }
+  test('바우처도 불러오고 저장본에도 남김 (오프라인 보기용)', async () => {
+    const storage = memoryStorage()
+    const { repo } = fakeRepo([[]])
+    repo.listVouchers.mockResolvedValue([V])
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.vouchers).toEqual([V]))
+    expect(loadSnapshot(storage)?.vouchers).toEqual([V])
+  })
+  test('표가 아직 없으면 빈 목록, 잠깐 실패하면 이전 목록 유지', async () => {
+    const storage = memoryStorage()
+    const { repo, fireChange } = fakeRepo([[], []])
+    repo.listVouchers
+      .mockResolvedValueOnce([V])
+      .mockRejectedValueOnce(new Error('timeout'))
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.vouchers).toEqual([V]))
+    act(() => fireChange())
+    await waitFor(() => expect(result.current.voucherError).toBe(true))
+    expect(result.current.vouchers).toEqual([V])
+    expect(loadSnapshot(storage)?.vouchers).toEqual([V])
+  })
+  test('SQL 실행 전(표 없음)은 오류 아님', async () => {
+    const { repo } = fakeRepo([[]])
+    repo.listVouchers.mockRejectedValue(new Error('relation "public.vouchers" does not exist'))
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(result.current.vouchers).toEqual([])
+    expect(result.current.voucherError).toBe(false)
   })
 })

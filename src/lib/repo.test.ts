@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { addPacking, addPackingMany, coverUrl, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
+const { addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -209,5 +209,54 @@ describe('준비물 한 번에 넣기', () => {
       { trip_id: 'trip-1', name: '여권', owner: 'both' },
       { trip_id: 'trip-1', name: '우산', owner: 'both' },
     ]]])
+  })
+})
+
+describe('바우처', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  const pdf = { kind: 'pdf' as const, main: new Blob(['%PDF']), pages: [new Blob(['p1']), new Blob(['p2'])], text: '' }
+
+  test('목록: 그 여행 것만', async () => {
+    queue = [{ data: [{ id: 'v1' }], error: null }]
+    expect(await listVouchers('trip-1')).toEqual([{ id: 'v1' }])
+    expect(calls).toContainEqual(['from', 'vouchers'])
+    expect(calls).toContainEqual(['eq', 'trip_id', 'trip-1'])
+  })
+
+  test('올리기: 원본 + 페이지 그림 올리고 한 줄 추가', async () => {
+    queue = [{ data: {}, error: null }, { data: {}, error: null }, { data: {}, error: null }, { data: { id: 'x' }, error: null }]
+    await uploadVoucher({ tripId: 'trip-1', prepared: pdf, title: 'KE703', itemId: 'i1', day: '2027-01-10' })
+    const uploads = calls.filter((c) => c[0] === 'upload').map((c) => c[1] as string)
+    expect(uploads).toHaveLength(3)
+    expect(uploads[0]).toMatch(/^trip-1\/.+\.pdf$/)
+    expect(uploads[1]).toMatch(/^trip-1\/.+-p1\.jpg$/)
+    const insert = calls.find((c) => c[0] === 'insert')![1] as Record<string, unknown>
+    expect(insert).toMatchObject({ trip_id: 'trip-1', item_id: 'i1', day: '2027-01-10', title: 'KE703', kind: 'pdf', path: uploads[0], pages: uploads.slice(1) })
+  })
+
+  test('중간에 실패하면 이미 올린 파일을 지우고 throw', async () => {
+    queue = [{ data: {}, error: null }, { data: null, error: { message: 'too big' } }, { data: null, error: null }]
+    await expect(uploadVoucher({ tripId: 'trip-1', prepared: pdf, title: 'x', itemId: null, day: null })).rejects.toThrow('too big')
+    const removed = calls.find((c) => c[0] === 'remove')![1] as string[]
+    expect(removed).toHaveLength(1)
+    expect(calls.some((c) => c[0] === 'insert')).toBe(false)
+  })
+
+  test('수정: 그 줄만, 지워졌으면 throw', async () => {
+    queue = [{ data: [{ id: 'v1' }], error: null }]
+    await updateVoucher('v1', { title: '새 이름', item_id: null, day: '2027-01-11' })
+    expect(calls).toContainEqual(['update', { title: '새 이름', item_id: null, day: '2027-01-11' }])
+    queue = [{ data: [], error: null }]
+    await expect(updateVoucher('v1', { title: 'a', item_id: null, day: null })).rejects.toThrow()
+  })
+
+  test('지우기: 줄을 지우고 파일도 정리', async () => {
+    queue = [{ data: null, error: null }, { data: null, error: null }]
+    await deleteVoucher({ id: 'v1', path: 't/a.pdf', pages: ['t/a-p1.jpg'] })
+    expect(calls).toContainEqual(['eq', 'id', 'v1'])
+    expect(calls).toContainEqual(['remove', ['t/a.pdf', 't/a-p1.jpg']])
   })
 })
