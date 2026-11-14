@@ -47,6 +47,20 @@ export interface PackingItem {
   created_at: string
 }
 
+/** 보관함의 예약 확인서·QR·바우처 */
+export interface Voucher {
+  id: string
+  trip_id: string
+  item_id: string | null // 연결된 일정
+  day: string | null // 연결된 날짜 'YYYY-MM-DD'
+  title: string
+  kind: 'image' | 'pdf'
+  path: string // 원본 파일 위치 (Storage 'vouchers')
+  pages: string[] // PDF 페이지 그림 위치들
+  size: number
+  created_at: string
+}
+
 export interface Heart {
   item_id: string
   member: Member
