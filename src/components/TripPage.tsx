@@ -1,17 +1,20 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNow } from '../hooks/useNow'
+import { useExpenses } from '../hooks/useExpenses'
 import { useVoucherCache } from '../hooks/useVoucherCache'
+import { newExpense } from '../lib/expenseQueue'
 import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, addPacking, addPackingMany, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addExpense, addPacking, addPackingMany, deleteExpense, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
 import type { Item, ItemInput, Member, PackingItem, TripInput, Voucher } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { CoverCropper } from './CoverCropper'
 import { DayTabs } from './DayTabs'
+import { ExpenseView } from './ExpenseView'
 import { Frog } from './Frog'
 import { HomeHeader } from './HomeHeader'
 import { Icon } from './Icon'
@@ -34,6 +37,8 @@ type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
 export function TripPage({ member }: { member: Member }) {
   const data = useTripData()
   const rate = useRate(data.trip)
+  // 가계부: 인터넷이 없어도 적고, 연결되면 자동으로 올림
+  const expenses = useExpenses(data.expenses, data.offline, { add: addExpense, remove: deleteExpense, reload: data.reload })
   // 불러오기 전(null)과 예전 목록(voucherError)일 때는 폰의 파일을 정리하지 않음
   const voucherFiles = useVoucherCache(data.status === 'ready' ? data.vouchers : null, data.offline, {
     download: downloadVoucherFile,
@@ -43,7 +48,7 @@ export function TripPage({ member }: { member: Member }) {
   const [form, setForm] = useState<FormState>(null)
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [view, setView] = useState<'list' | 'map' | 'packing' | 'vault'>('list')
+  const [view, setView] = useState<'list' | 'map' | 'packing' | 'vault' | 'money'>('list')
   // 바우처: 올리기·수정 창, 크게 보기
   const [voucherSheet, setVoucherSheet] = useState<
     { kind: 'new'; file: File; presetItemId: string | null } | { kind: 'edit'; voucher: Voucher } | null
@@ -241,11 +246,12 @@ export function TripPage({ member }: { member: Member }) {
       <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={setCropFile} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
-      <div className="view-toggle" role="group" aria-label="보기">
+      <div className="view-toggle view-tabs" role="group" aria-label="보기">
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
         <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}><Icon name="map" />지도</button>
         <button type="button" aria-pressed={view === 'packing'} onClick={() => setView('packing')}><Icon name="bag" />준비물</button>
         <button type="button" aria-pressed={view === 'vault'} onClick={() => setView('vault')}><Icon name="ticket" />보관함</button>
+        <button type="button" aria-pressed={view === 'money'} onClick={() => setView('money')}><Icon name="wallet" />가계부</button>
       </div>
       {view === 'map' && (
         <Suspense fallback={<p className="empty">지도 불러오는 중…</p>}>
@@ -269,6 +275,21 @@ export function TripPage({ member }: { member: Member }) {
         onOpenVoucher={setViewing}
         onAddVoucher={(itemId, file) => setVoucherSheet({ kind: 'new', file, presetItemId: itemId })}
       />}
+      {view === 'money' && (
+        <ExpenseView
+          shown={expenses.shown}
+          trip={trip}
+          days={days}
+          defaultDay={day}
+          member={member}
+          rate={rate.rate}
+          waiting={expenses.waiting}
+          offline={data.offline}
+          loadError={data.expenseError}
+          onAdd={(x) => expenses.add(newExpense({ tripId: trip.id, day: x.day, amount: x.amount, currency: x.currency, paidBy: x.paidBy, memo: x.memo }))}
+          onRemove={expenses.remove}
+        />
+      )}
       {view === 'vault' && (
         <VaultView
           vouchers={data.vouchers}
