@@ -3,13 +3,13 @@ import { useNow } from '../hooks/useNow'
 import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
-import { resizeImage } from '../lib/image'
 import { itemsWithLocation } from '../lib/maps'
 import {
   addComment, coverUrl as getCoverUrl, addPacking, addPackingMany, deleteComment, deleteItem, deletePacking, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
 import type { Item, ItemInput, Member, PackingItem, TripInput } from '../lib/types'
 import { CostSummary } from './CostSummary'
+import { CoverCropper } from './CoverCropper'
 import { DayTabs } from './DayTabs'
 import { Frog } from './Frog'
 import { HomeHeader } from './HomeHeader'
@@ -37,6 +37,7 @@ export function TripPage({ member }: { member: Member }) {
   const [view, setView] = useState<'list' | 'map' | 'packing'>('list')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [vjwOpen, setVjwOpen] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null) // 자르는 중인 사진
   const now = useNow()
   const today = toDateString(now)
 
@@ -176,13 +177,16 @@ export function TripPage({ member }: { member: Member }) {
     onDelete: (id: string) => packingAction(() => deletePacking(id), '지우지 못했어요').catch(() => {}),
   }
 
-  async function changePhoto(file: File) {
+  /** 자른 사진 올리기. 실패하면 알리고 다시 던져서 자르기 창이 그대로 남게 */
+  async function uploadCropped(photo: Blob) {
     setUploading(true)
     try {
-      await uploadCover(trip, await resizeImage(file))
+      await uploadCover(trip, photo)
+      setCropFile(null)
       await data.reload()
-    } catch {
-      alert('사진을 올리지 못했어요. 다른 사진으로 해보거나 다시 시도해 주세요')
+    } catch (e) {
+      alert('사진을 올리지 못했어요. 다시 시도해 주세요')
+      throw e
     } finally {
       setUploading(false)
     }
@@ -191,7 +195,7 @@ export function TripPage({ member }: { member: Member }) {
   return (
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
-      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
+      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={setCropFile} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle" role="group" aria-label="보기">
@@ -224,6 +228,7 @@ export function TripPage({ member }: { member: Member }) {
           <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}
+      {cropFile && <CoverCropper file={cropFile} onCancel={() => setCropFile(null)} onDone={uploadCropped} />}
       {vjwOpen && <VisitJapanSheet trip={trip} items={data.items} onClose={() => setVjwOpen(false)} />}
       {settingsOpen && (
         <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />

@@ -441,3 +441,17 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .packing-delete:hover { background: var(--color-paper-2); color: var(--color-ink); }
 .packing-starter { margin-top: var(--space-sm); background: var(--color-paper); color: var(--color-accent); }
 .packing-starter:hover { background: var(--color-paper-2); }
+
+/* ── 커버 사진 자르기 ───────────────────────────────── */
+.crop-stage { margin-inline: calc(-1 * var(--gutter)); padding: var(--space-lg) var(--gutter); background: var(--color-ink); overflow: hidden; }
+.crop-frame { position: relative; width: 100%; aspect-ratio: 4 / 3; touch-action: none; cursor: grab; user-select: none; border-radius: var(--radius-input); }
+.crop-frame:active { cursor: grabbing; }
+.crop-frame:focus-visible { outline: 3px solid var(--color-accent-ink); outline-offset: 3px; }
+.crop-img { position: absolute; top: 0; left: 0; max-width: none; transform-origin: 0 0; pointer-events: none; }
+/* 틀 밖은 어둡게 */
+.crop-mask { position: absolute; inset: 0; border-radius: var(--radius-input); box-shadow: 0 0 0 999px var(--color-scrim); outline: 2px solid var(--color-accent-ink); pointer-events: none; }
+.crop-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--color-paper); }
+.crop-zoom { display: flex; align-items: center; gap: var(--space-sm); }
+.crop-zoom span { font-size: var(--text-sm); color: var(--color-ink-2); }
+.crop-zoom input { flex: 1; min-height: 44px; padding: 0; border: 0; background: transparent; accent-color: var(--color-accent); }
+.crop-actions button { flex: 1; }
