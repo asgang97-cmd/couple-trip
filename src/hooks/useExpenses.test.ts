@@ -67,3 +67,41 @@ describe('useExpenses', () => {
     await waitFor(() => expect(d.add).toHaveBeenCalledWith(E('old')))
   })
 })
+
+describe('useExpenses 다시 시도·깜빡임', () => {
+  test('온라인인데 올리기가 실패했으면 잠시 뒤 다시 시도', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const d = deps()
+      let fail = true
+      d.add.mockImplementation(async () => { if (fail) throw new TypeError('Failed to fetch') })
+      const { result } = renderHook(() => useExpenses([], false, d))
+      act(() => result.current.add(E('x')))
+      await waitFor(() => expect(d.add).toHaveBeenCalledTimes(1))
+      fail = false
+      await act(async () => { await vi.advanceTimersByTimeAsync(31_000) })
+      await waitFor(() => expect(loadQueue(d.storage)).toEqual([]))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test('올린 직후 서버 목록이 아직 예전 것이어도 화면에서 사라지지 않음', async () => {
+    const d = deps()
+    d.reload.mockImplementation(async () => { throw new Error('reload failed') })
+    const { result } = renderHook(() => useExpenses([], false, d))
+    act(() => result.current.add(E('x')))
+    await waitFor(() => expect(loadQueue(d.storage)).toEqual([]))
+    expect(result.current.shown.map((e) => [e.id, e.pending])).toEqual([['x', false]])
+  })
+
+  test('서버가 거절한 건 실패 목록으로 보여주고 버릴 수 있음', async () => {
+    const d = deps()
+    d.add.mockImplementation(async () => { throw Object.assign(new Error('bad'), { code: '23514' }) })
+    const { result } = renderHook(() => useExpenses([], false, d))
+    act(() => result.current.add(E('bad')))
+    await waitFor(() => expect(result.current.failed.map((e) => e.id)).toEqual(['bad']))
+    act(() => result.current.discardFailed('bad'))
+    expect(result.current.failed).toEqual([])
+  })
+})

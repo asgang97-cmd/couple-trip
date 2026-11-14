@@ -15,6 +15,7 @@ function setup(shown: ShownExpense[], over: Partial<Parameters<typeof ExpenseVie
   const props = {
     shown, trip: TRIP, days: DAYS, defaultDay: '2027-01-11', member: 'b' as const, rate: 9 as number | null,
     waiting: 0, offline: false, loadError: false, onAdd: vi.fn(), onRemove: vi.fn(),
+    failed: [] as ShownExpense[], onDiscardFailed: vi.fn(),
     ...over,
   }
   render(<ExpenseView {...props} />)
@@ -84,5 +85,19 @@ describe('ExpenseView 목록', () => {
     const { onRemove } = setup([X('라멘')])
     await userEvent.click(screen.getByRole('button', { name: '라멘 지우기' }))
     expect(onRemove).toHaveBeenCalledWith('라멘')
+  })
+})
+
+describe('ExpenseView 안전장치', () => {
+  test('말도 안 되게 큰 금액은 막음', async () => {
+    setup([])
+    await userEvent.type(screen.getByLabelText('금액'), '99999999999')
+    expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
+  })
+  test('서버가 거절한 지출을 알려주고 버리기', async () => {
+    const { onDiscardFailed } = setup([], { failed: [X('이상한 것')] })
+    expect(screen.getByText('올리지 못한 지출이 1건 있어요')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '이상한 것 버리기' }))
+    expect(onDiscardFailed).toHaveBeenCalledWith('이상한 것')
   })
 })

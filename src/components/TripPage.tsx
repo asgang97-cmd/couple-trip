@@ -288,6 +288,8 @@ export function TripPage({ member }: { member: Member }) {
           loadError={data.expenseError}
           onAdd={(x) => expenses.add(newExpense({ tripId: trip.id, day: x.day, amount: x.amount, currency: x.currency, paidBy: x.paidBy, memo: x.memo }))}
           onRemove={expenses.remove}
+          failed={expenses.failed}
+          onDiscardFailed={expenses.discardFailed}
         />
       )}
       {view === 'vault' && (

@@ -26,9 +26,12 @@ interface Props {
   loadError: boolean
   onAdd: (e: ExpenseInput) => void
   onRemove: (id: string) => void
+  failed: ShownExpense[] // 서버가 거절해서 못 올린 것
+  onDiscardFailed: (id: string) => void
 }
 
 const MEMBERS: Member[] = ['a', 'b']
+const MAX_AMOUNT = 10_000_000_000 // 이보다 크면 잘못 적은 것
 const fmt = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
 
 /** '1,500' → 1500, 숫자가 아니거나 0 이하면 null */
@@ -36,11 +39,13 @@ function parseAmount(raw: string): number | null {
   const s = raw.replace(/,/g, '').trim()
   if (!/^\d+(\.\d+)?$/.test(s)) return null
   const n = Number(s)
-  return n > 0 ? n : null
+  return Number.isFinite(n) && n > 0 && n <= MAX_AMOUNT ? n : null
 }
 
 /** 가계부: 실제로 쓴 돈. 인터넷이 없어도 적을 수 있음 */
-export function ExpenseView({ shown, trip, days, defaultDay, member, rate, waiting, offline, loadError, onAdd, onRemove }: Props) {
+export function ExpenseView({
+  shown, trip, days, defaultDay, member, rate, waiting, offline, loadError, onAdd, onRemove, failed, onDiscardFailed,
+}: Props) {
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState(trip.currency)
   const [paidBy, setPaidBy] = useState<Member>(member)
@@ -92,6 +97,21 @@ export function ExpenseView({ shown, trip, days, defaultDay, member, rate, waiti
       </section>
 
       {loadError && <p className="error">가계부를 불러오지 못했어요. 보이는 목록이 최신이 아닐 수 있어요</p>}
+      {failed.length > 0 && (
+        <div className="expense-failed" role="alert">
+          <p className="error">올리지 못한 지출이 {failed.length}건 있어요</p>
+          <ul>
+            {failed.map((x) => (
+              <li key={x.id}>
+                <span>{x.memo || '메모 없음'} {formatMoney(x.amount, x.currency)}</span>
+                <button type="button" className="ghost" aria-label={`${x.memo || formatMoney(x.amount, x.currency)} 버리기`} onClick={() => onDiscardFailed(x.id)}>
+                  버리기
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {waiting > 0 && (
         <p className="note expense-waiting" role="status">
           {offline ? `인터넷이 없어서 ${waiting}건은 폰에 있어요. 연결되면 자동으로 올라가요` : `${waiting}건 올리는 중…`}

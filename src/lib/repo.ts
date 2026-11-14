@@ -3,8 +3,9 @@ import { supabase } from './supabase'
 import type { Comment, Expense, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput, Voucher } from './types'
 import type { Prepared } from './voucherFile'
 
-function check<T>(res: { data: T | null; error: { message: string } | null }): T {
-  if (res.error) throw new Error(res.error.message)
+function check<T>(res: { data: T | null; error: { message: string; code?: string } | null }): T {
+  // 오류 코드도 함께 (가계부 대기열이 "계속 거절"과 "잠깐 문제"를 구분)
+  if (res.error) throw Object.assign(new Error(res.error.message), { code: res.error.code })
   return res.data as T
 }
 

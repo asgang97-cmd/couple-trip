@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { memoryStorage } from '../test-utils'
-import { enqueue, flushQueue, loadQueue, mergeWithQueue, newExpense, sumExpenses } from './expenseQueue'
+import { enqueue, flushQueue, isPermanentError, loadFailed, loadQueue, mergeWithQueue, newExpense, sumExpenses } from './expenseQueue'
 import type { Expense } from './types'
 
 const E = (id: string, o: Partial<Expense> = {}): Expense => ({
@@ -42,7 +42,7 @@ describe('flushQueue: 연결되면 올리기', () => {
     enqueue({ op: 'delete', id: 'y' }, s)
     const calls: string[] = []
     const repo = { add: vi.fn(async (e: Expense) => void calls.push('add ' + e.id)), remove: vi.fn(async (id: string) => void calls.push('del ' + id)) }
-    expect(await flushQueue(repo, s)).toEqual({ sent: 2, left: 0 })
+    expect(await flushQueue(repo, s)).toMatchObject({ left: 0, failed: 0 })
     expect(calls).toEqual(['add x', 'del y'])
     expect(loadQueue(s)).toEqual([])
   })
@@ -52,7 +52,9 @@ describe('flushQueue: 연결되면 올리기', () => {
     enqueue({ op: 'add', expense: E('x') }, s)
     enqueue({ op: 'add', expense: E('y') }, s)
     const repo = { add: vi.fn(async (e: Expense) => { if (e.id === 'y') throw new Error('offline') }), remove: vi.fn() }
-    expect(await flushQueue(repo, s)).toEqual({ sent: 1, left: 1 })
+    const r = await flushQueue(repo, s)
+    expect(r.sent).toHaveLength(1)
+    expect(r.left).toBe(1)
     expect(loadQueue(s)).toEqual([{ op: 'add', expense: E('y') }])
   })
 
@@ -87,5 +89,53 @@ describe('sumExpenses: 원화 합계와 사람별', () => {
   test('환율이 없으면 원화만 합치고 못 바꾼 건수', () => {
     const r = sumExpenses([E('1'), E('2', { amount: 5000, currency: 'KRW', paid_by: 'b' })], null)
     expect(r).toEqual({ total: 5000, byMember: { a: 0, b: 5000 }, unconverted: 1 })
+  })
+})
+
+describe('검토 후 안전장치', () => {
+  test('올리는 중인 추가를 지우면 "지우기"가 대기열에 남아 서버에서도 지워짐', async () => {
+    const s = memoryStorage()
+    enqueue({ op: 'add', expense: E('x') }, s)
+    const removed: string[] = []
+    const repo = {
+      add: vi.fn(async () => { enqueue({ op: 'delete', id: 'x' }, s) }), // 올리는 도중에 지움
+      remove: vi.fn(async (id: string) => void removed.push(id)),
+    }
+    await flushQueue(repo, s)
+    expect(removed).toEqual(['x'])
+    expect(loadQueue(s)).toEqual([])
+  })
+
+  test('서버가 계속 거절하는 것(형식 오류·권한)은 실패 목록으로 빼고 다음 것은 계속 올림', async () => {
+    const s = memoryStorage()
+    enqueue({ op: 'add', expense: E('bad') }, s)
+    enqueue({ op: 'add', expense: E('good') }, s)
+    const sent: string[] = []
+    const repo = {
+      add: vi.fn(async (e: Expense) => {
+        if (e.id === 'bad') throw Object.assign(new Error('violates check constraint'), { code: '23514' })
+        sent.push(e.id)
+      }),
+      remove: vi.fn(),
+    }
+    const r = await flushQueue(repo, s)
+    expect(sent).toEqual(['good'])
+    expect(r.failed).toBe(1)
+    expect(loadQueue(s)).toEqual([])
+    expect(loadFailed(s).map((f) => f.op === 'add' && f.expense.id)).toEqual(['bad'])
+  })
+
+  test('인터넷 문제·표 없음은 잠깐 문제라 대기열에 남김', () => {
+    expect(isPermanentError(new TypeError('Failed to fetch'))).toBe(false)
+    expect(isPermanentError(Object.assign(new Error('x'), { code: 'PGRST205' }))).toBe(false)
+    expect(isPermanentError(Object.assign(new Error('x'), { code: '23502' }))).toBe(true)
+    expect(isPermanentError(Object.assign(new Error('x'), { code: '42501' }))).toBe(true)
+  })
+
+  test('올라간 지출은 서버 목록에 나타날 때까지 화면에 그대로 (대기 표시 없이)', () => {
+    const view = mergeWithQueue([], [], [{ op: 'add', expense: E('sent') }])
+    expect(view.map((e) => [e.id, e.pending])).toEqual([['sent', false]])
+    const gone = mergeWithQueue([E('del')], [], [{ op: 'delete', id: 'del' }])
+    expect(gone).toEqual([])
   })
 })
