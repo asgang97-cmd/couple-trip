@@ -16,6 +16,8 @@ interface Props {
   onToggle: (id: string, checked: boolean) => Promise<void>
   onOwner: (id: string, owner: Owner) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  /** 준비물을 불러오지 못함 (보이는 목록이 최신이 아닐 수 있음) */
+  loadError?: boolean
 }
 
 
@@ -23,7 +25,27 @@ const OWNERS: Owner[] = ['both', 'a', 'b']
 const ownerName = (o: Owner) => (o === 'both' ? '같이' : theme.names[o])
 const nextOwner = (o: Owner): Owner => OWNERS[(OWNERS.indexOf(o) + 1) % OWNERS.length]
 
-export function PackingList({ items, disabled, onAdd, onAddMany, onToggle, onOwner, onDelete }: Props) {
+export function PackingList({ items: saved, disabled, onAdd, onAddMany, onToggle, onOwner, onDelete, loadError = false }: Props) {
+  // 서버 응답 전에도 바로 보이게: 진행 중인 변경을 화면에 먼저 덮어씀
+  const [pending, setPending] = useState<Record<string, Partial<PackingItem>>>({})
+  const items = saved.map((i) => (pending[i.id] ? { ...i, ...pending[i.id] } : i))
+
+  async function change(id: string, patch: Partial<PackingItem>, task: () => Promise<void>) {
+    setPending((p) => ({ ...p, [id]: { ...p[id], ...patch } }))
+    try {
+      await task()
+    } finally {
+      setPending((p) => {
+        const { [id]: _done, ...rest } = p
+        return rest
+      })
+    }
+  }
+
+  function remove(it: PackingItem) {
+    if (confirm(`"${it.name}" 지울까요?`)) void onDelete(it.id)
+  }
+
   const [name, setName] = useState('')
   const [owner, setOwner] = useState<Owner>('both')
   const [busy, setBusy] = useState(false)
@@ -97,7 +119,9 @@ export function PackingList({ items, disabled, onAdd, onAddMany, onToggle, onOwn
         </div>
       )}
 
-      {items.length === 0 ? (
+      {loadError && <p className="error">준비물을 불러오지 못했어요. 인터넷 연결을 확인해 주세요</p>}
+
+      {items.length === 0 && !loadError ? (
         <div className="empty-pond">
           <div className="pond-perch" aria-hidden="true">
             <Frog size={80} />
@@ -118,7 +142,10 @@ export function PackingList({ items, disabled, onAdd, onAddMany, onToggle, onOwn
                   type="checkbox"
                   checked={it.checked}
                   disabled={disabled}
-                  onChange={(e) => void onToggle(it.id, e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked
+                    void change(it.id, { checked }, () => onToggle(it.id, checked))
+                  }}
                 />
                 <span>{it.name}</span>
               </label>
@@ -126,8 +153,11 @@ export function PackingList({ items, disabled, onAdd, onAddMany, onToggle, onOwn
                 type="button"
                 className="packing-owner"
                 aria-label={`${it.name} 챙길 사람 바꾸기 (지금: ${ownerName(it.owner)})`}
-                disabled={disabled}
-                onClick={() => void onOwner(it.id, nextOwner(it.owner))}
+                disabled={disabled || pending[it.id]?.owner !== undefined}
+                onClick={() => {
+                  const owner = nextOwner(it.owner)
+                  void change(it.id, { owner }, () => onOwner(it.id, owner))
+                }}
               >
                 {it.owner === 'both' ? '같이' : `${theme.emoji[it.owner]} ${theme.names[it.owner]}`}
               </button>
@@ -136,7 +166,7 @@ export function PackingList({ items, disabled, onAdd, onAddMany, onToggle, onOwn
                 className="packing-delete"
                 aria-label={`${it.name} 지우기`}
                 disabled={disabled}
-                onClick={() => void onDelete(it.id)}
+                onClick={() => remove(it)}
               >
                 <Icon name="trash" size={18} />
               </button>

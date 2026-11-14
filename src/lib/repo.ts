@@ -85,6 +85,12 @@ export async function addPacking(tripId: string, name: string, owner: PackingIte
   ) as PackingItem
 }
 
+/** 여러 개를 한 번에 (전부 들어가거나 하나도 안 들어감) */
+export async function addPackingMany(tripId: string, names: string[]): Promise<void> {
+  const rows = names.map((n) => ({ trip_id: tripId, name: n.trim(), owner: 'both' as const }))
+  check(await supabase.from('packing_items').insert(rows))
+}
+
 export async function setPackingChecked(id: string, checked: boolean): Promise<void> {
   check(await supabase.from('packing_items').update({ checked }).eq('id', id))
 }
@@ -169,11 +175,16 @@ export async function coverUrl(
 /** trips/items/hearts/comments 중 무엇이든 바뀌면 onChange. 반환값을 부르면 구독 해제. */
 export function subscribe(tripId: string, onChange: () => void): () => void {
   const channel = supabase.channel(`trip-${tripId}`)
-  for (const table of ['trips', 'items', 'hearts', 'comments', 'packing_items']) {
+  for (const table of ['trips', 'items', 'hearts', 'comments']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
   }
   channel.subscribe()
+  // 준비물은 따로: 표가 아직 없어도(SQL 실행 전) 다른 실시간 알림은 멀쩡하게
+  const packing = supabase.channel(`trip-${tripId}-packing`)
+  packing.on('postgres_changes', { event: '*', schema: 'public', table: 'packing_items' }, onChange)
+  packing.subscribe()
   return () => {
     void supabase.removeChannel(channel)
+    void supabase.removeChannel(packing)
   }
 }

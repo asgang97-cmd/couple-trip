@@ -156,3 +156,26 @@ describe('useTripData 준비물 오프라인', () => {
     expect(result.current.packing).toEqual([])
   })
 })
+
+describe('useTripData 준비물 불러오기 실패', () => {
+  const P: PackingItem = { id: 'p1', trip_id: TRIP.id, name: '여권', owner: 'a', checked: false, created_at: 'x' }
+  test('잠깐 실패하면 빈 목록으로 덮지 않고 이전 목록과 저장본을 지킴', async () => {
+    const storage = memoryStorage()
+    const { repo, fireChange } = fakeRepo([[], []])
+    repo.listPacking.mockResolvedValueOnce([P]).mockRejectedValueOnce(new Error('503 Service Unavailable'))
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.packing).toEqual([P]))
+    act(() => fireChange())
+    await waitFor(() => expect(result.current.packingError).toBe(true))
+    expect(result.current.packing).toEqual([P])
+    expect(loadSnapshot(storage)?.packing).toEqual([P])
+  })
+  test('표가 아직 없으면(SQL 실행 전) 오류가 아니라 빈 목록', async () => {
+    const { repo } = fakeRepo([[]])
+    repo.listPacking.mockRejectedValue(new Error("Could not find the table 'public.packing_items' in the schema cache"))
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(result.current.packing).toEqual([])
+    expect(result.current.packingError).toBe(false)
+  })
+})

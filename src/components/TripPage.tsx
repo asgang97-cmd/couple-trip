@@ -6,7 +6,7 @@ import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } f
 import { resizeImage } from '../lib/image'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, addPacking, deleteComment, deleteItem, deletePacking, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addPacking, addPackingMany, deleteComment, deleteItem, deletePacking, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
 import type { Item, ItemInput, Member, PackingItem, TripInput } from '../lib/types'
 import { CostSummary } from './CostSummary'
@@ -166,9 +166,11 @@ export function TripPage({ member }: { member: Member }) {
   const packing = {
     onAdd: (name: string, owner: PackingItem['owner']) => packingAction(() => addPacking(trip.id, name, owner), '준비물을 추가하지 못했어요'),
     onAddMany: (names: string[]) =>
-      packingAction(async () => {
-        for (const n of names) await addPacking(trip.id, n, 'both')
-      }, '준비물을 다 넣지 못했어요. 다시 시도해 주세요'),
+      packingAction(() => {
+        // 이미 있는 이름은 빼고 한 번에
+        const have = new Set(data.packing.map((p) => p.name))
+        return addPackingMany(trip.id, names.filter((n) => !have.has(n)))
+      }, '준비물을 넣지 못했어요. 다시 시도해 주세요'),
     onToggle: (id: string, checked: boolean) => packingAction(() => setPackingChecked(id, checked), '체크하지 못했어요').catch(() => {}),
     onOwner: (id: string, owner: PackingItem['owner']) => packingAction(() => setPackingOwner(id, owner), '바꾸지 못했어요').catch(() => {}),
     onDelete: (id: string) => packingAction(() => deletePacking(id), '지우지 못했어요').catch(() => {}),
@@ -216,7 +218,7 @@ export function TripPage({ member }: { member: Member }) {
         onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
         onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
       />}
-      {view === 'packing' && <PackingList items={data.packing} disabled={disabled} {...packing} />}
+      {view === 'packing' && <PackingList items={data.packing} disabled={disabled} loadError={data.packingError} {...packing} />}
       {view !== 'packing' && (
         <div className="bottom-bar">
           <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>

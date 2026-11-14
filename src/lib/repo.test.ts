@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { addPacking, coverUrl, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
+const { addPacking, addPackingMany, coverUrl, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -193,5 +193,21 @@ describe('준비물', () => {
   test('실패하면 throw', async () => {
     queue = [{ data: null, error: { message: 'denied' } }]
     await expect(setPackingChecked('p1', true)).rejects.toThrow('denied')
+  })
+})
+
+describe('준비물 한 번에 넣기', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('한 번의 insert로 (전부 들어가거나 하나도 안 들어감)', async () => {
+    queue = [{ data: null, error: null }]
+    await addPackingMany('trip-1', ['여권', ' 우산 '])
+    const inserts = calls.filter((c) => c[0] === 'insert')
+    expect(inserts).toEqual([['insert', [
+      { trip_id: 'trip-1', name: '여권', owner: 'both' },
+      { trip_id: 'trip-1', name: '우산', owner: 'both' },
+    ]]])
   })
 })

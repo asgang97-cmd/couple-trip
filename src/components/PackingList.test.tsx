@@ -71,6 +71,7 @@ describe('PackingList', () => {
   })
 
   test('지우기', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
     const item = P({ name: '우산' })
     const { onDelete } = setup([item])
     await userEvent.click(screen.getByRole('button', { name: '우산 지우기' }))
@@ -101,5 +102,34 @@ describe('PackingList', () => {
     expect(screen.getByRole('checkbox', { name: '여권' })).toBeDisabled()
     expect(screen.getByLabelText('준비물 이름')).toBeDisabled()
     expect(screen.getByRole('button', { name: '여권 지우기' })).toBeDisabled()
+  })
+})
+
+describe('PackingList 바로 반응', () => {
+  test('체크하면 서버 응답 전에도 바로 체크돼 보임', async () => {
+    let finish: () => void = () => {}
+    const onToggle = vi.fn(() => new Promise<void>((r) => { finish = r }))
+    setup([P({ name: '충전기' })], { onToggle })
+    await userEvent.click(screen.getByRole('checkbox', { name: '충전기' }))
+    expect(screen.getByRole('checkbox', { name: '충전기' })).toBeChecked()
+    finish()
+  })
+  test('사람 바꾸는 중에는 그 버튼을 잠가서 두 번 눌러도 꼬이지 않음', async () => {
+    const onOwner = vi.fn(() => new Promise<void>(() => {}))
+    setup([P({ name: '여권', owner: 'a' })], { onOwner })
+    await userEvent.click(screen.getByRole('button', { name: /여권 챙길 사람 바꾸기/ }))
+    expect(screen.getByRole('button', { name: /여권 챙길 사람 바꾸기/ })).toBeDisabled()
+    expect(onOwner).toHaveBeenCalledTimes(1)
+  })
+  test('지우기는 한 번 물어봄 (취소하면 그대로)', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    const { onDelete } = setup([P({ name: '우산' })])
+    await userEvent.click(screen.getByRole('button', { name: '우산 지우기' }))
+    expect(onDelete).not.toHaveBeenCalled()
+  })
+  test('불러오기에 실패했으면 알려주고, 비어 보여도 기본 목록 넣기 버튼은 숨김', () => {
+    setup([], { loadError: true })
+    expect(screen.getByText('준비물을 불러오지 못했어요. 인터넷 연결을 확인해 주세요')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '자주 챙기는 것 넣기' })).toBeNull()
   })
 })

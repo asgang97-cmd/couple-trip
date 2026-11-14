@@ -10,6 +10,8 @@ create table if not exists packing_items (
   created_at timestamptz not null default now()
 );
 
+create index if not exists packing_items_trip_id_idx on packing_items (trip_id);
+
 -- 보안: 로그인한 사람(= 우리 둘)만 읽고 쓰기
 alter table packing_items enable row level security;
 drop policy if exists "us only" on packing_items;
