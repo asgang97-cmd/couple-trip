@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Item, Member, Trip } from '../lib/types'
 import {
-  clearVjw, FIELD_GROUPS, flightCandidates, hotelCandidates, loadVjw, maskPassport, saveVjw, SHARED_KEYS,
+  clearVjw, emptyPerson, FIELD_GROUPS, flightCandidates, hotelCandidates, loadVjw, maskPassport, saveVjw, SHARED_KEYS,
   type FieldKey, type VjwData, type VjwPerson,
 } from '../lib/vjw'
 import { theme } from '../theme'
@@ -13,6 +13,12 @@ interface Props {
   onClose: () => void
   storage?: Storage // 테스트용
   clipboard?: { writeText: (s: string) => Promise<void> } // 테스트용
+  /** 브라우저에 "지우지 말고 오래 보관" 요청 (아이폰 사파리는 오래 안 쓰면 지움) */
+  requestPersist?: () => void
+}
+
+const askPersist = () => {
+  void globalThis.navigator?.storage?.persist?.().catch(() => {})
 }
 
 const MEMBERS: Member[] = ['a', 'b']
@@ -28,11 +34,14 @@ function withGwa(name: string): string {
 const MEMO = { key: 'memo' as const, label: '메모' }
 
 /** 비짓재팬 미리 준비: 보기 모드에서 칸마다 복사, 수정 모드에서 입력. 이 폰에만 저장. */
-export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.localStorage, clipboard = globalThis.navigator?.clipboard }: Props) {
+export function VisitJapanSheet({
+  trip, items, onClose, storage = globalThis.localStorage, clipboard = globalThis.navigator?.clipboard, requestPersist = askPersist,
+}: Props) {
   const [data, setData] = useState<VjwData>(() => loadVjw(trip, storage))
   const [who, setWho] = useState<Member>('a')
   const [draft, setDraft] = useState<VjwPerson | null>(null) // null = 보기 모드
   const [notice, setNotice] = useState('')
+  const [revealed, setRevealed] = useState(false) // 복사가 막혔을 때 여권번호 전체 보여주기
 
   // 알림은 2.5초 뒤 사라짐
   useEffect(() => {
@@ -52,26 +61,48 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
     return ok
   }
 
-  async function copy(label: string, value: string) {
+  async function copy(key: FieldKey, label: string, value: string) {
     try {
       await clipboard.writeText(value)
       setNotice(`${label} 복사했어요`)
     } catch {
-      setNotice('복사하지 못했어요. 글자를 길게 눌러 복사해 주세요')
+      if (key === 'passportNo') {
+        // 가린 번호를 길게 눌러 복사하면 별표가 복사되므로 전체를 보여줌
+        setRevealed(true)
+        setNotice('복사하지 못해서 번호를 보여드릴게요. 길게 눌러 복사해 주세요')
+      } else {
+        setNotice('복사하지 못했어요. 글자를 길게 눌러 복사해 주세요')
+      }
     }
+  }
+
+  /** 고치던 내용이 저장한 것과 다르면 버릴지 물어봄. 계속해도 되면 true */
+  function okToDiscard(): boolean {
+    if (!draft || JSON.stringify(draft) === JSON.stringify(data[who])) return true
+    return confirm('저장하지 않은 내용이 있어요. 버리고 넘어갈까요?')
+  }
+
+  function close() {
+    if (okToDiscard()) onClose()
   }
 
   function save(e: FormEvent) {
     e.preventDefault()
     if (!draft) return
     if (persist({ ...data, [who]: draft })) {
+      requestPersist()
       setDraft(null)
       setNotice('저장했어요')
     }
   }
 
   function sameAs(from: Member) {
-    const next: VjwPerson = { ...data[who] }
+    // 이미 직접 적은 내용이 있으면 덮어쓰기 전에 물어봄
+    const defaults = emptyPerson(trip)
+    const mine = data[who]
+    const wouldLose = SHARED_KEYS.some((k) => mine[k] !== defaults[k] && mine[k] !== data[from][k])
+    if (wouldLose && !confirm(`지금 적힌 입국 정보와 주소를 ${withGwa(theme.names[from])} 같게 바꿀까요?`)) return
+    const next: VjwPerson = { ...mine }
     for (const k of SHARED_KEYS) next[k] = data[from][k]
     if (persist({ ...data, [who]: next })) setNotice(`입국 정보와 주소를 ${withGwa(theme.names[from])} 같게 했어요`)
   }
@@ -85,22 +116,24 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
   }
 
   function switchTo(m: Member) {
+    if (m === who || !okToDiscard()) return
     setWho(m)
     setDraft(null)
+    setRevealed(false)
   }
 
   const set = (k: FieldKey, v: string) => setDraft((d) => (d ? { ...d, [k]: v } : d))
 
   function viewRow(key: FieldKey, label: string) {
     const value = person[key]
-    const shown = key === 'passportNo' ? maskPassport(value) : value
+    const shown = key === 'passportNo' && !revealed ? maskPassport(value) : value
     return (
       <div className="vjw-row" key={key}>
         <dt>{label}</dt>
         <dd>
           <span className={value ? 'vjw-value' : 'vjw-value vjw-empty'}>{value ? shown : '비어 있음'}</span>
           {value && (
-            <button type="button" className="vjw-copy" aria-label={`${label} 복사`} onClick={() => void copy(label, value)}>
+            <button type="button" className="vjw-copy" aria-label={`${label} 복사`} onClick={() => void copy(key, label, value)}>
               <Icon name="copy" size={18} />
               복사
             </button>
@@ -118,7 +151,7 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
       <div className="vjw-field" key={key}>
         <label htmlFor={id}>{label}</label>
         {key === 'memo' ? (
-          <textarea id={id} rows={3} value={draft.memo} onChange={(e) => set('memo', e.target.value)} />
+          <textarea id={id} rows={3} autoComplete="off" value={draft.memo} onChange={(e) => set('memo', e.target.value)} />
         ) : (
           <input
             id={id}
@@ -140,13 +173,14 @@ export function VisitJapanSheet({ trip, items, onClose, storage = globalThis.loc
   }
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="sheet-backdrop" onClick={close}>
       <div className="sheet stack vjw" role="dialog" aria-label="비짓재팬 준비" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-head">
           <h2>비짓재팬 준비</h2>
-          <button type="button" className="ghost" onClick={onClose}>닫기</button>
+          <button type="button" className="ghost" onClick={close}>닫기</button>
         </div>
         <p className="note">이 폰에만 저장돼요. 서버로 보내지 않아요.</p>
+        <p className="note">홈 화면에 추가한 앱에서 쓰세요. 사파리 창에서만 열면 오래 안 쓸 때 지워질 수 있어요.</p>
 
         <div className="view-toggle" role="group" aria-label="누구 정보">
           {MEMBERS.map((m) => (

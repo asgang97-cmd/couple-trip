@@ -7,10 +7,10 @@ import { memoryStorage } from '../test-utils'
 import { theme } from '../theme'
 import { VisitJapanSheet } from './VisitJapanSheet'
 
-function setup(opts: { storage?: Storage; clipboard?: { writeText: (s: string) => Promise<void> }; items?: ReturnType<typeof makeItem>[] } = {}) {
+function setup(opts: { storage?: Storage; clipboard?: { writeText: (s: string) => Promise<void> }; items?: ReturnType<typeof makeItem>[]; onClose?: () => void; requestPersist?: () => void } = {}) {
   const storage = opts.storage ?? memoryStorage()
   const clipboard = opts.clipboard ?? { writeText: vi.fn(async () => {}) }
-  render(<VisitJapanSheet trip={TRIP} items={opts.items ?? []} onClose={() => {}} storage={storage} clipboard={clipboard} />)
+  render(<VisitJapanSheet trip={TRIP} items={opts.items ?? []} onClose={opts.onClose ?? (() => {})} storage={storage} clipboard={clipboard} requestPersist={opts.requestPersist ?? (() => {})} />)
   return { storage, clipboard }
 }
 
@@ -109,5 +109,52 @@ describe('VisitJapanSheet', () => {
     const heads = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(heads).toEqual(['여권', '입국 정보', '일본 내 주소', '메모'])
     expect(within(document.body).getByText('여권번호')).toBeInTheDocument()
+  })
+})
+
+describe('VisitJapanSheet 안전장치', () => {
+  test('여권번호 복사가 막히면 가린 번호 대신 전체 번호를 보여줌 (길게 눌러 복사용)', async () => {
+    const storage = withSaved((d) => { d.a.passportNo = 'M12345678' })
+    setup({ storage, clipboard: { writeText: async () => { throw new Error('denied') } } })
+    await userEvent.click(screen.getByRole('button', { name: '여권번호 복사' }))
+    expect(screen.getByText('M12345678')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('번호를 보여드릴게요')
+  })
+
+  test('홈 화면 앱에서 쓰라고 안내하고, 처음 저장할 때 오래 보관을 요청', async () => {
+    const requestPersist = vi.fn()
+    setup({ requestPersist })
+    expect(screen.getByText(/홈 화면에 추가한 앱에서 쓰세요/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '수정' }))
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+    expect(requestPersist).toHaveBeenCalled()
+  })
+
+  test('"같게"는 이미 적은 내용이 있으면 한 번 더 물어봄 (취소하면 그대로)', async () => {
+    const storage = withSaved((d) => { d.a.flightNo = 'KE703'; d.b.flightNo = 'OZ102' })
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    setup({ storage })
+    await userEvent.click(within(screen.getByRole('group', { name: '누구 정보' })).getByRole('button', { name: new RegExp(theme.names.b) }))
+    await userEvent.click(screen.getByRole('button', { name: `${theme.names.a}과 같게` }))
+    expect(loadVjw(TRIP, storage).b.flightNo).toBe('OZ102')
+  })
+
+  test('고치는 중 닫으려 하면 물어봄 (취소하면 안 닫힘)', async () => {
+    const onClose = vi.fn()
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    setup({ onClose })
+    await userEvent.click(screen.getByRole('button', { name: '수정' }))
+    await userEvent.type(screen.getByLabelText('성 (영문)'), 'KIM')
+    await userEvent.click(screen.getByRole('button', { name: '닫기' }))
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('성 (영문)')).toHaveValue('KIM')
+  })
+
+  test('고친 게 없으면 묻지 않고 닫힘', async () => {
+    const onClose = vi.fn()
+    setup({ onClose })
+    await userEvent.click(screen.getByRole('button', { name: '수정' }))
+    await userEvent.click(screen.getByRole('button', { name: '닫기' }))
+    expect(onClose).toHaveBeenCalled()
   })
 })
