@@ -22,11 +22,15 @@ export async function signIn(password: string): Promise<{ ok: true } | { ok: fal
  * 그래서 저장본이 남아 있으면 로그인된 걸로 보고, 저장해 둔 일정을 보여준다.
  */
 export async function isSignedIn(storage: Storage = globalThis.localStorage): Promise<boolean> {
+  // 저장본이 있으면 바로 true: 오프라인일 때 supabase 확인은 재시도 때문에 25초쯤 걸림.
+  // 진짜로 끊긴 로그인이면 나중에 onSignedOut이 알려줌.
+  if (hasStoredSession(storage)) return true
   const { data } = await supabase.auth.getSession()
-  return data.session !== null || hasStoredSession(storage)
+  return data.session !== null
 }
 
-function hasStoredSession(storage: Storage): boolean {
+/** 기기에 로그인 기록(supabase 저장본)이 있나? 바로(동기로) 확인 */
+export function hasStoredSession(storage: Storage = globalThis.localStorage): boolean {
   try {
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i)
@@ -63,4 +67,12 @@ export function setMember(m: Member, storage: Storage = globalThis.localStorage)
   } catch {
     // 저장이 막힌 브라우저면 다음에 다시 물어봄
   }
+}
+
+/** 로그인 정보를 새로 받았을 때(인터넷 복구 후 자동 갱신 등) cb. 반환값을 부르면 그만 듣기. */
+export function onSessionRefreshed(cb: () => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') cb()
+  })
+  return () => data.subscription.unsubscribe()
 }

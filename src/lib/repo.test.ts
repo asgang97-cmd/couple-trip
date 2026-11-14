@@ -82,6 +82,25 @@ describe('uploadCover', () => {
   })
 })
 
+describe('uploadCover 동시 업로드', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('지금 커버보다 나중에 올라온 파일은(상대가 막 올리는 중) 지우지 않음', async () => {
+    queue = [
+      { data: { path: 'x' }, error: null },
+      { data: null, error: null },
+      { data: { cover_path: 'trip-1/200.jpg' }, error: null },
+      { data: [{ name: '100.jpg' }, { name: '200.jpg' }, { name: '300.jpg' }], error: null },
+      { data: null, error: null },
+    ]
+    await uploadCover(TRIP, new Blob(['a']))
+    const removed = calls.find((c) => c[0] === 'remove')![1] as string[]
+    expect(removed).toEqual(['trip-1/100.jpg'])
+  })
+})
+
 describe('coverUrl (사진 주소를 기기에 저장해 재사용 → 브라우저·오프라인 캐시가 먹힘)', () => {
   const DAY = 86_400_000
   const signs = () => calls.filter((c) => c[0] === 'createSignedUrl').length

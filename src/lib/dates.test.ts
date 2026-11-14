@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { daysUntil, groupItemsByDay, itemsInTrip, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
+import { daysUntil, groupItemsByDay, itemsInTrip, nextSortOrder, parseLocalDate, toDateString, tripDays, tripPhaseLabel } from './dates'
 import { makeItem } from '../test-fixtures'
 import type { Item } from './types'
 
@@ -75,6 +75,13 @@ describe('groupItemsByDay', () => {
     expect(Object.keys(g)).toEqual([D1, D2])
     expect(g[D1].map((i) => i.place_name)).toEqual(['p0930', 'p14', 'n1', 'n2'])
     expect(g[D2]).toEqual([])
+  })
+})
+
+describe('nextSortOrder', () => {
+  test('그날 마지막 순서 + 1, 비어 있으면 1', () => {
+    expect(nextSortOrder([makeItem({ sort_order: 3 }), makeItem({ sort_order: 7 })])).toBe(8)
+    expect(nextSortOrder([])).toBe(1)
   })
 })
 

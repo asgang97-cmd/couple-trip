@@ -67,3 +67,8 @@ export function itemsInTrip(items: Item[], days: string[]): Item[] {
   const set = new Set(days)
   return items.filter((it) => set.has(it.day))
 }
+
+/** 그날 맨 뒤에 붙일 순서 번호 */
+export function nextSortOrder(dayItems: Item[]): number {
+  return Math.max(0, ...dayItems.map((i) => i.sort_order)) + 1
+}

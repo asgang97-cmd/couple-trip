@@ -14,7 +14,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { getMember, isSignedIn, onSignedOut, setMember, signIn } = await import('./session')
+const { getMember, hasStoredSession, isSignedIn, onSessionRefreshed, onSignedOut, setMember, signIn } = await import('./session')
 
 describe('member', () => {
   test('저장/읽기', () => {
@@ -75,6 +75,33 @@ describe('isSignedIn', () => {
   test('로그인 기록이 깨져 있으면 false', async () => {
     getSession.mockResolvedValueOnce({ data: { session: null } })
     expect(await isSignedIn(memoryStorage({ [TOKEN_KEY]: '{broken' }))).toBe(false)
+  })
+})
+
+describe('isSignedIn 빠르게', () => {
+  test('기기에 로그인 기록이 있으면 supabase 확인(오프라인이면 25초쯤 걸림)을 기다리지 않고 바로 true', async () => {
+    getSession.mockReturnValueOnce(new Promise(() => {})) // 끝나지 않음
+    const storage = memoryStorage({ 'sb-abc-auth-token': JSON.stringify({ refresh_token: 'r' }) })
+    expect(await isSignedIn(storage)).toBe(true)
+  })
+
+  test('hasStoredSession: 동기로 바로 확인 (첫 화면을 빈 화면 없이)', () => {
+    expect(hasStoredSession(memoryStorage({ 'sb-abc-auth-token': JSON.stringify({ refresh_token: 'r' }) }))).toBe(true)
+    expect(hasStoredSession(memoryStorage({ 'sb-abc-auth-token-code-verifier': '"x"' }))).toBe(false)
+  })
+})
+
+describe('onSessionRefreshed', () => {
+  test('로그인 정보를 새로 받았을 때(인터넷 복구 후 등) 알림', () => {
+    onAuthStateChange.mockReturnValueOnce({ data: { subscription: { unsubscribe: vi.fn() } } })
+    const cb = vi.fn()
+    onSessionRefreshed(cb)
+    const listener = onAuthStateChange.mock.calls.at(-1)![0] as (e: string) => void
+    listener('SIGNED_OUT')
+    expect(cb).not.toHaveBeenCalled()
+    listener('TOKEN_REFRESHED')
+    listener('SIGNED_IN')
+    expect(cb).toHaveBeenCalledTimes(2)
   })
 })
 

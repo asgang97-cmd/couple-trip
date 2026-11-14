@@ -5,7 +5,7 @@ import { TRIP } from '../test-fixtures'
 import { theme } from '../theme'
 import { HomeHeader } from './HomeHeader'
 
-const base = { trip: TRIP, coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {} }
+const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {} }
 
 describe('HomeHeader', () => {
   test('인사말·D-day·제목', () => {

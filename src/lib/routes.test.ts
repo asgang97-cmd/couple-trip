@@ -32,11 +32,22 @@ describe('transitDeparture (대중교통 시간표는 가까운 미래만 있음
     // 2027-01-11 월 09:30 파리 → 다가오는 월요일 2026-11-16 09:30 파리
     expect(transitDeparture('2027-01-11', '09:30', now, 'Europe/Paris')).toBe('2026-11-16T08:30:00.000Z')
   })
+  test('시간대 이름이 잘못돼도 멈추지 않고 기기 시간대로', () => {
+    expect(transitDeparture('2026-11-16', '09:30', now, 'Asia/Tokyoo')).toBe(new Date(2026, 10, 16, 9, 30).toISOString())
+  })
+  test('여행지 서머타임이 바뀌어도 벽시계 시각 유지 (파리 3월 → 지금 11월)', () => {
+    // 2027-04-05 월 09:30 파리(UTC+2) → 다가오는 월요일 2026-11-16 09:30 파리(UTC+1) = 08:30 UTC
+    expect(transitDeparture('2027-04-05', '09:30', now, 'Europe/Paris')).toBe('2026-11-16T08:30:00.000Z')
+  })
   test('지난 시각이면 다음 주 같은 요일로', () => {
     // 2026-11-14(토) 08:00은 이미 지남 → 2026-11-21(토) 08:00
     expect(transitDeparture('2026-11-14', '08:00', now)).toBe(new Date(2026, 10, 21, 8, 0).toISOString())
   })
 })
+
+/** 저장된 경로들 (버전 표시 제외) */
+const savedRoutes = (s: Storage) =>
+  Array.from({ length: s.length }, (_, i) => s.key(i)!).filter((k) => k.startsWith('route:') && k !== 'route:version')
 
 const A = { lat: 35.1, lng: 139.1 }
 const B = { lat: 35.2, lng: 139.2 }
@@ -102,16 +113,23 @@ describe('getLeg', () => {
   })
 
   test('저장 공간이 꽉 차면 경로 저장본을 비우고 다시 저장', async () => {
-    const storage = memoryStorage({ 'route:v1:walk:old': 'x'.repeat(10) })
+    const storage = memoryStorage({ 'route:version': 'route:v2:', 'route:v2:walk:old': 'x'.repeat(10) })
     const realSet = storage.setItem
     storage.setItem = (k, v) => {
-      if (storage.getItem('route:v1:walk:old') !== null) throw new Error('QuotaExceededError')
+      if (storage.getItem('route:v2:walk:old') !== null) throw new Error('QuotaExceededError')
       realSet(k, v)
     }
     const leg = await getLeg(A, B, 'walk', { apiKey: 'K', fetcher: okFetch(), storage })
     expect(leg).not.toBeNull()
+    expect(storage.getItem('route:v2:walk:old')).toBeNull()
+    expect(savedRoutes(storage)).toHaveLength(1)
+  })
+
+  test('예전 형식(v1) 경로 저장본은 처음 한 번 정리', async () => {
+    const storage = memoryStorage({ 'route:v1:walk:old': 'x', 'snapshot:v1': 's' })
+    await getLeg(A, B, 'walk', { apiKey: 'K', fetcher: okFetch(), storage })
     expect(storage.getItem('route:v1:walk:old')).toBeNull()
-    expect(storage.length).toBe(1)
+    expect(storage.getItem('snapshot:v1')).toBe('s')
   })
 
   test('clearRouteCache는 경로 저장본만 지움', () => {
@@ -127,6 +145,6 @@ describe('getLeg', () => {
     expect(await getLeg(A, B, 'transit', { apiKey: 'K', fetcher: empty, storage })).toBeNull()
     const denied = vi.fn(async () => new Response('{"error":{}}', { status: 403 })) as unknown as typeof fetch
     expect(await getLeg(A, B, 'walk', { apiKey: 'K', fetcher: denied, storage })).toBeNull()
-    expect(storage.length).toBe(0)
+    expect(savedRoutes(storage)).toHaveLength(0)
   })
 })

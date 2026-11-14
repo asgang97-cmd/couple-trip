@@ -27,6 +27,24 @@ function fakeRepo(itemsSequence: ReturnType<typeof makeItem>[][]) {
   }
 }
 
+describe('useTripData 인터넷 복구', () => {
+  test('로그인 정보를 새로 받으면 다시 불러와서 오프라인 상태가 풀림', async () => {
+    const { repo } = fakeRepo([[makeItem()]])
+    repo.fetchTrip.mockRejectedValueOnce(new Error('offline'))
+    let refreshed: (() => void) | null = null
+    const onAuthRefresh = (cb: () => void) => {
+      refreshed = cb
+      return () => {}
+    }
+    const storage = memoryStorage()
+    saveSnapshot({ trip: TRIP, items: [], hearts: [], comments: [], savedAt: 'x' }, storage)
+    const { result } = renderHook(() => useTripData({ repo, storage, onAuthRefresh }))
+    await waitFor(() => expect(result.current.offline).toBe(true))
+    await act(async () => refreshed!())
+    await waitFor(() => expect(result.current.offline).toBe(false))
+  })
+})
+
 describe('useTripData', () => {
   test('처음 불러오면 ready + items', async () => {
     const first = [makeItem({ place_name: '센소지' })]

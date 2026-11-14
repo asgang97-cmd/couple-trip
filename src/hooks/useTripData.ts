@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import * as realRepo from '../lib/repo'
+import { onSessionRefreshed } from '../lib/session'
 import type { Comment, Heart, Item, Trip } from '../lib/types'
 
 type RepoLike = Pick<typeof realRepo, 'fetchTrip' | 'listItems' | 'listHearts' | 'listComments' | 'subscribe'>
@@ -20,9 +21,12 @@ export interface TripData {
  * 여행 데이터를 불러오고, 상대가 무언가 바꾸면(실시간 알림) 전부 다시 불러온다.
  * 불러오기에 실패하면 마지막 저장본을 보여주고 offline=true (편집 막기).
  */
-export function useTripData(deps: { repo?: RepoLike; storage?: Storage } = {}): TripData {
+export function useTripData(
+  deps: { repo?: RepoLike; storage?: Storage; onAuthRefresh?: (cb: () => void) => () => void } = {},
+): TripData {
   const repoRef = useRef(deps.repo ?? realRepo)
   const storageRef = useRef(deps.storage ?? globalThis.localStorage)
+  const onAuthRefreshRef = useRef(deps.onAuthRefresh ?? onSessionRefreshed)
   const [state, setState] = useState<Omit<TripData, 'reload'>>({
     status: 'loading', trip: null, items: [], hearts: [], comments: [], offline: false, savedAt: null,
   })
@@ -67,6 +71,9 @@ export function useTripData(deps: { repo?: RepoLike; storage?: Storage } = {}): 
       window.removeEventListener('online', goOnline)
     }
   }, [reload])
+
+  // 인터넷이 돌아와 로그인 정보를 새로 받으면 다시 불러오기 (오프라인 상태 풀기)
+  useEffect(() => onAuthRefreshRef.current(() => void reload()), [reload])
 
   const tripId = state.trip?.id
   useEffect(() => {

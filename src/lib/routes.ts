@@ -64,6 +64,7 @@ function offsetMs(at: number, timeZone: string): number {
  */
 export function transitDeparture(day: string, time: string | null, now: Date, timeZone?: string | null): string | undefined {
   if (!time) return undefined
+  if (timeZone && !isValidTimeZone(timeZone)) timeZone = null // 이름이 잘못됐으면 기기 시간대로
   const [h, m] = time.split(':').map(Number)
   const target = wallTimeToMs(day, h, m, timeZone)
   const diff = target - now.getTime()
@@ -77,11 +78,32 @@ export function transitDeparture(day: string, time: string | null, now: Date, ti
     if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 7)
     return d.toISOString()
   }
-  // 여행지 시간대: 일주일 단위로 당겨서/밀어서 지금 이후 첫 번째로
-  const weeks = diff > 0 ? -Math.floor((diff - 1) / WEEK_MS) : Math.ceil(-diff / WEEK_MS)
-  let t = target + weeks * WEEK_MS
-  if (t <= now.getTime()) t += WEEK_MS
-  return new Date(t).toISOString()
+  // 여행지 시간대: 여행지의 "오늘"부터 8일 안에서 같은 요일·시각의 첫 미래 시점 (서머타임이 바뀌어도 벽시계 시각 유지)
+  const weekday = new Date(Date.UTC(...ymd(day))).getUTCDay()
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+  for (let k = 0; k <= 8; k++) {
+    const [y, mo, d] = ymd(today)
+    const cand = new Date(Date.UTC(y, mo, d + k))
+    if (cand.getUTCDay() !== weekday) continue
+    const t = wallTimeToMs(cand.toISOString().slice(0, 10), h, m, timeZone)
+    if (t > now.getTime()) return new Date(t).toISOString()
+  }
+  return new Date(target).toISOString() // 여기 올 일은 없음
+}
+
+/** 'YYYY-MM-DD' → [년, 월(0부터), 일] */
+function ymd(s: string): [number, number, number] {
+  const [y, m, d] = s.split('-').map(Number)
+  return [y, m - 1, d]
+}
+
+function isValidTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz })
+    return true
+  } catch {
+    return false
+  }
 }
 
 interface LegOptions {
@@ -112,7 +134,7 @@ function routeKeys(storage: Storage): string[] {
   const keys: string[] = []
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i)
-    if (k?.startsWith('route:')) keys.push(k)
+    if (k?.startsWith('route:') && k !== 'route:version') keys.push(k)
   }
   return keys
 }
@@ -146,8 +168,20 @@ function saveLeg(storage: Storage, key: string, value: StoredLeg): void {
 }
 
 /** 두 장소 사이 경로. 못 구하면 null (지도에는 점선 직선으로 표시) */
+/** 예전 형식(v1) 저장본은 처음 한 번 정리 */
+function dropOldRoutes(storage: Storage): void {
+  try {
+    if (storage.getItem('route:version') === PREFIX) return
+    routeKeys(storage).filter((k) => !k.startsWith(PREFIX) && k !== 'route:version').forEach((k) => storage.removeItem(k))
+    storage.setItem('route:version', PREFIX)
+  } catch {
+    // 다음에 다시
+  }
+}
+
 export async function getLeg(a: LatLng, b: LatLng, mode: RouteMode, opts: LegOptions): Promise<Leg | null> {
   const { apiKey, departureTime, fetcher = globalThis.fetch, storage = globalThis.localStorage } = opts
+  dropOldRoutes(storage)
   const key = keyOf(a, b, mode, departureTime)
 
   try {

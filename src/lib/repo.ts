@@ -88,7 +88,11 @@ async function cleanupCovers(tripId: string): Promise<void> {
     if (cur.error || !keep) return
     const list = await supabase.storage.from('covers').list(tripId)
     if (list.error || !list.data) return
-    const stale = list.data.map((f) => `${tripId}/${f.name}`).filter((p) => p !== keep)
+    // 파일 이름 = 올린 시각. 지금 커버보다 나중 파일은 상대가 막 올리는 중일 수 있어 남겨 둠
+    const stamp = (p: string) => Number(p.split('/').pop()?.split('.')[0]) || 0
+    const stale = list.data
+      .map((f) => `${tripId}/${f.name}`)
+      .filter((p) => p !== keep && stamp(p) < stamp(keep))
     if (stale.length) await supabase.storage.from('covers').remove(stale)
   } catch {
     // 정리는 다음에 올릴 때 다시

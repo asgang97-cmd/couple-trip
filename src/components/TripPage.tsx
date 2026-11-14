@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useNow } from '../hooks/useNow'
 import { useRate } from '../hooks/useRate'
 import { useTripData } from '../hooks/useTripData'
-import { groupItemsByDay, itemsInTrip, toDateString, tripDays } from '../lib/dates'
+import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
 import { resizeImage } from '../lib/image'
 import { itemsWithLocation } from '../lib/maps'
 import {
@@ -29,7 +30,8 @@ export function TripPage({ member }: { member: Member }) {
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [view, setView] = useState<'list' | 'map'>('list')
-  const [today] = useState(() => toDateString(new Date())) // 화면을 연 날
+  const now = useNow()
+  const today = toDateString(now)
 
   const days = useMemo(() => (data.trip ? tripDays(data.trip.start_date, data.trip.end_date) : []), [data.trip])
   const byDay = useMemo(() => groupItemsByDay(data.items, days), [data.items, days])
@@ -64,13 +66,15 @@ export function TripPage({ member }: { member: Member }) {
   // 기본 선택: 오늘이 여행 중이면 오늘, 아니면 첫날
   const day = selected ?? (days.includes(today) ? today : days[0])
   const dayItems = byDay[day] ?? []
-  const nextSortOrder = Math.max(0, ...dayItems.map((i) => i.sort_order)) + 1
   const disabled = data.offline
   // 장소 검색은 그날(없으면 여행 전체) 첫 장소 근처를 먼저 보여줌
   const firstLocated = itemsWithLocation(dayItems)[0] ?? itemsWithLocation(tripItems)[0]
   const near = firstLocated ? { lat: firstLocated.lat, lng: firstLocated.lng } : null
 
   async function save(input: ItemInput) {
+    // 다른 날로 옮긴 일정은 그날 맨 뒤로
+    const original = form?.mode === 'edit' ? form.item : null
+    if (original && original.day !== input.day) input = { ...input, sort_order: nextSortOrder(byDay[input.day] ?? []) }
     try {
       await saveItem(input)
       setForm(null)
@@ -135,7 +139,7 @@ export function TripPage({ member }: { member: Member }) {
   return (
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
-      <HomeHeader trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
+      <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={changePhoto} />
       <DayTabs days={days} selected={day} onSelect={setSelected} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle" role="group" aria-label="보기">
@@ -170,7 +174,7 @@ export function TripPage({ member }: { member: Member }) {
           days={days}
           day={day}
           member={member}
-          nextSortOrder={nextSortOrder}
+          nextSortOrder={nextSortOrder(dayItems)}
           initial={form.mode === 'edit' ? form.item : undefined}
           onSave={save}
           onDelete={form.mode === 'edit' ? () => remove(form.item) : undefined}
