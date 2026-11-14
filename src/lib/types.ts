@@ -61,6 +61,18 @@ export interface Voucher {
   created_at: string
 }
 
+/** 가계부: 실제로 쓴 돈 */
+export interface Expense {
+  id: string // 폰에서 만든 id (오프라인에서 적고 나중에 올려도 한 줄)
+  trip_id: string
+  day: string // 'YYYY-MM-DD'
+  amount: number
+  currency: string // 'JPY', 'KRW' 등
+  paid_by: Member // 낸 사람
+  memo: string
+  created_at: string
+}
+
 export interface Heart {
   item_id: string
   member: Member

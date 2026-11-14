@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
+const { addExpense, deleteExpense, listExpenses, addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -258,5 +258,29 @@ describe('바우처', () => {
     await deleteVoucher({ id: 'v1', path: 't/a.pdf', pages: ['t/a-p1.jpg'] })
     expect(calls).toContainEqual(['eq', 'id', 'v1'])
     expect(calls).toContainEqual(['remove', ['t/a.pdf', 't/a-p1.jpg']])
+  })
+})
+
+describe('가계부', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  const e = { id: 'e1', trip_id: 'trip-1', day: '2027-01-10', amount: 1200, currency: 'JPY', paid_by: 'a' as const, memo: '라멘', created_at: 'x' }
+  test('목록', async () => {
+    queue = [{ data: [e], error: null }]
+    expect(await listExpenses('trip-1')).toEqual([e])
+    expect(calls).toContainEqual(['from', 'expenses'])
+    expect(calls).toContainEqual(['eq', 'trip_id', 'trip-1'])
+  })
+  test('추가는 같은 id면 무시 (오프라인에서 적은 게 두 번 올라가도 한 줄)', async () => {
+    queue = [{ data: null, error: null }]
+    await addExpense(e)
+    expect(calls).toContainEqual(['upsert', e, { onConflict: 'id', ignoreDuplicates: true }])
+  })
+  test('지우기', async () => {
+    queue = [{ data: null, error: null }]
+    await deleteExpense('e1')
+    expect(calls).toContainEqual(['eq', 'id', 'e1'])
   })
 })

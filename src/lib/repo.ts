@@ -1,6 +1,6 @@
 // 데이터베이스 읽기/쓰기. 함수 하나 = 쿼리 하나. 실패하면 throw.
 import { supabase } from './supabase'
-import type { Comment, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput, Voucher } from './types'
+import type { Comment, Expense, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput, Voucher } from './types'
 import type { Prepared } from './voucherFile'
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -102,6 +102,20 @@ export async function setPackingOwner(id: string, owner: PackingItem['owner']): 
 
 export async function deletePacking(id: string): Promise<void> {
   check(await supabase.from('packing_items').delete().eq('id', id))
+}
+
+/** 가계부 목록 */
+export async function listExpenses(tripId: string): Promise<Expense[]> {
+  return check(await supabase.from('expenses').select('*').eq('trip_id', tripId).order('created_at')) as Expense[]
+}
+
+/** 지출 추가. 같은 id가 이미 있으면 무시 (오프라인에서 적은 게 두 번 올라가도 한 줄) */
+export async function addExpense(e: Expense): Promise<void> {
+  check(await supabase.from('expenses').upsert(e, { onConflict: 'id', ignoreDuplicates: true }))
+}
+
+export async function deleteExpense(id: string): Promise<void> {
+  check(await supabase.from('expenses').delete().eq('id', id))
 }
 
 /** 보관함 목록 (올린 순서) */
@@ -239,7 +253,7 @@ export function subscribe(tripId: string, onChange: () => void): () => void {
   channel.subscribe()
   // 준비물은 따로: 표가 아직 없어도(SQL 실행 전) 다른 실시간 알림은 멀쩡하게
   // 나중에 생긴 표(준비물·보관함)는 따로: 표가 아직 없어도(SQL 실행 전) 다른 실시간 알림은 멀쩡하게
-  const extras = ['packing_items', 'vouchers'].map((table) => {
+  const extras = ['packing_items', 'vouchers', 'expenses'].map((table) => {
     const ch = supabase.channel(`trip-${tripId}-${table}`)
     ch.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
     ch.subscribe()

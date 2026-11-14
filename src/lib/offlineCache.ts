@@ -1,5 +1,5 @@
 import { clearRouteCache } from './routes'
-import type { Comment, Heart, Item, PackingItem, Trip, Voucher } from './types'
+import type { Comment, Expense, Heart, Item, PackingItem, Trip, Voucher } from './types'
 
 /** 마지막으로 불러온 여행 데이터. 인터넷이 끊기면 이걸 보여준다. */
 export interface Snapshot {
@@ -9,6 +9,7 @@ export interface Snapshot {
   comments: Comment[]
   packing?: PackingItem[] // 준비물 기능 전 저장본에는 없음
   vouchers?: Voucher[] // 보관함 기능 전 저장본에는 없음
+  expenses?: Expense[] // 가계부 기능 전 저장본에는 없음
   savedAt: string
 }
 
@@ -34,7 +35,7 @@ export function loadSnapshot(storage: Storage = globalThis.localStorage): Snapsh
     const raw = storage.getItem(KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    const ok = s?.trip?.id && Array.isArray(s.items) && Array.isArray(s.hearts) && Array.isArray(s.comments) && typeof s.savedAt === 'string' && (s.packing === undefined || Array.isArray(s.packing)) && (s.vouchers === undefined || Array.isArray(s.vouchers))
+    const ok = s?.trip?.id && Array.isArray(s.items) && Array.isArray(s.hearts) && Array.isArray(s.comments) && typeof s.savedAt === 'string' && (s.packing === undefined || Array.isArray(s.packing)) && (s.vouchers === undefined || Array.isArray(s.vouchers)) && (s.expenses === undefined || Array.isArray(s.expenses))
     return ok ? (s as Snapshot) : null
   } catch {
     return null

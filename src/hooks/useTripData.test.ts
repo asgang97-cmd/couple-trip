@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import { TRIP, makeItem } from '../test-fixtures'
 import { memoryStorage } from '../test-utils'
-import type { PackingItem, Voucher } from '../lib/types'
+import type { Expense, PackingItem, Voucher } from '../lib/types'
 
 vi.mock('../lib/repo', () => ({}))
 const { useTripData } = await import('./useTripData')
@@ -20,6 +20,7 @@ function fakeRepo(itemsSequence: ReturnType<typeof makeItem>[][]) {
       listComments: vi.fn(async () => []),
       listPacking: vi.fn(async (): Promise<PackingItem[]> => []),
       listVouchers: vi.fn(async (): Promise<Voucher[]> => []),
+      listExpenses: vi.fn(async (): Promise<Expense[]> => []),
       subscribe: vi.fn((_id: string, cb: () => void) => {
         onChange = cb
         return unsubscribe
@@ -211,5 +212,27 @@ describe('useTripData 바우처', () => {
     await waitFor(() => expect(result.current.status).toBe('ready'))
     expect(result.current.vouchers).toEqual([])
     expect(result.current.voucherError).toBe(false)
+  })
+})
+
+describe('useTripData 가계부', () => {
+  const X: Expense = { id: 'e1', trip_id: TRIP.id, day: '2027-01-10', amount: 1, currency: 'KRW', paid_by: 'a', memo: '', created_at: 'x' }
+  test('불러오고 저장본에도 (오프라인 보기)', async () => {
+    const storage = memoryStorage()
+    const { repo } = fakeRepo([[]])
+    repo.listExpenses.mockResolvedValue([X])
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.expenses).toEqual([X]))
+    expect(loadSnapshot(storage)?.expenses).toEqual([X])
+  })
+  test('표가 없으면 빈 목록, 잠깐 실패하면 이전 목록', async () => {
+    const storage = memoryStorage()
+    const { repo, fireChange } = fakeRepo([[], []])
+    repo.listExpenses.mockResolvedValueOnce([X]).mockRejectedValueOnce(new Error('timeout'))
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.expenses).toEqual([X]))
+    act(() => fireChange())
+    await waitFor(() => expect(result.current.expenseError).toBe(true))
+    expect(result.current.expenses).toEqual([X])
   })
 })
