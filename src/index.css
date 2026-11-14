@@ -130,7 +130,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .cover {
   position: relative;
   margin: 0 calc(-1 * var(--gutter));
-  height: 280px;
+  aspect-ratio: 4 / 3; /* 커버 사진 자르기 틀과 같은 비율 */
   background-size: cover;
   background-position: center;
   color: var(--color-accent-ink);
@@ -447,6 +447,7 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .crop-frame { position: relative; width: 100%; aspect-ratio: 4 / 3; touch-action: none; cursor: grab; user-select: none; border-radius: var(--radius-input); }
 .crop-frame:active { cursor: grabbing; }
 .crop-frame:focus-visible { outline: 3px solid var(--color-accent-ink); outline-offset: 3px; }
+.crop-host { position: absolute; inset: 0; }
 .crop-img { position: absolute; top: 0; left: 0; max-width: none; transform-origin: 0 0; pointer-events: none; }
 /* 틀 밖은 어둡게 */
 .crop-mask { position: absolute; inset: 0; border-radius: var(--radius-input); box-shadow: 0 0 0 999px var(--color-scrim); outline: 2px solid var(--color-accent-ink); pointer-events: none; }

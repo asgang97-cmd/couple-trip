@@ -44,3 +44,20 @@ export function cropRect(v: View, img: Size, frame: Size): { sx: number; sy: num
   const { s } = shown(v, img, frame)
   return { sx: -v.x / s || 0, sy: -v.y / s || 0, sw: frame.width / s, sh: frame.height / s }
 }
+
+type Pt = { x: number; y: number }
+
+/**
+ * 두 손가락: 처음 두 점(a0, b0) → 지금 두 점(a1, b1).
+ * 처음 가운데를 기준으로 거리 비율만큼 확대한 뒤, 가운데가 움직인 만큼 옮긴다.
+ */
+export function pinch(v: View, a0: Pt, b0: Pt, a1: Pt, b1: Pt, img: Size, frame: Size): View {
+  const d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y)
+  const d1 = Math.hypot(a1.x - b1.x, a1.y - b1.y)
+  const m0 = { x: (a0.x + b0.x) / 2, y: (a0.y + b0.y) / 2 }
+  const m1 = { x: (a1.x + b1.x) / 2, y: (a1.y + b1.y) / 2 }
+  const z = Math.min(MAX_ZOOM, Math.max(1, d0 > 0 ? v.zoom * (d1 / d0) : v.zoom))
+  const k = z / v.zoom
+  const zoomed = { zoom: z, x: m0.x - (m0.x - v.x) * k, y: m0.y - (m0.y - v.y) * k }
+  return clampOffset({ zoom: z, x: zoomed.x + m1.x - m0.x, y: zoomed.y + m1.y - m0.y }, img, frame)
+}

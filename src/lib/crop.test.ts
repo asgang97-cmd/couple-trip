@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { clampOffset, coverScale, cropRect, initialView, MAX_ZOOM, zoomAt } from './crop'
+import { clampOffset, coverScale, cropRect, initialView, MAX_ZOOM, pinch, zoomAt } from './crop'
 
 const FRAME = { width: 400, height: 300 } // 4:3
 
@@ -56,5 +56,20 @@ describe('cropRect: 원본 사진에서 잘라낼 영역', () => {
   test('작은 사진 2배 확대면 원본의 일부만', () => {
     const r = cropRect({ zoom: 2, x: -200, y: -150 }, { width: 200, height: 150 }, FRAME)
     expect(r).toEqual({ sx: 50, sy: 37.5, sw: 100, sh: 75 })
+  })
+})
+
+describe('pinch: 두 손가락으로 확대와 이동을 함께', () => {
+  const img = { width: 400, height: 300 }
+  test('벌리면 두 손가락 가운데를 기준으로 확대', () => {
+    const v = pinch({ zoom: 1, x: 0, y: 0 }, { x: 150, y: 150 }, { x: 250, y: 150 }, { x: 100, y: 150 }, { x: 250, y: 150 }, img, FRAME)
+    // 거리 100 → 150 = 1.5배, 기준점은 처음 가운데(200,150), 그다음 가운데가 25px 왼쪽으로 이동
+    expect(v.zoom).toBeCloseTo(1.5)
+    expect(v.x).toBeCloseTo(200 - 200 * 1.5 - 25)
+    expect(v.y).toBeCloseTo(150 - 150 * 1.5)
+  })
+  test('거리는 그대로, 두 손가락을 같이 움직이면 이동만', () => {
+    const v = pinch({ zoom: 2, x: -200, y: -150 }, { x: 100, y: 100 }, { x: 200, y: 100 }, { x: 130, y: 120 }, { x: 230, y: 120 }, img, FRAME)
+    expect(v).toEqual({ zoom: 2, x: -170, y: -130 })
   })
 })

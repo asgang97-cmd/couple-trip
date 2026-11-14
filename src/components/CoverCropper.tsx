@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { clampOffset, CROP_ASPECT, cropRect, initialView, MAX_ZOOM, OUTPUT, zoomAt, type Size, type View } from '../lib/crop'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { clampOffset, CROP_ASPECT, cropRect, initialView, MAX_ZOOM, OUTPUT, pinch, zoomAt, type Size, type View } from '../lib/crop'
 
 interface Loaded extends Size {
   src: string // 화면에 보여줄 주소
@@ -23,7 +23,12 @@ async function loadWithImg(file: File): Promise<Loaded> {
   const src = URL.createObjectURL(file)
   const img = new Image()
   img.src = src
-  await img.decode()
+  try {
+    await img.decode()
+  } catch (e) {
+    URL.revokeObjectURL(src)
+    throw e
+  }
   return { width: img.naturalWidth, height: img.naturalHeight, src, source: img }
 }
 
@@ -50,7 +55,12 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
   // 위치는 그때의 틀 너비와 함께 저장 (화면 크기가 바뀌면 처음 위치로)
   const [saved, setSaved] = useState<{ fw: number; v: View } | null>(null)
   const [busy, setBusy] = useState(false)
+  const [renderFailed, setRenderFailed] = useState(false)
   const frameRef = useRef<HTMLDivElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null) // 이미 읽은 사진(<img>)을 그대로 붙일 자리 (큰 사진을 두 번 읽지 않게)
+  // 손가락 이벤트가 화면 그리기보다 자주 와도 최신 위치에서 이어서 계산하도록
+  const live = useRef<{ fw: number; v: View } | null>(null)
+  const elementRef = useRef<HTMLImageElement | null>(null) // 읽어 둔 <img> (화면에 그대로 붙임)
   const pointers = useRef(new Map<number, { x: number; y: number }>())
 
   const fw = frameWidth ?? measured
@@ -60,7 +70,13 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
   useEffect(() => {
     let alive = true
     loadImage(file).then(
-      (l) => alive && setImg(l),
+      (l) => {
+        if (alive) {
+          elementRef.current = l.source instanceof HTMLImageElement ? l.source : null
+          setImg(l)
+        }
+        else if (l.src.startsWith('blob:')) URL.revokeObjectURL(l.src)
+      },
       () => alive && setFailed(true),
     )
     return () => {
@@ -85,16 +101,22 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
   // 틀 크기가 정해지면(또는 바뀌면) 처음 위치
   const ready = img !== null && fw > 0
   const current = ready ? (saved && saved.fw === fw ? saved.v : initialView(img, frame)) : null
-  const setView = (v: View) => setSaved({ fw, v })
+  const latest = () => (live.current && live.current.fw === fw ? live.current.v : current)
+  const setView = (v: View) => {
+    live.current = { fw, v }
+    setSaved({ fw, v })
+  }
 
   function update(next: (v: View) => View) {
-    if (!img || !current) return
-    setView(clampOffset(next(current), img, frame))
+    const cur = latest()
+    if (!img || !cur) return
+    setView(clampOffset(next(cur), img, frame))
   }
 
   function zoomTo(z: number, focus = { x: frame.width / 2, y: frame.height / 2 }) {
-    if (!img || !current) return
-    setView(zoomAt(current, z, focus, img, frame))
+    const cur = latest()
+    if (!img || !cur) return
+    setView(zoomAt(cur, z, focus, img, frame))
   }
 
   // 끌기·두 손가락
@@ -103,6 +125,7 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
     return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
+    if (e.button > 0) return // 마우스 오른쪽 버튼 등은 무시
     e.currentTarget.setPointerCapture?.(e.pointerId)
     pointers.current.set(e.pointerId, local(e))
   }
@@ -114,10 +137,10 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
     if (map.size === 1) {
       update((v) => ({ ...v, x: v.x + now.x - prev.x, y: v.y + now.y - prev.y }))
     } else if (map.size === 2) {
+      // 확대와 두 손가락 이동을 함께
       const [other] = [...map.entries()].filter(([id]) => id !== e.pointerId).map(([, p]) => p)
-      const before = Math.hypot(prev.x - other.x, prev.y - other.y)
-      const after = Math.hypot(now.x - other.x, now.y - other.y)
-      if (before > 0) zoomTo(current.zoom * (after / before), { x: (now.x + other.x) / 2, y: (now.y + other.y) / 2 })
+      const cur = latest()
+      if (cur) setView(pinch(cur, prev, other, now, other, img, frame))
     }
     map.set(e.pointerId, now)
   }
@@ -132,26 +155,51 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
       // 화살표 방향으로 "보는 곳"이 움직이도록 사진은 반대로
       const [dx, dy] = moves[e.key]
       update((v) => ({ ...v, x: v.x - dx, y: v.y - dy }))
-    } else if ((e.key === '+' || e.key === '=') && current) {
-      zoomTo(current.zoom + 0.25)
-    } else if (e.key === '-' && current) {
-      zoomTo(current.zoom - 0.25)
+    } else if (e.key === '+' || e.key === '=') {
+      zoomTo((latest()?.zoom ?? 1) + 0.25)
+    } else if (e.key === '-') {
+      zoomTo((latest()?.zoom ?? 1) - 0.25)
     }
   }
 
   async function save() {
     if (!img || !current || busy) return
     setBusy(true)
+    setRenderFailed(false)
+    let photo: Blob
     try {
-      await onDone(await renderCrop(img.source, cropRect(current, img, frame)))
+      photo = await renderCrop(img.source, cropRect(current, img, frame))
     } catch {
-      // 부르는 쪽에서 알림. 창은 그대로 두고 다시 시도할 수 있게
+      setRenderFailed(true) // 폰 메모리가 모자라는 등
+      setBusy(false)
+      return
+    }
+    try {
+      await onDone(photo)
+    } catch {
+      // 올리기 실패는 부르는 쪽에서 알림. 창은 그대로 두고 다시 시도할 수 있게
     } finally {
       setBusy(false)
     }
   }
 
   const s = img && current && fw > 0 ? Math.max(frame.width / img.width, frame.height / img.height) * current.zoom : 0
+  const imgStyle = img && current && s > 0
+    ? { width: `${img.width * s}px`, height: `${img.height * s}px`, transform: `translate(${current.x}px, ${current.y}px)` }
+    : null
+  const hasElement = img?.source instanceof HTMLImageElement
+
+  // 읽어 둔 <img>를 그대로 틀에 붙이고, 위치·크기를 매번 맞춤
+  useLayoutEffect(() => {
+    const host = hostRef.current
+    const element = elementRef.current
+    if (!element || !host) return
+    element.className = 'crop-img'
+    element.alt = ''
+    element.draggable = false
+    if (element.parentNode !== host) host.appendChild(element)
+    if (imgStyle) Object.assign(element.style, imgStyle)
+  })
 
   return (
     <div className="sheet-backdrop" onClick={busy ? undefined : onCancel}>
@@ -181,16 +229,9 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
                 onPointerCancel={onPointerUp}
                 onKeyDown={onKeyDown}
               >
-                {img && current && s > 0 && (
-                  <img
-                    className="crop-img"
-                    src={img.src}
-                    alt=""
-                    draggable={false}
-                    width={img.width}
-                    height={img.height}
-                    style={{ width: img.width * s, height: img.height * s, transform: `translate(${current.x}px, ${current.y}px)` }}
-                  />
+                <div ref={hostRef} className="crop-host" />
+                {img && !hasElement && imgStyle && (
+                  <img className="crop-img" src={img.src} alt="" draggable={false} width={img.width} height={img.height} style={imgStyle} />
                 )}
                 <div className="crop-mask" aria-hidden="true" />
                 {!img && <p className="crop-loading">사진 여는 중…</p>}
@@ -201,7 +242,7 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
                 <span>크기</span>
                 <input
                   type="range"
-                  aria-label="크기"
+                  aria-valuetext={`${Math.round(current.zoom * 100)}%`}
                   min={1}
                   max={MAX_ZOOM}
                   step={0.01}
@@ -210,6 +251,7 @@ export function CoverCropper({ file, onCancel, onDone, frameWidth, loadImage = l
                 />
               </label>
             )}
+            {renderFailed && <p className="error">사진을 만들지 못했어요. 조금 작게 확대하거나 다른 사진으로 해 주세요</p>}
             <div className="row crop-actions">
               <button type="button" className="ghost" onClick={onCancel} disabled={busy}>취소</button>
               <button type="button" onClick={() => void save()} disabled={!current || busy} aria-busy={busy}>

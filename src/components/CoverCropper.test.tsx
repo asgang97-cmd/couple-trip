@@ -70,6 +70,27 @@ describe('CoverCropper', () => {
     finish()
   })
 
+  test('빠르게 연달아 끌어도 움직임을 다 반영 (한 화면 그리기 사이에 이벤트가 여러 번 와도)', async () => {
+    const { renderCrop } = setup()
+    await screen.findByRole('slider', { name: '크기' })
+    const frame = screen.getByRole('group', { name: '자를 영역' })
+    fireEvent.pointerDown(frame, { pointerId: 1, clientX: 100, clientY: 100 })
+    fireEvent.pointerMove(frame, { pointerId: 1, clientX: 90, clientY: 100 })
+    fireEvent.pointerMove(frame, { pointerId: 1, clientX: 80, clientY: 100 })
+    fireEvent.pointerUp(frame, { pointerId: 1 })
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+    const start = initialView(IMG, FRAME)
+    expect(renderCrop).toHaveBeenCalledWith(expect.anything(), cropRect({ ...start, x: start.x - 20 }, IMG, FRAME))
+  })
+
+  test('사진 만들기에 실패하면 알려줌', async () => {
+    const { onDone } = setup({ renderCrop: vi.fn(async () => { throw new Error('toBlob null') }) })
+    await screen.findByRole('slider', { name: '크기' })
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+    expect(screen.getByText('사진을 만들지 못했어요. 조금 작게 확대하거나 다른 사진으로 해 주세요')).toBeInTheDocument()
+    expect(onDone).not.toHaveBeenCalled()
+  })
+
   test('취소', async () => {
     const { onCancel, onDone } = setup()
     await screen.findByRole('slider', { name: '크기' })
