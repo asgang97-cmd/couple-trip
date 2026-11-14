@@ -17,7 +17,7 @@ const askPersist = () => {
  * 오프라인이면 받지 않고 폰에 있는 것만 확인.
  */
 export function useVoucherCache(vouchers: Voucher[], offline: boolean, deps: Deps) {
-  const cacheRef = useRef<FileCache | null>(deps.cache !== undefined ? deps.cache : browserFileCache())
+  const [cache] = useState<FileCache | null>(() => (deps.cache !== undefined ? deps.cache : browserFileCache()))
   const downloadRef = useRef(deps.download)
   const persistRef = useRef(deps.persist ?? askPersist)
   const asked = useRef(false)
@@ -27,7 +27,6 @@ export function useVoucherCache(vouchers: Voucher[], offline: boolean, deps: Dep
   const signature = vouchers.map((v) => `${v.id}:${filesOf(v).join(',')}`).join('|')
 
   useEffect(() => {
-    const cache = cacheRef.current
     if (!cache) return
     let alive = true
     const list = vouchers
@@ -45,10 +44,10 @@ export function useVoucherCache(vouchers: Voucher[], offline: boolean, deps: Dep
     return () => {
       alive = false
     }
-  }, [signature, offline]) // eslint-disable-line react-hooks/exhaustive-deps -- signature가 vouchers를 대표함
+  }, [signature, offline, cache]) // eslint-disable-line react-hooks/exhaustive-deps -- signature가 vouchers를 대표함
 
   const isSaved = useCallback((id: string) => saved.has(id), [saved])
-  const read = useCallback((path: string) => readVoucherFile(path, cacheRef.current, downloadRef.current), [])
+  const read = useCallback((path: string) => readVoucherFile(path, cache, downloadRef.current), [cache])
 
-  return { isSaved, read, available: cacheRef.current !== null }
+  return { isSaved, read, available: cache !== null }
 }
