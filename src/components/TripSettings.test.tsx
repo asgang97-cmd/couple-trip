@@ -66,6 +66,33 @@ describe('TripSettings', () => {
     expect(screen.getByText('기간 밖 일정 2개가 숨겨져요 (지워지진 않아요)')).toBeInTheDocument()
   })
 
+  test('연도를 고치는 중 생기는 이상한 날짜(0202년 등)는 저장 막고 멈추지 않음', () => {
+    const { save } = setup()
+    setDate('시작일', '0202-01-10')
+    expect(screen.getByText('날짜는 2000년~2100년 사이로 골라 주세요')).toBeInTheDocument()
+    expect(save()).toBeDisabled()
+    setDate('시작일', '2027-01-10')
+    setDate('마지막 날', '27500-01-01')
+    expect(save()).toBeDisabled()
+  })
+
+  test('여행 기간은 365일까지', () => {
+    const { save } = setup()
+    setDate('마지막 날', '2028-01-10') // 366일
+    expect(screen.getByText('여행 기간은 365일까지만 돼요')).toBeInTheDocument()
+    expect(save()).toBeDisabled()
+    setDate('마지막 날', '2028-01-09') // 365일
+    expect(screen.getByText('365일 여행')).toBeInTheDocument()
+    expect(save()).toBeEnabled()
+  })
+
+  test('이미 기간 밖이던 일정은 경고에 안 셈 (이름만 바꿀 때 엉뚱한 경고 없음)', () => {
+    setup({ items: [makeItem({ day: '2027-01-20' }), makeItem({ day: '2027-01-11' })] })
+    expect(screen.queryByText(/숨겨져요/)).toBeNull()
+    setDate('시작일', '2027-01-12')
+    expect(screen.getByText('기간 밖 일정 1개가 숨겨져요 (지워지진 않아요)')).toBeInTheDocument()
+  })
+
   test('저장이 실패해도 입력값 유지, 다시 저장 가능', async () => {
     const onSave = vi.fn(async () => {
       throw new Error('fail')

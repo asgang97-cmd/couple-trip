@@ -148,7 +148,7 @@ describe('updateTrip', () => {
     queue = []
   })
   test('그 여행만 이름·여행지·기간 수정', async () => {
-    queue = [{ data: null, error: null }]
+    queue = [{ data: [{ id: 'trip-1' }], error: null }]
     await updateTrip('trip-1', input)
     expect(calls).toContainEqual(['from', 'trips'])
     expect(calls).toContainEqual(['update', input])
@@ -157,5 +157,9 @@ describe('updateTrip', () => {
   test('실패하면 throw', async () => {
     queue = [{ data: null, error: { message: 'denied' } }]
     await expect(updateTrip('trip-1', input)).rejects.toThrow('denied')
+  })
+  test('아무것도 안 바뀌었으면(로그인 끊김 등) 조용히 넘어가지 않고 throw', async () => {
+    queue = [{ data: [], error: null }]
+    await expect(updateTrip('trip-1', input)).rejects.toThrow()
   })
 })

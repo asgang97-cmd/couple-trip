@@ -15,7 +15,9 @@ export async function fetchTrip(): Promise<Trip> {
 
 /** 여행 이름·여행지·기간 바꾸기 */
 export async function updateTrip(id: string, input: TripInput): Promise<void> {
-  check(await supabase.from('trips').update(input).eq('id', id))
+  const rows = check(await supabase.from('trips').update(input).eq('id', id).select('id')) as unknown[]
+  // 바뀐 줄이 없으면(로그인이 끊겨 권한이 없는 등) 저장된 척하지 않기
+  if (rows.length === 0) throw new Error('여행 정보가 저장되지 않았어요')
 }
 
 export async function listItems(tripId: string): Promise<Item[]> {
