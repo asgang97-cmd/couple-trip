@@ -1,7 +1,8 @@
 :root {
   --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
   /* 앱 화면: 1.2 비율, 16px 본문 */
-  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  /* 손글씨체(온글잎 대롱체)가 작아 보여서 한 단계 크게 */
+  --text-xs: 0.875rem; --text-sm: 0.95rem; --text-md: 1.0625rem; --text-lg: 1.3rem; --text-xl: 1.55rem; --text-2xl: 1.85rem; --text-3xl: 2.2rem;
   --text-display-s: 1.44rem; --text-display: 3rem; --text-section: 1.2rem; --text-title: 1.125rem; --text-lead: 1rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
@@ -28,8 +29,9 @@
   --color-pond: oklch(66% 0.09 62);
   --color-scrim: oklch(20% 0.03 45 / 0.72); --color-backdrop: oklch(20% 0.03 45 / 0.4); --color-viewer: oklch(99.5% 0.004 80); --color-glass: oklch(20% 0.03 45 / 0.42);
 
-  --font-display: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
-  --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;
+  /* 온글잎 대롱체 (public/fonts, 웹 사용 가능 확인됨): 제목·본문 모두 */
+  --font-display: "Ongeulip Daerong", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
+  --font-body: "Ongeulip Daerong", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, sans-serif;
   --font-outlier: var(--font-display);
   --radius-card: 22px; --radius-input: 14px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;
   --tracking-display: 0;

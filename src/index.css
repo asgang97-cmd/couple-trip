@@ -1,5 +1,5 @@
 /* Hallmark · shape: app screen · genre: playful · theme: custom · redesign: full · idea: "우리가 고른 캐릭터와 날짜를 하나씩 맛보며 여행해요: 날짜는 한 입 베어 문 만쥬, 고른 날 위에 우리 캐릭터" · vibe: "만쥬 가게, 노릇노릇, 볼 빨간 만쥬 커플"
- * paper: oklch(97% 0.016 80) · accent: oklch(46% 0.09 50) · display: Jua · body: Gowun Dodum
+ * paper: oklch(97% 0.016 80) · accent: oklch(46% 0.09 50) · display: Ongeulip Daerong · body: Ongeulip Daerong
  * nav: kept (커버 + 날짜 탭 + 아래 버튼) · signature: 고른 날짜 위에 밍석이 넣은 캐릭터 사진, 고르면 폴짝 · states: loading, empty, error, offline, full
  * axes: light/rounded-sans/warm · posture: full palette (field cream, signal chestnut brown, seal blush pink, ink) · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V5 · weakest: E, 한글 둥근 글꼴은 굵기가 하나뿐이라 위계를 글꼴 차이와 크기로만 만듦 */
@@ -9,6 +9,15 @@
 /* Hallmark · dismissed F4 · .photo-btn is a translucent glass chip over the couple photo, not a filled primary · 커버 사진 위 반투명 아이콘 버튼 */
 @import url("./tokens.css");
 @import url("./base.css");
+
+/* 온글잎 대롱체: 폰에 저장돼서 오프라인에서도 보임 */
+@font-face {
+  font-family: "Ongeulip Daerong";
+  src: url("/fonts/ongeulip-daerong.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── 바탕 ───────────────────────────────────────────── */
 :root { -webkit-text-size-adjust: 100%; }

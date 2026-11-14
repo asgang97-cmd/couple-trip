@@ -27,7 +27,7 @@ export default defineConfig({
       },
       workbox: {
         // 앱 화면(코드·글꼴·아이콘)을 기기에 저장
-        globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
         // 커플 사진도 한 번 받으면 기기에 저장 → 오프라인에서도 보임 (일정 데이터는 앱이 따로 저장)
         runtimeCaching: [
           {
