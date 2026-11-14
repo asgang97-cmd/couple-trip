@@ -9,6 +9,7 @@ export interface Trip {
   currency: string // 여행 통화, 예: 'JPY'
   manual_rate: number | null // 현지통화 1단위 = 이 값(원)
   cover_path: string | null // Storage 'covers' 안의 커플 사진 파일 위치
+  decor?: import('./decor').Decor | null // 꾸미기 사진들 (007 실행 전 데이터엔 칸 자체가 없음)
   timezone?: string | null // 여행지 시간대(예: 'Asia/Tokyo'). 없으면 기기 시간대 (003 실행 전 데이터엔 칸 자체가 없음)
 }
 

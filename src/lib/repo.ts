@@ -2,6 +2,7 @@
 import { supabase } from './supabase'
 import type { Comment, Expense, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput, Voucher } from './types'
 import type { Prepared } from './voucherFile'
+import type { Decor, DecorItem, DecorSlot } from './decor'
 
 function check<T>(res: { data: T | null; error: { message: string; code?: string } | null }): T {
   // 오류 코드도 함께 (가계부 대기열이 "계속 거절"과 "잠깐 문제"를 구분)
@@ -209,40 +210,81 @@ async function cleanupCovers(tripId: string): Promise<void> {
 }
 
 const SIGN_SEC = 60 * 60 * 24 * 7
-const COVER_KEY = 'cover-url:v1'
+const URLS_KEY = 'signed-urls:v1'
+const MAX_SAVED = 30
 
 /**
- * 비공개 사진을 7일간 볼 수 있는 주소.
- * 받은 주소를 기기에 저장해 두고 하루 이상 남았으면 재사용한다.
+ * 비공개 사진(covers 보관함)을 7일간 볼 수 있는 주소.
+ * 사진마다 받은 주소를 기기에 저장해 두고 하루 이상 남았으면 재사용한다.
  * (주소가 같아야 브라우저·오프라인 캐시가 사진을 다시 받지 않음)
  */
-export async function coverUrl(
+export async function signedUrl(
   path: string,
   { storage = globalThis.localStorage, now = Date.now() }: { storage?: Storage; now?: number } = {},
 ): Promise<string> {
-  let saved: { path: string; url: string; expiresAt: number } | null = null
+  let saved: Record<string, { url: string; expiresAt: number }> = {}
   try {
-    saved = JSON.parse(storage.getItem(COVER_KEY) ?? 'null')
+    const v = JSON.parse(storage.getItem(URLS_KEY) ?? '{}')
+    if (v && typeof v === 'object') saved = v
   } catch {
     // 깨졌으면 새로 받기
   }
-  const same = saved?.path === path && typeof saved.url === 'string'
-  if (same && saved!.expiresAt - now > 86_400_000) return saved!.url
+  const hit = saved[path]
+  if (hit && typeof hit.url === 'string' && hit.expiresAt - now > 86_400_000) return hit.url
 
   const res = await supabase.storage
     .from('covers')
     .createSignedUrl(path, SIGN_SEC)
     .catch((e: unknown) => ({ data: null, error: { message: String(e) } }))
   if (res.error || !res.data) {
-    if (same) return saved!.url // 오프라인: 기기에 저장된 사진이라도 보여주기
+    if (hit?.url) return hit.url // 오프라인: 기기에 저장된 주소라도 (사진은 기기 캐시에서)
     throw new Error(res.error?.message ?? 'no url')
   }
+  saved[path] = { url: res.data.signedUrl, expiresAt: now + SIGN_SEC * 1000 }
+  const keys = Object.keys(saved)
+  for (const k of keys.slice(0, Math.max(0, keys.length - MAX_SAVED))) delete saved[k] // 오래된 것부터 정리
   try {
-    storage.setItem(COVER_KEY, JSON.stringify({ path, url: res.data.signedUrl, expiresAt: now + SIGN_SEC * 1000 }))
+    storage.setItem(URLS_KEY, JSON.stringify(saved))
   } catch {
     // 저장 못 해도 이번엔 보여줌
   }
   return res.data.signedUrl
+}
+
+/** 커플 사진 주소 (signedUrl과 같음) */
+export const coverUrl = signedUrl
+
+/** 꾸미기 사진 올리기: 파일 → 최신 꾸미기 정보에서 그 자리만 바꿔 저장 → 예전 파일 정리 */
+export async function uploadDecor(tripId: string, slot: DecorSlot, blob: Blob, round: boolean): Promise<void> {
+  const ext = blob.type === 'image/png' ? 'png' : 'jpg'
+  const path = `${tripId}/decor-${slot}-${Date.now()}.${ext}`
+  const up = await supabase.storage.from('covers').upload(path, blob, { contentType: blob.type || 'image/jpeg' })
+  if (up.error) throw new Error(up.error.message)
+  try {
+    const old = await setDecorSlot(tripId, slot, { path, round })
+    if (old) await supabase.storage.from('covers').remove([old.path])
+  } catch (e) {
+    await supabase.storage.from('covers').remove([path])
+    throw e
+  }
+}
+
+/** 꾸미기 사진 빼기 */
+export async function removeDecor(tripId: string, slot: DecorSlot): Promise<void> {
+  const old = await setDecorSlot(tripId, slot, null)
+  if (old) await supabase.storage.from('covers').remove([old.path])
+}
+
+/** 최신 decor를 읽어 그 자리만 바꿔 저장 (상대가 다른 자리를 바꿔도 덮어쓰지 않게). 예전 값 반환 */
+async function setDecorSlot(tripId: string, slot: DecorSlot, item: DecorItem | null): Promise<DecorItem | null> {
+  const cur = check(await supabase.from('trips').select('decor').eq('id', tripId).single()) as { decor: Decor | null }
+  const decor: Decor = { ...(cur?.decor ?? {}) }
+  const old = decor[slot] ?? null
+  if (item) decor[slot] = item
+  else delete decor[slot]
+  const rows = check(await supabase.from('trips').update({ decor }).eq('id', tripId).select('id')) as unknown[]
+  if (rows.length === 0) throw new Error('꾸미기를 저장하지 못했어요')
+  return old
 }
 
 /** trips/items/hearts/comments 중 무엇이든 바뀌면 onChange. 반환값을 부르면 구독 해제. */

@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { addExpense, deleteExpense, listExpenses, addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
+const { removeDecor, signedUrl, uploadDecor, addExpense, deleteExpense, listExpenses, addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -282,5 +282,46 @@ describe('가계부', () => {
     queue = [{ data: null, error: null }]
     await deleteExpense('e1')
     expect(calls).toContainEqual(['eq', 'id', 'e1'])
+  })
+})
+
+describe('꾸미기 사진', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('올리기: 파일 올리고, 최신 꾸미기 정보에 그 자리만 바꿔 저장, 예전 파일 정리', async () => {
+    queue = [
+      { data: {}, error: null }, // upload
+      { data: { decor: { coverA: { path: 'trip-1/old-a.png', round: false }, gate: { path: 'trip-1/g.png', round: false } } }, error: null }, // 최신 읽기
+      { data: [{ id: 'trip-1' }], error: null }, // update
+      { data: null, error: null }, // remove old
+    ]
+    await uploadDecor('trip-1', 'coverA', new Blob(['png'], { type: 'image/png' }), false)
+    const up = calls.find((c) => c[0] === 'upload')!
+    expect(up[1]).toMatch(/^trip-1\/decor-coverA-\d+\.png$/)
+    const upd = calls.find((c) => c[0] === 'update')![1] as { decor: Record<string, { path: string; round: boolean }> }
+    expect(upd.decor.coverA).toEqual({ path: up[1], round: false })
+    expect(upd.decor.gate).toEqual({ path: 'trip-1/g.png', round: false })
+    expect(calls).toContainEqual(['remove', ['trip-1/old-a.png']])
+  })
+  test('빼기: 그 자리만 지우고 파일도 정리', async () => {
+    queue = [
+      { data: { decor: { day: { path: 'trip-1/d.jpg', round: true }, empty: { path: 'trip-1/e.png', round: false } } }, error: null },
+      { data: [{ id: 'trip-1' }], error: null },
+      { data: null, error: null },
+    ]
+    await removeDecor('trip-1', 'day')
+    const upd = calls.find((c) => c[0] === 'update')![1] as { decor: Record<string, unknown> }
+    expect(upd.decor).toEqual({ empty: { path: 'trip-1/e.png', round: false } })
+    expect(calls).toContainEqual(['remove', ['trip-1/d.jpg']])
+  })
+  test('signedUrl: 사진마다 주소를 기기에 저장해 재사용', async () => {
+    const storage = memoryStorage()
+    queue = [{ data: { signedUrl: 'https://s/a' }, error: null }, { data: { signedUrl: 'https://s/b' }, error: null }]
+    expect(await signedUrl('t/a.png', { storage, now: 0 })).toBe('https://s/a')
+    expect(await signedUrl('t/b.png', { storage, now: 0 })).toBe('https://s/b')
+    expect(await signedUrl('t/a.png', { storage, now: 1000 })).toBe('https://s/a')
+    expect(calls.filter((c) => c[0] === 'createSignedUrl')).toHaveLength(2)
   })
 })
