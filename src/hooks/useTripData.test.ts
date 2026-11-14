@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import { TRIP, makeItem } from '../test-fixtures'
 import { memoryStorage } from '../test-utils'
+import type { PackingItem } from '../lib/types'
 
 vi.mock('../lib/repo', () => ({}))
 const { useTripData } = await import('./useTripData')
@@ -17,6 +18,7 @@ function fakeRepo(itemsSequence: ReturnType<typeof makeItem>[][]) {
       listItems: vi.fn(async () => itemsSequence[Math.min(call++, itemsSequence.length - 1)]),
       listHearts: vi.fn(async () => []),
       listComments: vi.fn(async () => []),
+      listPacking: vi.fn(async (): Promise<PackingItem[]> => []),
       subscribe: vi.fn((_id: string, cb: () => void) => {
         onChange = cb
         return unsubscribe
@@ -120,5 +122,37 @@ describe('useTripData 오프라인', () => {
     act(() => fireChange())
     await waitFor(() => expect(result.current.offline).toBe(true))
     expect(result.current.items[0].place_name).toBe('유지')
+  })
+})
+
+describe('useTripData 준비물', () => {
+  const P: PackingItem = { id: 'p1', trip_id: TRIP.id, name: '여권', owner: 'a', checked: false, created_at: 'x' }
+  test('준비물도 같이 불러옴', async () => {
+    const { repo } = fakeRepo([[]])
+    repo.listPacking.mockResolvedValue([P])
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.packing).toEqual([P]))
+    expect(result.current.offline).toBe(false)
+  })
+  test('준비물 표가 아직 없어도(SQL 실행 전) 일정은 정상, 준비물은 빈 목록', async () => {
+    const { repo } = fakeRepo([[makeItem({ place_name: '센소지' })]])
+    repo.listPacking.mockRejectedValue(new Error('relation "packing_items" does not exist'))
+    const { result } = renderHook(() => useTripData({ repo, storage: memoryStorage() }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(result.current.offline).toBe(false)
+    expect(result.current.items[0].place_name).toBe('센소지')
+    expect(result.current.packing).toEqual([])
+  })
+})
+
+describe('useTripData 준비물 오프라인', () => {
+  test('예전 저장본(준비물 칸 없음)으로 오프라인이면 준비물은 빈 목록', async () => {
+    const storage = memoryStorage()
+    saveSnapshot({ trip: TRIP, items: [], hearts: [], comments: [], savedAt: 'x' }, storage)
+    const { repo } = fakeRepo([[]])
+    repo.fetchTrip.mockRejectedValue(new Error('offline'))
+    const { result } = renderHook(() => useTripData({ repo, storage }))
+    await waitFor(() => expect(result.current.offline).toBe(true))
+    expect(result.current.packing).toEqual([])
   })
 })

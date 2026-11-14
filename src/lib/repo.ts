@@ -1,6 +1,6 @@
 // 데이터베이스 읽기/쓰기. 함수 하나 = 쿼리 하나. 실패하면 throw.
 import { supabase } from './supabase'
-import type { Comment, Heart, Item, ItemInput, Member, Trip, TripInput } from './types'
+import type { Comment, Heart, Item, ItemInput, Member, PackingItem, Trip, TripInput } from './types'
 
 function check<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message)
@@ -72,6 +72,29 @@ export async function updateComment(id: string, body: string): Promise<void> {
 
 export async function deleteComment(id: string): Promise<void> {
   check(await supabase.from('comments').delete().eq('id', id))
+}
+
+/** 준비물 목록 (만든 순서) */
+export async function listPacking(tripId: string): Promise<PackingItem[]> {
+  return check(await supabase.from('packing_items').select('*').eq('trip_id', tripId).order('created_at')) as PackingItem[]
+}
+
+export async function addPacking(tripId: string, name: string, owner: PackingItem['owner']): Promise<PackingItem> {
+  return check(
+    await supabase.from('packing_items').insert({ trip_id: tripId, name: name.trim(), owner }).select().single(),
+  ) as PackingItem
+}
+
+export async function setPackingChecked(id: string, checked: boolean): Promise<void> {
+  check(await supabase.from('packing_items').update({ checked }).eq('id', id))
+}
+
+export async function setPackingOwner(id: string, owner: PackingItem['owner']): Promise<void> {
+  check(await supabase.from('packing_items').update({ owner }).eq('id', id))
+}
+
+export async function deletePacking(id: string): Promise<void> {
+  check(await supabase.from('packing_items').delete().eq('id', id))
 }
 
 /** 커플 사진 올리기: 새 파일 저장 → 여행에 위치 기록 → 안 쓰는 파일 정리 */
@@ -146,7 +169,7 @@ export async function coverUrl(
 /** trips/items/hearts/comments 중 무엇이든 바뀌면 onChange. 반환값을 부르면 구독 해제. */
 export function subscribe(tripId: string, onChange: () => void): () => void {
   const channel = supabase.channel(`trip-${tripId}`)
-  for (const table of ['trips', 'items', 'hearts', 'comments']) {
+  for (const table of ['trips', 'items', 'hearts', 'comments', 'packing_items']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
   }
   channel.subscribe()

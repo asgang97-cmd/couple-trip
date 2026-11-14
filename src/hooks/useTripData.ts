@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { loadSnapshot, saveSnapshot } from '../lib/offlineCache'
 import * as realRepo from '../lib/repo'
 import { onSessionRefreshed } from '../lib/session'
-import type { Comment, Heart, Item, Trip } from '../lib/types'
+import type { Comment, Heart, Item, PackingItem, Trip } from '../lib/types'
 
-type RepoLike = Pick<typeof realRepo, 'fetchTrip' | 'listItems' | 'listHearts' | 'listComments' | 'subscribe'>
+type RepoLike = Pick<typeof realRepo, 'fetchTrip' | 'listItems' | 'listHearts' | 'listComments' | 'listPacking' | 'subscribe'>
 
 export interface TripData {
   status: 'loading' | 'ready' | 'error'
@@ -12,6 +12,7 @@ export interface TripData {
   items: Item[]
   hearts: Heart[]
   comments: Comment[]
+  packing: PackingItem[]
   offline: boolean
   savedAt: string | null // 오프라인일 때 보여주는 데이터의 저장 시각
   reload: () => Promise<void>
@@ -28,7 +29,7 @@ export function useTripData(
   const storageRef = useRef(deps.storage ?? globalThis.localStorage)
   const onAuthRefreshRef = useRef(deps.onAuthRefresh ?? onSessionRefreshed)
   const [state, setState] = useState<Omit<TripData, 'reload'>>({
-    status: 'loading', trip: null, items: [], hearts: [], comments: [], offline: false, savedAt: null,
+    status: 'loading', trip: null, items: [], hearts: [], comments: [], packing: [], offline: false, savedAt: null,
   })
   // 요청 번호: 늦게 도착한 예전 응답이 새 응답을 덮어쓰지 않게
   const requestId = useRef(0)
@@ -38,19 +39,21 @@ export function useTripData(
     const r = repoRef.current
     try {
       const trip = await r.fetchTrip()
-      const [items, hearts, comments] = await Promise.all([
+      const [items, hearts, comments, packing] = await Promise.all([
         r.listItems(trip.id), r.listHearts(trip.id), r.listComments(trip.id),
+        // 준비물 표가 아직 없어도(SQL 실행 전) 일정은 보이게
+        r.listPacking(trip.id).catch((): PackingItem[] => []),
       ])
       if (id !== requestId.current) return
       const savedAt = new Date().toISOString()
-      saveSnapshot({ trip, items, hearts, comments, savedAt }, storageRef.current)
-      setState({ status: 'ready', trip, items, hearts, comments, offline: false, savedAt })
+      saveSnapshot({ trip, items, hearts, comments, packing, savedAt }, storageRef.current)
+      setState({ status: 'ready', trip, items, hearts, comments, packing, offline: false, savedAt })
     } catch {
       if (id !== requestId.current) return
       setState((s) => {
         if (s.status === 'ready') return { ...s, offline: true } // 보던 화면 유지
         const snap = loadSnapshot(storageRef.current)
-        if (snap) return { status: 'ready', ...snap, offline: true }
+        if (snap) return { status: 'ready', ...snap, packing: snap.packing ?? [], offline: true }
         return { ...s, status: 'error' }
       })
     }

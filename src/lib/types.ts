@@ -37,6 +37,16 @@ export interface Item {
 
 export type ItemInput = Omit<Item, 'id' | 'created_at' | 'updated_at'> & { id?: string }
 
+/** 준비물: owner = 누가 챙길지 ('both' = 같이) */
+export interface PackingItem {
+  id: string
+  trip_id: string
+  name: string
+  owner: 'both' | Member
+  checked: boolean
+  created_at: string
+}
+
 export interface Heart {
   item_id: string
   member: Member

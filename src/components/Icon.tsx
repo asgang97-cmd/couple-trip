@@ -16,6 +16,7 @@ const PATHS = {
   plus: 'M12 5v14 M5 12h14',
   plane: 'M10.5 21l1.5-1v-5.5l7.5 3V16l-7.5-5V5a1.5 1.5 0 0 0-3 0v6L1.5 16v1.5l7.5-3V20l1.5 1Z',
   copy: 'M9 9h10v12H9z M5 15V3h10',
+  bag: 'M5 8h14l-1 12H6L5 8Z M9 8V6a3 3 0 0 1 6 0v2 M9 13l2 2 4-4',
 } as const
 
 export type IconName = keyof typeof PATHS

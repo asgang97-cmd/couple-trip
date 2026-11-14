@@ -6,9 +6,9 @@ import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } f
 import { resizeImage } from '../lib/image'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, deleteComment, deleteItem, ITEM_GONE, saveItem, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addPacking, deleteComment, deleteItem, deletePacking, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
-import type { Item, ItemInput, Member, TripInput } from '../lib/types'
+import type { Item, ItemInput, Member, PackingItem, TripInput } from '../lib/types'
 import { CostSummary } from './CostSummary'
 import { DayTabs } from './DayTabs'
 import { Frog } from './Frog'
@@ -17,6 +17,7 @@ import { Icon } from './Icon'
 import { ItemForm } from './ItemForm'
 import { ItemList } from './ItemList'
 import { OfflineBanner } from './OfflineBanner'
+import { PackingList } from './PackingList'
 import { TripSettings } from './TripSettings'
 import { VisitJapanSheet } from './VisitJapanSheet'
 
@@ -33,7 +34,7 @@ export function TripPage({ member }: { member: Member }) {
   const [form, setForm] = useState<FormState>(null)
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [view, setView] = useState<'list' | 'map'>('list')
+  const [view, setView] = useState<'list' | 'map' | 'packing'>('list')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [vjwOpen, setVjwOpen] = useState(false)
   const now = useNow()
@@ -151,6 +152,28 @@ export function TripPage({ member }: { member: Member }) {
     await data.reload()
   }
 
+  /** 준비물 작업 공통: 실패하면 알리고 다시 던져서 쓴 이름이 남게 */
+  async function packingAction(task: () => Promise<unknown>, failMessage: string) {
+    try {
+      await task()
+      await data.reload()
+    } catch (e) {
+      alert(failMessage)
+      throw e
+    }
+  }
+
+  const packing = {
+    onAdd: (name: string, owner: PackingItem['owner']) => packingAction(() => addPacking(trip.id, name, owner), '준비물을 추가하지 못했어요'),
+    onAddMany: (names: string[]) =>
+      packingAction(async () => {
+        for (const n of names) await addPacking(trip.id, n, 'both')
+      }, '준비물을 다 넣지 못했어요. 다시 시도해 주세요'),
+    onToggle: (id: string, checked: boolean) => packingAction(() => setPackingChecked(id, checked), '체크하지 못했어요').catch(() => {}),
+    onOwner: (id: string, owner: PackingItem['owner']) => packingAction(() => setPackingOwner(id, owner), '바꾸지 못했어요').catch(() => {}),
+    onDelete: (id: string) => packingAction(() => deletePacking(id), '지우지 못했어요').catch(() => {}),
+  }
+
   async function changePhoto(file: File) {
     setUploading(true)
     try {
@@ -172,6 +195,7 @@ export function TripPage({ member }: { member: Member }) {
       <div className="view-toggle" role="group" aria-label="보기">
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
         <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}><Icon name="map" />지도</button>
+        <button type="button" aria-pressed={view === 'packing'} onClick={() => setView('packing')}><Icon name="bag" />준비물</button>
       </div>
       {view === 'map' && (
         <Suspense fallback={<p className="empty">지도 불러오는 중…</p>}>
@@ -192,9 +216,12 @@ export function TripPage({ member }: { member: Member }) {
         onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
         onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
       />}
-      <div className="bottom-bar">
-        <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
-      </div>
+      {view === 'packing' && <PackingList items={data.packing} disabled={disabled} {...packing} />}
+      {view !== 'packing' && (
+        <div className="bottom-bar">
+          <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
+        </div>
+      )}
       {vjwOpen && <VisitJapanSheet trip={trip} items={data.items} onClose={() => setVjwOpen(false)} />}
       {settingsOpen && (
         <TripSettings trip={trip} items={data.items} onSave={saveTrip} onClose={() => setSettingsOpen(false)} />

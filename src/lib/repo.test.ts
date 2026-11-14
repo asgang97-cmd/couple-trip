@@ -28,7 +28,7 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { coverUrl, saveItem, updateTrip, uploadCover } = await import('./repo')
+const { addPacking, coverUrl, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
@@ -161,5 +161,37 @@ describe('updateTrip', () => {
   test('아무것도 안 바뀌었으면(로그인 끊김 등) 조용히 넘어가지 않고 throw', async () => {
     queue = [{ data: [], error: null }]
     await expect(updateTrip('trip-1', input)).rejects.toThrow()
+  })
+})
+
+describe('준비물', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('목록: 그 여행 것만, 순서대로', async () => {
+    queue = [{ data: [{ id: 'p1' }], error: null }]
+    expect(await listPacking('trip-1')).toEqual([{ id: 'p1' }])
+    expect(calls).toContainEqual(['from', 'packing_items'])
+    expect(calls).toContainEqual(['eq', 'trip_id', 'trip-1'])
+  })
+  test('추가: 이름 앞뒤 공백 없이, 누가 챙길지와 함께', async () => {
+    queue = [{ data: { id: 'p2' }, error: null }]
+    await addPacking('trip-1', ' 여권 ', 'a')
+    expect(calls).toContainEqual(['insert', { trip_id: 'trip-1', name: '여권', owner: 'a' }])
+  })
+  test('체크·챙길 사람 바꾸기·지우기는 그 줄만', async () => {
+    queue = [{ data: null, error: null }, { data: null, error: null }, { data: null, error: null }]
+    await setPackingChecked('p1', true)
+    await setPackingOwner('p1', 'both')
+    await deletePacking('p1')
+    expect(calls).toContainEqual(['update', { checked: true }])
+    expect(calls).toContainEqual(['update', { owner: 'both' }])
+    expect(calls).toContainEqual(['delete'])
+    expect(calls.filter((c) => c[0] === 'eq' && c[1] === 'id' && c[2] === 'p1')).toHaveLength(3)
+  })
+  test('실패하면 throw', async () => {
+    queue = [{ data: null, error: { message: 'denied' } }]
+    await expect(setPackingChecked('p1', true)).rejects.toThrow('denied')
   })
 })

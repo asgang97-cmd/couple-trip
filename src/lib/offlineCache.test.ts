@@ -30,6 +30,18 @@ describe('offlineCache', () => {
     expect(s.getItem('route:v2:walk:x')).toBeNull()
   })
 
+  test('준비물도 저장', () => {
+    const s = memoryStorage()
+    const packing = [{ id: 'p1', trip_id: TRIP.id, name: '여권', owner: 'a' as const, checked: false, created_at: 'x' }]
+    saveSnapshot({ ...snap, packing }, s)
+    expect(loadSnapshot(s)?.packing).toEqual(packing)
+  })
+
+  test('준비물이 배열이 아니면 깨진 저장본', () => {
+    const s = memoryStorage({ 'snapshot:v1': JSON.stringify({ ...snap, packing: 'x' }) })
+    expect(loadSnapshot(s)).toBeNull()
+  })
+
   test('저장소가 throw해도 예외 안 남', () => {
     const s = memoryStorage()
     s.setItem = () => { throw new Error('quota') }
