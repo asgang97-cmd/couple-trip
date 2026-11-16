@@ -18,7 +18,7 @@ describe('getPlaceHours', () => {
   test('장소 번호로 영업시간 두 가지만 요청', async () => {
     const fetcher = fetcherOf(ok({ regularOpeningHours: { periods: REG }, currentOpeningHours: { periods: CUR } }))
     const h = await getPlaceHours('abc', { apiKey: 'key', fetcher, storage: memoryStorage(), now: 0 })
-    expect(h).toEqual({ regular: REG, current: CUR })
+    expect(h).toEqual({ regular: REG, current: CUR, fetchedAt: 0 })
     const [url, init] = fetcher.mock.calls[0]
     expect(url).toBe('https://places.googleapis.com/v1/places/abc')
     expect(new Headers(init!.headers).get('X-Goog-Api-Key')).toBe('key')
@@ -30,7 +30,7 @@ describe('getPlaceHours', () => {
     const body = { regularOpeningHours: { periods: REG } }
     const fetcher = fetcherOf(ok(body), ok(body))
     await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 2.9 * DAY })).toEqual({ regular: REG, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 2.9 * DAY })).toMatchObject({ regular: REG, current: null })
     expect(fetcher).toHaveBeenCalledTimes(1)
     await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 3.1 * DAY })
     expect(fetcher).toHaveBeenCalledTimes(2)
@@ -39,8 +39,8 @@ describe('getPlaceHours', () => {
   test('영업시간 정보가 없는 장소도 저장 → 다시 묻지 않음', async () => {
     const storage = memoryStorage()
     const fetcher = fetcherOf(ok({}))
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toEqual({ regular: null, current: null })
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: DAY })).toEqual({ regular: null, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toMatchObject({ regular: null, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: DAY })).toMatchObject({ regular: null, current: null })
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
@@ -48,7 +48,7 @@ describe('getPlaceHours', () => {
     const storage = memoryStorage()
     const fetcher = fetcherOf(new Response('denied', { status: 403 }), ok({ regularOpeningHours: { periods: REG } }))
     expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toBeNull()
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toEqual({ regular: REG, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toMatchObject({ regular: REG, current: null })
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
@@ -56,7 +56,7 @@ describe('getPlaceHours', () => {
     const storage = memoryStorage()
     const fetcher = fetcherOf(ok({ regularOpeningHours: { periods: REG } }), new TypeError('Failed to fetch'))
     await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 30 * DAY })).toEqual({ regular: REG, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 30 * DAY })).toMatchObject({ regular: REG, current: null })
   })
 
   test('오프라인이고 저장본도 없으면 null (에러 없음)', async () => {
@@ -67,7 +67,16 @@ describe('getPlaceHours', () => {
   test('저장본이 깨졌으면 새로 요청', async () => {
     const storage = memoryStorage({ 'hours:v1:abc': '{not json' })
     const fetcher = fetcherOf(ok({ regularOpeningHours: { periods: REG } }))
-    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toEqual({ regular: REG, current: null })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 0 })).toMatchObject({ regular: REG, current: null })
     expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getPlaceHours 받은 날 기억', () => {
+  test('저장본을 돌려줄 때도 받은 시각(fetchedAt)을 같이', async () => {
+    const storage = memoryStorage()
+    const fetcher = fetcherOf(ok({ regularOpeningHours: { periods: REG } }))
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: 1000 })).toMatchObject({ fetchedAt: 1000 })
+    expect(await getPlaceHours('abc', { apiKey: 'key', fetcher, storage, now: DAY })).toMatchObject({ fetchedAt: 1000 })
   })
 })

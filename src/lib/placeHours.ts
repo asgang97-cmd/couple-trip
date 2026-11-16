@@ -30,7 +30,8 @@ export async function getPlaceHours(
   { apiKey, fetcher = globalThis.fetch, storage = globalThis.localStorage, now = Date.now() }: { apiKey: string; fetcher?: typeof fetch; storage?: Storage; now?: number },
 ): Promise<PlaceHours | null> {
   const saved = read(storage, placeId)
-  if (saved && now - saved.savedAt < FRESH_MS) return saved.hours
+  const fromSaved = saved ? { ...saved.hours, fetchedAt: saved.savedAt } : null
+  if (saved && now - saved.savedAt < FRESH_MS) return fromSaved
 
   try {
     const res = await fetcher(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
@@ -40,7 +41,7 @@ export async function getPlaceHours(
         'X-Goog-FieldMask': 'regularOpeningHours,currentOpeningHours',
       },
     })
-    if (!res.ok) return saved?.hours ?? null // 권한 없음 등: 저장 안 함 → 다음에 다시
+    if (!res.ok) return fromSaved // 권한 없음 등: 저장 안 함 → 다음에 다시
     const body = (await res.json()) as { regularOpeningHours?: unknown; currentOpeningHours?: unknown }
     const hours: PlaceHours = { regular: periodsOf(body.regularOpeningHours), current: periodsOf(body.currentOpeningHours) }
     try {
@@ -48,8 +49,8 @@ export async function getPlaceHours(
     } catch {
       // 저장 못 해도 이번엔 씀
     }
-    return hours
+    return { ...hours, fetchedAt: now }
   } catch {
-    return saved?.hours ?? null
+    return fromSaved
   }
 }

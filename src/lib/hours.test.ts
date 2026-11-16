@@ -101,3 +101,34 @@ describe('todayIn', () => {
     expect(todayIn('Not/AZone', new Date('2027-01-10T12:00:00Z'))).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
+
+describe('checkHours 리뷰 반영', () => {
+  test('붙어 있는 구간은 하나로 (자정에 이어지는 24시간 날)', () => {
+    // 월·화 하루 종일(00:00–다음 날 00:00)
+    const allDay = regular([
+      { open: { day: 1, hour: 0, minute: 0 }, close: { day: 2, hour: 0, minute: 0 } },
+      { open: { day: 2, hour: 0, minute: 0 }, close: { day: 3, hour: 0, minute: 0 } },
+    ])
+    expect(check(allDay, MON, '23:30')).toBeNull()
+    // 23:59 마감 → 00:00 다시 오픈 (1분 틈)
+    const nearly = regular([
+      { open: { day: 1, hour: 0, minute: 0 }, close: { day: 1, hour: 23, minute: 59 } },
+      { open: { day: 2, hour: 0, minute: 0 }, close: { day: 2, hour: 23, minute: 59 } },
+    ])
+    expect(check(nearly, MON, '23:30')).toBeNull()
+    // 점심·저녁이 딱 붙음 (11–14, 14–22)
+    const touch = regular([...daily([2], [11, 0], [14, 0]), ...daily([2], [14, 0], [22, 0])])
+    expect(check(touch, TUE, '13:30')).toBeNull()
+  })
+
+  test('3일보다 전에 시작한 긴 구간도 그날을 덮음 (목 10:00 → 월 22:00)', () => {
+    const long = regular([{ open: { day: 4, hour: 10, minute: 0 }, close: { day: 1, hour: 22, minute: 0 } }])
+    expect(check(long, MON, '12:00')).toBeNull()
+    expect(check(long, MON, null)).toBeNull()
+  })
+
+  test('전날 밤 새벽 영업만 걸친 날은 여전히 휴무 (일 18:00–월 02:00, 월요일 휴무)', () => {
+    const sunOnly = regular(daily([0], [18, 0], [2, 0], true))
+    expect(check(sunOnly, MON, null)).toEqual({ kind: 'closedDay', weekday: 1 })
+  })
+})

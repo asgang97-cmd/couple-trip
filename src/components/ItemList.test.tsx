@@ -44,6 +44,23 @@ describe('ItemList 영업시간 경고', () => {
     expect(load).toHaveBeenCalledTimes(1)
   })
 
+  test('며칠 전에 받은 7일치 특별 영업일은 그 7일에만 씀 (그 뒤 날짜는 매주 영업시간)', async () => {
+    // 1/11(월)에 받음: current는 1/11~1/17만. 매일 11–21 영업. 오늘은 1/13
+    const dated = (d: number, wd: number) => ({
+      open: { day: wd, hour: 11, minute: 0, date: { year: 2027, month: 1, day: d } },
+      close: { day: wd, hour: 21, minute: 0, date: { year: 2027, month: 1, day: d } },
+    })
+    const fetched: PlaceHours = {
+      regular: [0, 1, 2, 3, 4, 5, 6].map((d) => ({ open: { day: d, hour: 11, minute: 0 }, close: { day: d, hour: 21, minute: 0 } })),
+      current: [11, 12, 13, 14, 15, 16, 17].map((d) => dated(d, (d - 10) % 7)),
+      fetchedAt: new Date('2027-01-11T03:00:00Z').getTime(),
+    }
+    const it = makeItem({ day: '2027-01-18', time: null, place_name: '라멘', google_place_id: 'p1', lat: 34.7, lng: 135.5 })
+    render(<ItemList {...base} trip={{ ...TRIP, timezone: 'Asia/Tokyo' }} now={new Date('2027-01-13T03:00:00Z')} items={[it]} loadLeg={noLeg} loadHours={async () => fetched} />)
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByText(/휴무/)).toBeNull()
+  })
+
   test('장소 번호 없는 일정은 묻지 않음', async () => {
     const load = vi.fn(async () => hours)
     const it = makeItem({ day: TUE, time: '10:00', place_name: '직접 적은 곳' })

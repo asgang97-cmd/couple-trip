@@ -42,7 +42,8 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
   const today = todayIn(rest.trip.timezone, now ?? clock)
   const hoursWarningOf = (it: Item) => {
     const h = it.google_place_id ? hours[it.google_place_id] : undefined
-    return h ? checkHours(h, it.day, it.time, today) : null
+    // 특별 영업일(7일치)은 받은 날 기준 — 폰에 저장된 며칠 전 것이면 그만큼 범위가 앞당겨짐
+    return h ? checkHours(h, it.day, it.time, h.fetchedAt !== undefined ? todayIn(rest.trip.timezone, new Date(h.fetchedAt)) : today) : null
   }
   if (items.length === 0) {
     return (
