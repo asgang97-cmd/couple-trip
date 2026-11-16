@@ -1,7 +1,7 @@
 import { AdvancedMarker, APIProvider, Map, useMap } from '@vis.gl/react-google-maps'
 import { useEffect, useMemo, useState } from 'react'
 import { directionsUrl, itemsWithLocation } from '../lib/maps'
-import { getLeg, transitDeparture, type LatLng, type Leg, type RouteMode } from '../lib/routes'
+import { formatDuration, getLeg, transitDeparture, type LatLng, type Leg, type RouteMode } from '../lib/routes'
 import type { Item } from '../lib/types'
 import { theme } from '../theme'
 import { Icon } from './Icon'
@@ -22,13 +22,6 @@ type Located = ReturnType<typeof itemsWithLocation>[number]
 const CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'
 const num = (i: number) => CIRCLED[i] ?? `(${i + 1})`
 
-function formatDuration(sec: number): string {
-  const min = Math.max(1, Math.round(sec / 60))
-  if (min < 60) return `${min}분`
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  return m ? `${h}시간 ${m}분` : `${h}시간`
-}
 const formatDistance = (m: number) => (m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`)
 
 /** 구간별 선 그리기(실제 길, 못 구하면 점선 직선) + 모든 핀이 보이게 화면 맞추기 */

@@ -7,6 +7,15 @@ export interface Leg { path: LatLng[]; durationSec: number; distanceM: number }
 
 const WEEK_MS = 7 * 86_400_000
 
+/** 이동 시간 표기: 35분 / 1시간 5분 / 2시간 (최소 1분) */
+export function formatDuration(sec: number): string {
+  const min = Math.max(1, Math.round(sec / 60))
+  if (min < 60) return `${min}분`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return m ? `${h}시간 ${m}분` : `${h}시간`
+}
+
 /** 구글 인코딩 폴리라인 → 좌표 목록 */
 export function decodePolyline(encoded: string): LatLng[] {
   const points: LatLng[] = []
