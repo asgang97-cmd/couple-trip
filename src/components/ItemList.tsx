@@ -1,3 +1,7 @@
+import { Fragment } from 'react'
+import { useTightLegs, type LoadLeg, type TightWarning } from '../hooks/useTightLegs'
+import { formatDuration } from '../lib/routes'
+import { fastestSec } from '../lib/tight'
 import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
 import { Mascot } from './Mascot'
 import { ItemCard } from './ItemCard'
@@ -18,9 +22,15 @@ interface Props {
   vouchers: Voucher[]
   onOpenVoucher: (v: Voucher) => void
   onAddVoucher: (itemId: string, file: File) => void
+  // 테스트용 (앱에서는 안 넘김: 구글 경로 계산 + .env의 API 키)
+  loadLeg?: LoadLeg
+  apiKey?: string
+  now?: Date
 }
 
-export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, ...rest }: Props) {
+export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, apiKey, now, ...rest }: Props) {
+  // 바로 붙은 두 일정 사이에 이동조차 못 하면 경고 (도보·대중교통 중 빠른 쪽 기준)
+  const warnings = useTightLegs(items, rest.trip.timezone, { loadLeg, now, ...(apiKey !== undefined ? { apiKey } : {}) })
   if (items.length === 0) {
     return (
       <div className="empty-pond">
@@ -35,19 +45,35 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
   return (
     <div className="item-list">
       {items.map((it) => (
-        <ItemCard
-          key={it.id}
-          item={it}
-          {...rest}
-          hearts={hearts.filter((h) => h.item_id === it.id)}
-          comments={comments.filter((c) => c.item_id === it.id)}
-          onEdit={() => onEdit(it)}
-          onToggleHeart={(on) => onToggleHeart(it.id, on)}
-          onAddComment={(body) => onAddComment(it.id, body)}
-          vouchers={vouchers.filter((v) => v.item_id === it.id)}
-          onAddVoucher={(file) => onAddVoucher(it.id, file)}
-        />
+        <Fragment key={it.id}>
+          <ItemCard
+            item={it}
+            {...rest}
+            hearts={hearts.filter((h) => h.item_id === it.id)}
+            comments={comments.filter((c) => c.item_id === it.id)}
+            onEdit={() => onEdit(it)}
+            onToggleHeart={(on) => onToggleHeart(it.id, on)}
+            onAddComment={(body) => onAddComment(it.id, body)}
+            vouchers={vouchers.filter((v) => v.item_id === it.id)}
+            onAddVoucher={(file) => onAddVoucher(it.id, file)}
+          />
+          {warnings[it.id] && <TightNote w={warnings[it.id]} />}
+        </Fragment>
       ))}
     </div>
+  )
+}
+
+/** 두 카드 사이 경고: 빠른 쪽 시간 + 수단별 시간 (못 구한 수단은 빠짐) */
+function TightNote({ w }: { w: TightWarning }) {
+  const modes = [
+    w.transitSec !== null && `대중교통 ${formatDuration(w.transitSec)}`,
+    w.walkSec !== null && `도보 ${formatDuration(w.walkSec)}`,
+  ].filter(Boolean)
+  return (
+    <p className="tight-warning" role="note">
+      ⚠️ {formatDuration(w.gapSec)} 뒤 다음 일정인데 이동이 {formatDuration(fastestSec(w.walkSec, w.transitSec)!)} 걸려요
+      <span className="note">({modes.join(' · ')})</span>
+    </p>
   )
 }

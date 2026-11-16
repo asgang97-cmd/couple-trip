@@ -6,6 +6,8 @@ import type { Item } from '../lib/types'
 export interface TightWarning { gapSec: number; walkSec: number | null; transitSec: number | null }
 export type LoadLeg = (a: LatLng, b: LatLng, mode: RouteMode, departureTime: string | undefined) => Promise<Leg | null>
 
+const NONE: Record<string, TightWarning> = {}
+
 interface Options { apiKey?: string; loadLeg?: LoadLeg; now?: Date }
 
 /**
@@ -28,10 +30,7 @@ export function useTightLegs(items: Item[], timeZone: string | null | undefined,
     : null
 
   useEffect(() => {
-    if (key === null) {
-      setWarnings({})
-      return
-    }
+    if (key === null) return
     let alive = true
     const { items, loadLeg, now = new Date() } = ref.current
     const load: LoadLeg = loadLeg ?? ((a, b, m, dep) => getLeg(a, b, m, { apiKey: apiKey!, departureTime: dep }))
@@ -59,5 +58,5 @@ export function useTightLegs(items: Item[], timeZone: string | null | undefined,
     }
   }, [key, apiKey, timeZone])
 
-  return warnings
+  return key === null ? NONE : warnings // API 키가 없으면 계산도 경고도 없음
 }
