@@ -3,6 +3,7 @@ import { useNow } from '../hooks/useNow'
 import { useDecorUrls } from '../hooks/useDecorUrls'
 import { useExpenses } from '../hooks/useExpenses'
 import { prepareDecor, type DecorSlot, type DecorUrls } from '../lib/decor'
+import { useWeather } from '../hooks/useWeather'
 import { useVoucherCache } from '../hooks/useVoucherCache'
 import { newExpense } from '../lib/expenseQueue'
 import { useRate } from '../hooks/useRate'
@@ -70,6 +71,8 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
   const days = useMemo(() => (data.trip ? tripDays(data.trip.start_date, data.trip.end_date) : []), [data.trip])
   const byDay = useMemo(() => groupItemsByDay(data.items, days), [data.items, days])
   const tripItems = useMemo(() => itemsInTrip(data.items, days), [data.items, days])
+  // 날짜 탭 날씨 (예보, 2주보다 먼 날은 작년 이맘때)
+  const weather = useWeather(days, byDay, data.trip?.destination ?? '', data.trip?.timezone, { now })
 
   // 사진 위치가 바뀌면(내가 올리든 상대가 올리든) 새 주소 받아오기
   const coverPath = data.trip?.cover_path ?? null
@@ -273,7 +276,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
       <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={setCropFile} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
-      <DayTabs days={days} selected={day} onSelect={setSelected} />
+      <DayTabs days={days} selected={day} onSelect={setSelected} weather={weather} />
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle view-tabs" role="group" aria-label="보기">
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>

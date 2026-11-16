@@ -555,3 +555,7 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .decor-pick.off { background: var(--color-paper-2); color: var(--color-muted); cursor: not-allowed; }
 .decor-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; min-height: 0; cursor: inherit; }
 .decor-remove { min-height: 40px; }
+
+/* 날짜 탭 날씨 (작년 이맘때는 흐리게) */
+.tab-weather { display: block; font-size: var(--text-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tab-weather.past { color: var(--color-muted); }
