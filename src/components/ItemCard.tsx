@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { hoursMessage, type HoursWarning } from '../lib/hours'
 import { directionsUrl } from '../lib/maps'
 import { formatMoney, toKrw } from '../lib/money'
 import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
@@ -22,6 +23,7 @@ interface Props {
   vouchers: Voucher[] // 이 일정에 붙은 바우처
   onOpenVoucher: (v: Voucher) => void
   onAddVoucher: (file: File) => void
+  hoursWarning?: HoursWarning | null // 그날 휴무·영업시간 밖·곧 마감
 }
 
 /** 하트: 둘 다 → 하트 두 개, 한 명 → 그 사람 이모지 + 하트, 없음 → 빈 하트 */
@@ -61,7 +63,7 @@ function costLabel(amount: number, currency: string, rate: number | null): strin
 
 export function ItemCard({
   item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment, onEditComment, onDeleteComment,
-  vouchers, onOpenVoucher, onAddVoucher,
+  vouchers, onOpenVoucher, onAddVoucher, hoursWarning,
 }: Props) {
   const [showComments, setShowComments] = useState(false)
   const mine = hearts.some((h) => h.member === member)
@@ -81,6 +83,7 @@ export function ItemCard({
         <span aria-label={`작성: ${theme.names[item.created_by]}`}>{theme.emoji[item.created_by]}</span>
       </div>
       <h3>{item.place_name}</h3>
+      {hoursWarning && <p className="hours-warning" role="note">{hoursMessage(hoursWarning)}</p>}
       {item.memo && <p className="memo">{item.memo}</p>}
       {item.cost_amount !== null && <p className="cost">{costLabel(item.cost_amount, item.cost_currency, rate)}</p>}
       {item.lat !== null && item.lng !== null && (

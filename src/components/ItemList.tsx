@@ -1,5 +1,8 @@
 import { Fragment } from 'react'
+import { useNow } from '../hooks/useNow'
+import { usePlaceHours, type LoadHours } from '../hooks/usePlaceHours'
 import { useTightLegs, type LoadLeg, type TightWarning } from '../hooks/useTightLegs'
+import { checkHours, todayIn } from '../lib/hours'
 import { formatDuration } from '../lib/routes'
 import { fastestSec } from '../lib/tight'
 import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
@@ -24,13 +27,23 @@ interface Props {
   onAddVoucher: (itemId: string, file: File) => void
   // 테스트용 (앱에서는 안 넘김: 구글 경로 계산 + .env의 API 키)
   loadLeg?: LoadLeg
+  loadHours?: LoadHours
   apiKey?: string
   now?: Date
 }
 
-export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, apiKey, now, ...rest }: Props) {
+export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, loadHours, apiKey, now, ...rest }: Props) {
   // 바로 붙은 두 일정 사이에 이동조차 못 하면 경고 (도보·대중교통 중 빠른 쪽 기준)
-  const warnings = useTightLegs(items, rest.trip.timezone, { loadLeg, now, ...(apiKey !== undefined ? { apiKey } : {}) })
+  const keyOpt = apiKey !== undefined ? { apiKey } : {}
+  const warnings = useTightLegs(items, rest.trip.timezone, { loadLeg, now, ...keyOpt })
+  // 장소 검색으로 넣은 일정: 그날 휴무·영업시간 밖·1시간 안 마감이면 카드에 경고
+  const hours = usePlaceHours(items.flatMap((it) => (it.google_place_id ? [it.google_place_id] : [])), { loadHours, ...keyOpt })
+  const clock = useNow() // 앱으로 돌아올 때마다 새로 (자정 넘김 반영)
+  const today = todayIn(rest.trip.timezone, now ?? clock)
+  const hoursWarningOf = (it: Item) => {
+    const h = it.google_place_id ? hours[it.google_place_id] : undefined
+    return h ? checkHours(h, it.day, it.time, today) : null
+  }
   if (items.length === 0) {
     return (
       <div className="empty-pond">
@@ -48,6 +61,7 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
         <Fragment key={it.id}>
           <ItemCard
             item={it}
+            hoursWarning={hoursWarningOf(it)}
             {...rest}
             hearts={hearts.filter((h) => h.item_id === it.id)}
             comments={comments.filter((c) => c.item_id === it.id)}

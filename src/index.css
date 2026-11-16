@@ -246,8 +246,8 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
   gap: var(--space-sm);
   padding: 0 0 calc(var(--space-3xl) + var(--space-lg) + env(safe-area-inset-bottom)) var(--space-lg);
 }
-/* 빠듯한 일정 경고 (두 카드 사이) */
-.tight-warning { display: grid; gap: var(--space-3xs); margin: 0; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-input); background: var(--color-blush-wash); color: var(--color-ink-2); font-size: var(--text-sm); }
+/* 빠듯한 일정 경고(두 카드 사이) · 영업시간 경고(카드 안) */
+.tight-warning, .hours-warning { display: grid; gap: var(--space-3xs); margin: 0; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-input); background: var(--color-blush-wash); color: var(--color-ink-2); font-size: var(--text-sm); }
 /* 캐릭터가 뛰어갈 점선 길 */
 .item-list::before {
   content: "";
