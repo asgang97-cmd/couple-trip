@@ -198,9 +198,11 @@ async function cleanupCovers(tripId: string): Promise<void> {
     if (cur.error || !keep) return
     const list = await supabase.storage.from('covers').list(tripId)
     if (list.error || !list.data) return
-    // 파일 이름 = 올린 시각. 지금 커버보다 나중 파일은 상대가 막 올리는 중일 수 있어 남겨 둠
+    // 커버 파일 이름 = 올린 시각(숫자만). 같은 폴더의 꾸미기 사진(decor-…)은 절대 건드리지 않음
+    // 지금 커버보다 나중 파일은 상대가 막 올리는 중일 수 있어 남겨 둠
     const stamp = (p: string) => Number(p.split('/').pop()?.split('.')[0]) || 0
     const stale = list.data
+      .filter((f) => /^\d+\.jpg$/.test(f.name))
       .map((f) => `${tripId}/${f.name}`)
       .filter((p) => p !== keep && stamp(p) < stamp(keep))
     if (stale.length) await supabase.storage.from('covers').remove(stale)
@@ -240,6 +242,7 @@ export async function signedUrl(
     if (hit?.url) return hit.url // 오프라인: 기기에 저장된 주소라도 (사진은 기기 캐시에서)
     throw new Error(res.error?.message ?? 'no url')
   }
+  delete saved[path] // 맨 뒤(가장 최근)로 다시 넣어서, 정리할 때 방금 받은 주소가 지워지지 않게
   saved[path] = { url: res.data.signedUrl, expiresAt: now + SIGN_SEC * 1000 }
   const keys = Object.keys(saved)
   for (const k of keys.slice(0, Math.max(0, keys.length - MAX_SAVED))) delete saved[k] // 오래된 것부터 정리
@@ -260,23 +263,41 @@ export async function uploadDecor(tripId: string, slot: DecorSlot, blob: Blob, r
   const path = `${tripId}/decor-${slot}-${Date.now()}.${ext}`
   const up = await supabase.storage.from('covers').upload(path, blob, { contentType: blob.type || 'image/jpeg' })
   if (up.error) throw new Error(up.error.message)
+  let old: DecorItem | null
   try {
-    const old = await setDecorSlot(tripId, slot, { path, round })
-    if (old) await supabase.storage.from('covers').remove([old.path])
+    old = await setDecorSlot(tripId, slot, { path, round })
   } catch (e) {
-    await supabase.storage.from('covers').remove([path])
+    // 저장이 안 됐을 때만 새 파일을 치움 (저장된 뒤엔 새 파일이 지금 사진이라 지우면 안 됨)
+    await supabase.storage.from('covers').remove([path]).catch(() => {})
     throw e
   }
+  if (old && old.path !== path) await removeDecorFile(old.path)
 }
 
 /** 꾸미기 사진 빼기 */
 export async function removeDecor(tripId: string, slot: DecorSlot): Promise<void> {
   const old = await setDecorSlot(tripId, slot, null)
-  if (old) await supabase.storage.from('covers').remove([old.path])
+  if (old) await removeDecorFile(old.path)
 }
 
-/** 최신 decor를 읽어 그 자리만 바꿔 저장 (상대가 다른 자리를 바꿔도 덮어쓰지 않게). 예전 값 반환 */
+/** 예전 꾸미기 파일 정리. 실패해도 무시(저장 공간만 조금 더 씀) */
+async function removeDecorFile(path: string): Promise<void> {
+  try {
+    await supabase.storage.from('covers').remove([path])
+  } catch {
+    // 다음에
+  }
+}
+
+/**
+ * 꾸미기 한 자리만 바꿔 저장하고 예전 값 반환.
+ * 008 SQL이 있으면 데이터베이스 안에서 한 번에 바꿈 → 둘이 동시에 다른 자리를 바꿔도 안 덮어씀.
+ * 008 실행 전이면 예전 방식(읽고 → 그 자리만 바꿔 저장).
+ */
 async function setDecorSlot(tripId: string, slot: DecorSlot, item: DecorItem | null): Promise<DecorItem | null> {
+  const r = await supabase.rpc('set_decor_slot', { p_trip: tripId, p_slot: slot, p_item: item })
+  if (!r.error) return (r.data as DecorItem | null) ?? null
+  if (r.error.code !== 'PGRST202') throw new Error(r.error.message) // PGRST202 = 함수가 아직 없음
   const cur = check(await supabase.from('trips').select('decor').eq('id', tripId).single()) as { decor: Decor | null }
   const decor: Decor = { ...(cur?.decor ?? {}) }
   const old = decor[slot] ?? null

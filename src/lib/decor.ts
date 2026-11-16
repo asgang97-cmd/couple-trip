@@ -20,6 +20,7 @@ export function hasTransparency(rgba: Uint8ClampedArray): boolean {
 }
 
 const URLS_KEY = 'decor-urls:v1'
+const BG_FILL = '#faf5ee' // 앱 바탕 크림색(--color-paper)과 비슷하게
 
 /** 마지막으로 받은 사진 주소 (로그인 전 비밀번호 화면·오프라인에서도 보이게) */
 export function loadDecorUrls(storage: Storage = globalThis.localStorage): DecorUrls {
@@ -52,6 +53,11 @@ export async function prepareDecor(file: File, slot: DecorSlot): Promise<{ blob:
     canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
     canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
     const ctx = canvas.getContext('2d')!
+    if (slot === 'background') {
+      // 배경은 늘 JPEG라 투명한 부분이 까맣게 됨 → 크림색 바탕을 먼저 깔기
+      ctx.fillStyle = BG_FILL
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+    }
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
     const transparent = slot !== 'background' && hasTransparency(ctx.getImageData(0, 0, canvas.width, canvas.height).data)
     const type = transparent ? 'image/png' : 'image/jpeg'

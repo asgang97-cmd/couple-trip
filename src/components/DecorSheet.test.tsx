@@ -5,7 +5,7 @@ import { DecorContext } from './DecorContext'
 import { DecorSheet } from './DecorSheet'
 
 function setup(over: Partial<Parameters<typeof DecorSheet>[0]> = {}, urls = {}) {
-  const props = { disabled: false, onPick: vi.fn(async () => {}), onRemove: vi.fn(async () => {}), onClose: vi.fn(), ...over }
+  const props = { member: 'a' as const, disabled: false, onPick: vi.fn(async () => {}), onRemove: vi.fn(async () => {}), onClose: vi.fn(), ...over }
   render(
     <DecorContext.Provider value={urls}>
       <DecorSheet {...props} />
@@ -15,6 +15,21 @@ function setup(over: Partial<Parameters<typeof DecorSheet>[0]> = {}, urls = {}) 
 }
 
 describe('DecorSheet', () => {
+  test('안내 문구에는 상대방 이름 (밍석이 열면 밍하, 밍하가 열면 밍석)', () => {
+    const { unmount } = render(
+      <DecorContext.Provider value={{}}>
+        <DecorSheet member="a" disabled={false} onPick={vi.fn()} onRemove={vi.fn()} onClose={vi.fn()} />
+      </DecorContext.Provider>,
+    )
+    expect(screen.getByText(/밍하 폰에도/)).toBeInTheDocument()
+    unmount()
+    render(
+      <DecorContext.Provider value={{}}>
+        <DecorSheet member="b" disabled={false} onPick={vi.fn()} onRemove={vi.fn()} onClose={vi.fn()} />
+      </DecorContext.Provider>,
+    )
+    expect(screen.getByText(/밍석 폰에도/)).toBeInTheDocument()
+  })
   test('자리 6곳, 넣은 건 미리보기, 안 넣은 건 "비어 있음"', () => {
     setup({}, { coverA: { url: 'https://s/a.png', round: false } })
     expect(screen.getAllByRole('listitem')).toHaveLength(6)

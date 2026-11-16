@@ -18,8 +18,13 @@ Supabase 대시보드 → 프로젝트 → **SQL Editor** → **New query**에 �
 1. `supabase/schema.sql` — 표·권한·첫 여행
 2. `supabase/002_cover_photo.sql` — 커플 사진 보관함
 3. `supabase/003_timezone_currency.sql` — 여행지 시간대 + 통화 코드 검사
+4. `supabase/004_packing.sql` — 준비물
+5. `supabase/005_vouchers.sql` — 바우처 보관함
+6. `supabase/006_expenses.sql` — 가계부
+7. `supabase/007_decor.sql` — 캐릭터·배경 꾸미기
+8. `supabase/008_decor_slot.sql` — 꾸미기를 둘이 동시에 바꿔도 안 덮어쓰게
 
-> 1·2번은 이미 실행했으면 다시 실행하지 마세요 (에러가 나요). 3번은 여러 번 실행해도 괜찮아요.
+> 1·2번은 이미 실행했으면 다시 실행하지 마세요 (에러가 나요). 3번부터는 각 파일 맨 위 안내를 확인하세요.
 
 ### 2. Supabase 로그인 설정 (⚠️ 보안상 꼭 확인)
 앱 코드 안의 공개 키는 누구나 볼 수 있어요. 그래서 **아래 두 개가 꺼져 있어야** 모르는 사람이 계정을 만들어 들어올 수 없어요.

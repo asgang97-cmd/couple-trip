@@ -56,7 +56,7 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
         <h1>{trip.title}</h1>
       </div>
       {/* 우리 둘 (캐릭터 커플) */}
-      <div className="cover-frogs" aria-hidden="true">
+      <div className="cover-characters" aria-hidden="true">
         <Mascot slot="coverA" size={72} />
         <Mascot slot="coverB" size={64} />
       </div>

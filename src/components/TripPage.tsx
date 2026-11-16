@@ -41,7 +41,8 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
   const data = useTripData()
   const rate = useRate(data.trip)
   // 꾸미기 사진 주소 받기 (여행을 불러온 뒤에만: 불러오는 중엔 예전 사진 그대로)
-  useDecorUrls(data.status === 'ready' && data.trip ? (data.trip.decor ?? {}) : undefined, (u) => onDecor?.(u), (p) => signedUrl(p))
+  // 예전 버전이 폰에 저장한 일정엔 decor 칸이 없음(undefined) → 그때도 폰에 기억한 사진을 지우지 않음
+  useDecorUrls(data.status === 'ready' && data.trip ? data.trip.decor : undefined, (u) => onDecor?.(u), (p) => signedUrl(p))
   // 가계부: 인터넷이 없어도 적고, 연결되면 자동으로 올림
   const expenses = useExpenses(data.expenses, data.offline, { add: addExpense, remove: deleteExpense, reload: data.reload })
   // 불러오기 전(null)과 예전 목록(voucherError)일 때는 폰의 파일을 정리하지 않음
@@ -339,7 +340,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
           <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}
-      {decorOpen && <DecorSheet disabled={disabled} onPick={pickDecor} onRemove={dropDecor} onClose={() => setDecorOpen(false)} />}
+      {decorOpen && <DecorSheet member={member} disabled={disabled} onPick={pickDecor} onRemove={dropDecor} onClose={() => setDecorOpen(false)} />}
       {voucherSheet && (
         <VoucherSheet
           key={voucherSheet.kind === 'new' ? voucherSheet.file.name + voucherSheet.file.lastModified : voucherSheet.voucher.id}

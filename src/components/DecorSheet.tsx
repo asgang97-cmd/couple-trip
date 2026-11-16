@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { DECOR_SLOTS, type DecorSlot } from '../lib/decor'
+import type { Member } from '../lib/types'
 import { theme } from '../theme'
 import { useDecor } from './DecorContext'
 
 interface Props {
+  member: Member // 지금 쓰는 사람 (안내 문구에 상대 이름을 넣으려고)
   disabled: boolean // 오프라인이면 바꾸기 막힘
   /** 실패하면 throw (알림은 부르는 쪽에서) */
   onPick: (slot: DecorSlot, file: File) => Promise<void>
@@ -12,7 +14,7 @@ interface Props {
 }
 
 /** 캐릭터·배경 꾸미기: 자리마다 사진 고르기 / 빼기 */
-export function DecorSheet({ disabled, onPick, onRemove, onClose }: Props) {
+export function DecorSheet({ member, disabled, onPick, onRemove, onClose }: Props) {
   const urls = useDecor()
   const [busy, setBusy] = useState<DecorSlot | null>(null)
 
@@ -34,7 +36,7 @@ export function DecorSheet({ disabled, onPick, onRemove, onClose }: Props) {
           <h2>캐릭터·배경 꾸미기</h2>
           <button type="button" className="ghost" onClick={onClose} disabled={busy !== null}>닫기</button>
         </div>
-        <p className="note">넣은 사진은 {theme.names.b} 폰에도 같이 보여요. 배경이 투명한 PNG는 그대로, 일반 사진은 동그랗게 보여요</p>
+        <p className="note">넣은 사진은 {theme.names[member === 'a' ? 'b' : 'a']} 폰에도 같이 보여요. 배경이 투명한 PNG는 그대로, 일반 사진은 동그랗게 보여요</p>
         <ul className="decor-list">
           {DECOR_SLOTS.map(({ slot, label }) => {
             const item = urls[slot]

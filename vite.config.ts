@@ -28,14 +28,15 @@ export default defineConfig({
       workbox: {
         // 앱 화면(코드·글꼴·아이콘)을 기기에 저장
         globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
-        // 커플 사진도 한 번 받으면 기기에 저장 → 오프라인에서도 보임 (일정 데이터는 앱이 따로 저장)
+        // 커플 사진·꾸미기 사진(캐릭터 5장 + 배경)도 한 번 받으면 기기에 저장 → 오프라인에서도 보임
+        // (일정 데이터는 앱이 따로 저장). 사진 7장 + 주소가 바뀌는 동안의 여유분
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.includes('/storage/v1/object/sign/covers/'),
             handler: 'CacheFirst',
             options: {
               cacheName: 'cover-photo',
-              expiration: { maxEntries: 3 },
+              expiration: { maxEntries: 20 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

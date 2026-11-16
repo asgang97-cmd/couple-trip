@@ -24,6 +24,7 @@ function chain(): unknown {
 vi.mock('./supabase', () => ({
   supabase: {
     from: (t: string) => (calls.push(['from', t]), chain()),
+    rpc: (...a: unknown[]) => (calls.push(['rpc', ...a]), chain()),
     storage: { from: (b: string) => (calls.push(['bucket', b]), chain()) },
   },
 }))
@@ -79,6 +80,25 @@ describe('uploadCover', () => {
     expect(calls).toContainEqual(['list', 'trip-1'])
     const removed = calls.find((c) => c[0] === 'remove')![1] as string[]
     expect(removed.sort()).toEqual(['trip-1/000.jpg', 'trip-1/111.jpg'])
+  })
+})
+
+describe('uploadCover 꾸미기 사진 보호', () => {
+  beforeEach(() => {
+    calls = []
+    queue = []
+  })
+  test('같은 폴더의 꾸미기 사진(decor-…)은 커버 정리 때 지우지 않음', async () => {
+    queue = [
+      { data: { path: 'x' }, error: null },
+      { data: null, error: null },
+      { data: { cover_path: 'trip-1/200.jpg' }, error: null },
+      { data: [{ name: '100.jpg' }, { name: '200.jpg' }, { name: 'decor-coverA-50.png' }, { name: 'decor-background-60.jpg' }], error: null },
+      { data: null, error: null },
+    ]
+    await uploadCover(TRIP, new Blob(['a']))
+    const removed = calls.find((c) => c[0] === 'remove')![1] as string[]
+    expect(removed).toEqual(['trip-1/100.jpg'])
   })
 })
 
@@ -293,6 +313,7 @@ describe('꾸미기 사진', () => {
   test('올리기: 파일 올리고, 최신 꾸미기 정보에 그 자리만 바꿔 저장, 예전 파일 정리', async () => {
     queue = [
       { data: {}, error: null }, // upload
+      { data: null, error: { code: 'PGRST202', message: 'not found' } }, // 008 실행 전: 함수 없음 → 예전 방식
       { data: { decor: { coverA: { path: 'trip-1/old-a.png', round: false }, gate: { path: 'trip-1/g.png', round: false } } }, error: null }, // 최신 읽기
       { data: [{ id: 'trip-1' }], error: null }, // update
       { data: null, error: null }, // remove old
@@ -307,6 +328,7 @@ describe('꾸미기 사진', () => {
   })
   test('빼기: 그 자리만 지우고 파일도 정리', async () => {
     queue = [
+      { data: null, error: { code: 'PGRST202', message: 'not found' } },
       { data: { decor: { day: { path: 'trip-1/d.jpg', round: true }, empty: { path: 'trip-1/e.png', round: false } } }, error: null },
       { data: [{ id: 'trip-1' }], error: null },
       { data: null, error: null },
@@ -315,6 +337,58 @@ describe('꾸미기 사진', () => {
     const upd = calls.find((c) => c[0] === 'update')![1] as { decor: Record<string, unknown> }
     expect(upd.decor).toEqual({ empty: { path: 'trip-1/e.png', round: false } })
     expect(calls).toContainEqual(['remove', ['trip-1/d.jpg']])
+  })
+  test('008 있으면: 데이터베이스 안에서 그 자리만 한 번에 바꿈 (동시에 바꿔도 안 덮어씀)', async () => {
+    queue = [
+      { data: {}, error: null }, // upload
+      { data: { path: 'trip-1/old-a.png', round: false }, error: null }, // rpc → 예전 값
+      { data: null, error: null }, // remove old
+    ]
+    await uploadDecor('trip-1', 'coverA', new Blob(['png'], { type: 'image/png' }), false)
+    const up = calls.find((c) => c[0] === 'upload')!
+    expect(calls).toContainEqual(['rpc', 'set_decor_slot', { p_trip: 'trip-1', p_slot: 'coverA', p_item: { path: up[1], round: false } }])
+    expect(names()).not.toContain('update')
+    expect(calls).toContainEqual(['remove', ['trip-1/old-a.png']])
+  })
+  test('저장은 됐는데 예전 파일 정리가 실패해도 새 사진은 지우지 않음', async () => {
+    queue = [
+      { data: {}, error: null },
+      { data: { path: 'trip-1/old-a.png', round: false }, error: null },
+    ]
+    const real = calls.push.bind(calls)
+    calls.push = (...items) => {
+      if (items[0]?.[0] === 'remove') throw new Error('Failed to fetch')
+      return real(...items)
+    }
+    try {
+      await uploadDecor('trip-1', 'coverA', new Blob(['png'], { type: 'image/png' }), false)
+    } finally {
+      calls.push = real
+    }
+    expect(names()).not.toContain('remove')
+  })
+  test('저장이 실패하면 새로 올린 파일만 치우고 실패를 알림', async () => {
+    queue = [
+      { data: {}, error: null },
+      { data: null, error: { code: '42501', message: 'denied' } },
+      { data: null, error: null },
+    ]
+    await expect(uploadDecor('trip-1', 'gate', new Blob(['j'], { type: 'image/jpeg' }), true)).rejects.toThrow('denied')
+    const up = calls.find((c) => c[0] === 'upload')!
+    expect(calls.filter((c) => c[0] === 'remove')).toEqual([['remove', [up[1]]]])
+  })
+  test('signedUrl: 주소를 새로 받은 사진은 맨 뒤로 → 30개 넘어 정리해도 안 지워짐', async () => {
+    const storage = memoryStorage()
+    const DAY = 86_400_000
+    queue = Array.from({ length: 32 }, (_, i) => ({ data: { signedUrl: `https://s/${i}` }, error: null }))
+    await signedUrl('t/first.png', { storage, now: 0 })
+    for (let i = 0; i < 29; i++) await signedUrl(`t/${i}.png`, { storage, now: 0 })
+    await signedUrl('t/first.png', { storage, now: 6.5 * DAY }) // 기간이 다 돼서 새로 받음
+    await signedUrl('t/new.png', { storage, now: 6.5 * DAY }) // 31개째 → 가장 오래된 것 정리
+    const saved = JSON.parse(storage.getItem('signed-urls:v1')!) as Record<string, unknown>
+    expect(Object.keys(saved)).toHaveLength(30)
+    expect(saved['t/first.png']).toBeDefined()
+    expect(saved['t/0.png']).toBeUndefined()
   })
   test('signedUrl: 사진마다 주소를 기기에 저장해 재사용', async () => {
     const storage = memoryStorage()
