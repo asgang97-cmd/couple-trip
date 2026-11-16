@@ -30,7 +30,7 @@
 - 위치: 그날 일정 중 **처음 나오는** 장소 있는 일정의 위치. 장소 있는 일정이 없으면 여행 설정 "여행지" 이름을 Open-Meteo 지명 검색으로 찾은 위치(한국어 검색, 첫 결과). 둘 다 없으면 그날 날씨 없음.
 - 요청 줄이기: 위치를 소수점 1자리(약 10km)로 반올림해 같은 위치끼리 묶음. 예보는 위치마다 1번(16일치), 과거는 위치마다 필요한 날짜 범위 1번.
 - 예보: `api.open-meteo.com/v1/forecast` 의 daily `weather_code, temperature_2m_max, temperature_2m_min, precipitation_probability_max`, `timezone=auto`, `forecast_days=16`. 그 날짜가 응답에 있으면 예보 사용.
-- 과거: `archive-api.open-meteo.com/v1/archive` 의 daily `weather_code, temperature_2m_max, temperature_2m_min`. 1년 전 같은 날짜(2/29는 2/28). 1년 전이 아직 기록이 없을 만큼 최근(오늘 −5일 이후)이면 2년 전을 쓰고 `재작년`으로 표시.
+- 과거: `archive-api.open-meteo.com/v1/archive` 의 daily `weather_code, temperature_2m_max, temperature_2m_min`. 1년 전 같은 날짜(2/29는 2/28). 1년 전이 아직 기록이 없을 만큼 최근(오늘 −8일 이후 — 과거 기록은 며칠 늦게 채워짐)이면 2년 전을 쓰고 `재작년`으로 표시. 2년 전도 아직이면(2년보다 먼 여행) 그날은 날씨 없음. 작년·재작년은 따로 요청. 요청한 날짜가 빠진 과거 응답은 저장하지 않음.
 - 저장(localStorage): 예보는 3시간 신선, 과거 기록·지명 검색은 계속. 못 받으면 저장본(기간 지나도), 그것도 없으면 그 탭은 날씨 없이.
 - 아이콘: WMO 날씨 코드 → ☀️(0) 🌤(1) ⛅(2) ☁️(3) 🌫(45,48) 🌦(51–57, 80–82) 🌧(61–67) 🌨(71–77, 85–86) ⛈(95–99). 기온은 반올림 정수.
 - 접근성: 탭의 읽는 글에 "맑음 12도/4도", 작년이면 "작년 이맘때" 포함.

@@ -70,3 +70,25 @@ describe('useWeather', () => {
     expect(a.forecast).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('useWeather 리뷰 반영', () => {
+  const loc = at(34.7, 135.5)
+  test('작년·재작년이 섞이면 따로따로 좁은 범위로 물음 (1년치를 한 번에 묻지 않음)', async () => {
+    const a = api({ forecast: vi.fn(async () => ({})) })
+    const days = ['2027-11-08', '2027-11-09', '2027-11-10', '2027-11-11'] // 작년 기록 가능: ~2026-11-09까지
+    const byDay = Object.fromEntries(days.map((d) => [d, [loc]]))
+    renderHook(() => useWeather(days, byDay, '', 'Asia/Tokyo', { api: a, now: NOW }))
+    await waitFor(() => expect(a.history).toHaveBeenCalledTimes(2))
+    const ranges = a.history.mock.calls.map((c) => [c[1], c[2]]).sort()
+    expect(ranges).toEqual([['2025-11-10', '2025-11-11'], ['2026-11-08', '2026-11-09']])
+  })
+
+  test('2년보다 먼 여행: 과거 기록을 묻지 않음', async () => {
+    const a = api({ forecast: vi.fn(async () => ({})) })
+    const days = ['2029-01-01']
+    renderHook(() => useWeather(days, { '2029-01-01': [loc] }, '', 'Asia/Tokyo', { api: a, now: NOW }))
+    await waitFor(() => expect(a.forecast).toHaveBeenCalled())
+    await new Promise((r) => setTimeout(r, 10))
+    expect(a.history).not.toHaveBeenCalled()
+  })
+})

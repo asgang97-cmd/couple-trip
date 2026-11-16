@@ -90,3 +90,15 @@ describe('geocode', () => {
     expect(await geocode('오사카', { fetcher, storage })).toEqual({ lat: 1, lng: 2 })
   })
 })
+
+describe('getHistory 빈칸', () => {
+  test('요청한 날짜가 빠진 응답(최근 기록 아직 없음)은 저장하지 않음 → 다음에 다시', async () => {
+    const storage = memoryStorage()
+    const partial = { daily: { time: ['2026-01-12', '2026-01-13'], weather_code: [2, null], temperature_2m_max: [11, null], temperature_2m_min: [3, null] } }
+    const full = { daily: { time: ['2026-01-12', '2026-01-13'], weather_code: [2, 3], temperature_2m_max: [11, 8], temperature_2m_min: [3, 1] } }
+    const fetcher = fetcherOf(ok(partial), ok(full))
+    expect(Object.keys(await getHistory(OSAKA, '2026-01-12', '2026-01-13', { fetcher, storage, now: 0 }))).toEqual(['2026-01-12'])
+    expect(Object.keys(await getHistory(OSAKA, '2026-01-12', '2026-01-13', { fetcher, storage, now: HOUR }))).toHaveLength(2)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+})

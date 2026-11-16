@@ -26,7 +26,10 @@ function write<T>(storage: Storage, key: string, savedAt: number, value: T): voi
  * 저장본이 신선하면 그대로(freshMs = Infinity면 한 번 받으면 계속), 아니면 새로 받아 저장.
  * 못 받으면 저장본(기간 지나도), 그것도 없으면 fallback. 절대 throw 안 함.
  */
-async function cached<T>(key: string, url: string, parse: (body: unknown) => T, fallback: T, freshMs: number, o: Opts): Promise<T> {
+async function cached<T>(
+  key: string, url: string, parse: (body: unknown) => T, fallback: T, freshMs: number, o: Opts,
+  keep: (value: T) => boolean = () => true, // false면 이번 값은 쓰되 저장 안 함 (다음에 다시)
+): Promise<T> {
   const { fetcher = globalThis.fetch, storage = globalThis.localStorage, now = Date.now() } = o
   const saved = read<T>(storage, key)
   if (saved && now - saved.savedAt < freshMs) return saved.value
@@ -34,7 +37,7 @@ async function cached<T>(key: string, url: string, parse: (body: unknown) => T, 
     const res = await fetcher(url)
     if (!res.ok) return saved ? saved.value : fallback
     const value = parse(await res.json())
-    write(storage, key, now, value)
+    if (keep(value)) write(storage, key, now, value)
     return value
   } catch {
     return saved ? saved.value : fallback
@@ -67,10 +70,10 @@ export function getForecast(loc: Loc, o: Opts = {}): Promise<Record<string, DayW
   return cached(`wx:f:${loc.lat},${loc.lng}`, url, (b) => parseDaily(b, true), {}, FORECAST_FRESH_MS, o)
 }
 
-/** 과거 실제 날씨 (바뀌지 않으니 한 번 받으면 계속) */
+/** 과거 실제 날씨 (바뀌지 않으니 한 번 받으면 계속. 단 요청한 날짜가 빠졌으면 아직 안 채워진 것 → 저장 안 함) */
 export function getHistory(loc: Loc, start: string, end: string, o: Opts = {}): Promise<Record<string, DayWeather>> {
   const url = `https://archive-api.open-meteo.com/v1/archive?${at(loc)}&start_date=${start}&end_date=${end}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`
-  return cached(`wx:h:${loc.lat},${loc.lng}:${start}:${end}`, url, (b) => parseDaily(b, false), {}, Infinity, o)
+  return cached(`wx:h:${loc.lat},${loc.lng}:${start}:${end}`, url, (b) => parseDaily(b, false), {}, Infinity, o, (v) => !!v[start] && !!v[end])
 }
 
 /** 여행지 이름 → 위치 (한국어 검색 첫 결과, 없음도 저장) */

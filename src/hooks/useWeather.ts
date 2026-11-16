@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { todayIn } from '../lib/hours'
 import type { Item } from '../lib/types'
-import { dayLocations, pastDate, roundLoc, type Loc, type TabWeather } from '../lib/weather'
+import { dayLocations, pastDate, roundLoc, type Loc, type Past, type TabWeather } from '../lib/weather'
 import { geocode, getForecast, getHistory } from '../lib/weatherApi'
 import { useNow } from './useNow'
 
@@ -68,16 +68,24 @@ export function useWeather(
       [...groups.values()].map(async ({ loc, days }) => {
         const out: Record<string, TabWeather> = {}
         const forecast = await api.forecast(loc).catch(() => ({}) as Awaited<ReturnType<WeatherApi['forecast']>>)
-        const rest: { day: string; date: string; past: TabWeather['past'] }[] = []
+        // 예보 없는 날: 작년·재작년 묶음마다 따로 좁은 범위로 (섞어서 1년치를 묻지 않게)
+        const buckets = new Map<Past, { day: string; date: string }[]>()
         for (const day of days) {
-          if (forecast[day]) out[day] = { ...forecast[day], past: null }
-          else rest.push({ day, ...pastDate(day, today) })
+          if (forecast[day]) {
+            out[day] = { ...forecast[day], past: null }
+            continue
+          }
+          const p = pastDate(day, today)
+          if (!p) continue // 2년보다 먼 날: 과거 기록도 아직 없음
+          buckets.set(p.past, [...(buckets.get(p.past) ?? []), { day, date: p.date }])
         }
-        if (rest.length) {
-          const dates = rest.map((r) => r.date).sort()
-          const history = await api.history(loc, dates[0], dates[dates.length - 1]).catch(() => ({}) as Awaited<ReturnType<WeatherApi['history']>>)
-          for (const r of rest) if (history[r.date]) out[r.day] = { ...history[r.date], past: r.past }
-        }
+        await Promise.all(
+          [...buckets].map(async ([past, rows]) => {
+            const dates = rows.map((r) => r.date).sort()
+            const history = await api.history(loc, dates[0], dates[dates.length - 1]).catch(() => ({}) as Awaited<ReturnType<WeatherApi['history']>>)
+            for (const r of rows) if (history[r.date]) out[r.day] = { ...history[r.date], past }
+          }),
+        )
         return out
       }),
     ).then((parts) => {
