@@ -91,6 +91,26 @@ describe('useTightLegs', () => {
     expect(result.current[a.id]).toBeUndefined()
   })
 
+  test('일정이 바뀌어 다시 계산하는 동안엔 예전 경고를 보여주지 않음 (틀린 숫자 방지)', async () => {
+    const a = at('11:00')
+    const b = at('11:20', 34.8)
+    let release: () => void = () => {}
+    const gate = new Promise<void>((r) => (release = r))
+    let slow = false
+    const load = vi.fn<LoadLeg>(async () => {
+      if (slow) await gate
+      return leg(2100)
+    })
+    const { result, rerender } = run([a, b], load)
+    await waitFor(() => expect(result.current[a.id]).toBeDefined())
+    slow = true
+    const c = at('11:10', 34.75) // A와 B 사이에 새 일정
+    rerender({ items: [a, c, b] })
+    expect(result.current[a.id]).toBeUndefined() // A→B 결과가 A→C 자리에 남으면 안 됨
+    release()
+    await waitFor(() => expect(result.current[a.id]?.gapSec).toBe(600))
+  })
+
   test('같은 장소라도 시간이 바뀌면 다시 판단 (여유 생기면 경고 사라짐)', async () => {
     const a = at('11:00')
     const b = at('11:20', 34.8)

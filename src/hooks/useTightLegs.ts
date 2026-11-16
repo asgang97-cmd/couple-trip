@@ -17,7 +17,8 @@ interface Options { apiKey?: string; loadLeg?: LoadLeg; now?: Date }
  */
 export function useTightLegs(items: Item[], timeZone: string | null | undefined, opts: Options = {}): Record<string, TightWarning> {
   const { apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined, loadLeg, now } = opts
-  const [warnings, setWarnings] = useState<Record<string, TightWarning>>({})
+  // 어떤 계산(key)의 결과인지 같이 기억 → 일정이 바뀌어 다시 계산하는 동안 예전 경고(틀린 숫자)를 안 보여줌
+  const [done, setDone] = useState<{ key: string; warnings: Record<string, TightWarning> } | null>(null)
   const ref = useRef({ items, loadLeg, now })
   useEffect(() => {
     ref.current = { items, loadLeg, now }
@@ -51,12 +52,13 @@ export function useTightLegs(items: Item[], timeZone: string | null | undefined,
       if (!alive) return // 그 사이 날짜·일정이 바뀜 → 이전 결과는 버림
       const next: Record<string, TightWarning> = {}
       for (const f of found) if (f) next[f[0]] = f[1]
-      setWarnings(next)
+      setDone({ key, warnings: next })
     })
     return () => {
       alive = false
     }
   }, [key, apiKey, timeZone])
 
-  return key === null ? NONE : warnings // API 키가 없으면 계산도 경고도 없음
+  // API 키가 없거나, 지금 일정으로 아직 계산 중이면 경고 없음
+  return key !== null && done?.key === key ? done.warnings : NONE
 }
