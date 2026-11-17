@@ -48,6 +48,9 @@ input, textarea, select {
   color: var(--color-ink);
 }
 select { padding-block: 0; line-height: 1.4; }
+/* 아이폰 사파리: 시간·날짜 칸이 width 100%를 무시하고 화면 밖으로 삐져나와 창이 좌우로 밀림 → 기본 모양을 끄고 칸 폭을 따르게 */
+input[type='time'], input[type='date'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; }
+input[type='time']::-webkit-date-and-time-value, input[type='date']::-webkit-date-and-time-value { text-align: left; }
 input::placeholder, textarea::placeholder { color: var(--color-muted); }
 input:hover, textarea:hover, select:hover { border-color: var(--color-ink-2); }
 input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
@@ -386,6 +389,7 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 }
 .sheet {
   width: 100%; max-width: var(--container); max-height: 92dvh; overflow-y: auto;
+  overflow-x: hidden; /* 혹시 넓은 칸이 생겨도 창이 좌우로 밀리지 않게 */
   background: var(--color-paper);
   border-radius: 28px 28px 0 0;
   padding: var(--space-md) var(--gutter) calc(var(--space-lg) + env(safe-area-inset-bottom));
