@@ -23,7 +23,10 @@ import { Mascot } from './Mascot'
 import { HomeHeader } from './HomeHeader'
 import { Icon } from './Icon'
 import { ItemForm } from './ItemForm'
-import { ItemList } from './ItemList'
+import { ItemList, type ItemListProps } from './ItemList'
+import { CategoryBar } from './CategoryBar'
+import { CategoryList } from './CategoryList'
+import type { Category } from '../lib/category'
 import { OfflineBanner } from './OfflineBanner'
 import { PackingList } from './PackingList'
 import { TripSettings } from './TripSettings'
@@ -36,7 +39,7 @@ import { VisitJapanSheet } from './VisitJapanSheet'
 const DayMap = lazy(() => import('./DayMap').then((m) => ({ default: m.DayMap })))
 const PlaceSearch = lazy(() => import('./PlaceSearch').then((m) => ({ default: m.PlaceSearch })))
 
-type FormState = { mode: 'new' } | { mode: 'edit'; item: Item } | null
+type FormState = { mode: 'new'; category?: Category } | { mode: 'edit'; item: Item } | null
 
 export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls: DecorUrls) => void }) {
   const data = useTripData()
@@ -56,6 +59,9 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
   const [coverState, setCoverState] = useState<{ path: string; url: string | null } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [view, setView] = useState<'list' | 'map' | 'packing' | 'vault' | 'money'>('list')
+  // 목록에서 고른 종류 (null = 전체: 날짜별). 다른 탭에 다녀와도 남아 있음, 이 폰 화면에서만
+  const [category, setCategory] = useState<Category | null>(null)
+  const byCategory = view === 'list' && category !== null
   // 바우처: 올리기·수정 창, 크게 보기
   const [voucherSheet, setVoucherSheet] = useState<
     { kind: 'new'; file: File; presetItemId: string | null } | { kind: 'edit'; voucher: Voucher } | null
@@ -272,11 +278,29 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
     }
   }
 
+  /** 목록(날짜별)과 종류별 모아 보기가 같이 쓰는 카드 동작 */
+  const listProps: Omit<ItemListProps, 'items'> = {
+    trip,
+    member,
+    rate: rate.rate,
+    hearts: data.hearts,
+    comments: data.comments,
+    disabled,
+    onEdit: (item) => setForm({ mode: 'edit', item }),
+    onToggleHeart: heart,
+    onAddComment: comment,
+    onEditComment: (id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요'),
+    onDeleteComment: (id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요'),
+    vouchers: data.vouchers,
+    onOpenVoucher: setViewing,
+    onAddVoucher: (itemId, file) => setVoucherSheet({ kind: 'new', file, presetItemId: itemId }),
+  }
+
   return (
     <>
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
       <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={setCropFile} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
-      <DayTabs days={days} selected={day} onSelect={setSelected} weather={weather} />
+      {!byCategory && <DayTabs days={days} selected={day} onSelect={setSelected} weather={weather} />}
       <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle view-tabs" role="group" aria-label="보기">
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
@@ -290,23 +314,8 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
           <DayMap items={dayItems} timeZone={trip.timezone} />
         </Suspense>
       )}
-      {view === 'list' && <ItemList
-        items={dayItems}
-        trip={trip}
-        member={member}
-        rate={rate.rate}
-        hearts={data.hearts}
-        comments={data.comments}
-        disabled={disabled}
-        onEdit={(item) => setForm({ mode: 'edit', item })}
-        onToggleHeart={heart}
-        onAddComment={comment}
-        onEditComment={(id, body) => commentAction(() => updateComment(id, body), '댓글을 고치지 못했어요')}
-        onDeleteComment={(id) => commentAction(() => deleteComment(id), '댓글을 지우지 못했어요')}
-        vouchers={data.vouchers}
-        onOpenVoucher={setViewing}
-        onAddVoucher={(itemId, file) => setVoucherSheet({ kind: 'new', file, presetItemId: itemId })}
-      />}
+      {view === 'list' && <CategoryBar value={category} onChange={setCategory} />}
+      {view === 'list' && (byCategory ? <CategoryList category={category} items={tripItems} days={days} {...listProps} /> : <ItemList items={dayItems} {...listProps} />)}
       {view === 'money' && (
         <ExpenseView
           shown={expenses.shown}
@@ -340,7 +349,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
       {view === 'packing' && <PackingList items={data.packing} disabled={disabled} loadError={data.packingError} {...packing} />}
       {(view === 'list' || view === 'map') && (
         <div className="bottom-bar">
-          <button onClick={() => setForm({ mode: 'new' })} disabled={disabled}><Icon name="plus" />일정 추가</button>
+          <button onClick={() => setForm({ mode: 'new', category: byCategory ? category! : undefined })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}
       {decorOpen && <DecorSheet member={member} disabled={disabled} onPick={pickDecor} onRemove={dropDecor} onClose={() => setDecorOpen(false)} />}
@@ -380,6 +389,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
           member={member}
           nextSortOrder={nextSortOrder(dayItems)}
           initial={form.mode === 'edit' ? form.item : undefined}
+          defaultCategory={form.mode === 'new' ? (form.category ?? null) : null}
           allItems={data.items}
           onSave={save}
           onDelete={form.mode === 'edit' ? () => remove(form.item) : undefined}

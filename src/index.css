@@ -567,7 +567,7 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .tab-weather.past { color: var(--color-muted); }
 
 /* ── 일정 종류 버튼 줄 (일정 창·목록 위 공용): 넘치면 가로로 밀기 ── */
-.cat-pick { display: flex; gap: var(--space-2xs); overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
+.cat-pick { display: flex; flex-shrink: 0; gap: var(--space-2xs); overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
 .cat-pick::-webkit-scrollbar { display: none; }
 .cat-pick button {
   flex-shrink: 0; min-height: 36px; padding: 0 var(--space-sm); white-space: nowrap;
@@ -580,3 +580,9 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .cat-list { display: flex; flex-direction: column; gap: var(--space-sm); }
 .cat-day { font-size: var(--text-sm); color: var(--color-ink-2); margin-top: var(--space-xs); }
 .cat-list .cat-day:first-child { margin-top: 0; }
+.cat-bar { margin: calc(-1 * var(--space-xs)) 0 var(--space-md); }
+/* 날짜마다 목록이 나뉘어도 아래 '일정 추가' 버튼 자리는 맨 마지막에만 */
+.cat-list .item-list { padding-bottom: 0; }
+.cat-list .item-list::before { bottom: 0; }
+.cat-list .item-list:last-child { padding-bottom: calc(var(--space-3xl) + var(--space-lg) + env(safe-area-inset-bottom)); }
+.cat-list .item-list:last-child::before { bottom: var(--space-3xl); }
