@@ -24,7 +24,12 @@ interface Props {
 
 const OWNERS: Owner[] = ['both', 'a', 'b']
 const ownerName = (o: Owner) => (o === 'both' ? '같이' : theme.names[o])
-const nextOwner = (o: Owner): Owner => OWNERS[(OWNERS.indexOf(o) + 1) % OWNERS.length]
+/** 은/는: 마지막 글자가 받침 있는 한글이면 '은', 아니면 '는' (영어·숫자 끝은 '는') */
+function topic(word: string): '은' | '는' {
+  const c = word.charCodeAt(word.length - 1) - 0xac00
+  return c >= 0 && c <= 11171 && c % 28 !== 0 ? '은' : '는'
+}
+const nextOwner =(o: Owner): Owner => OWNERS[(OWNERS.indexOf(o) + 1) % OWNERS.length]
 
 export function PackingList({ items: saved, disabled, onAdd, onAddMany, onToggle, onOwner, onDelete, loadError = false }: Props) {
   // 서버 응답 전에도 바로 보이게: 진행 중인 변경을 화면에 먼저 덮어씀
@@ -65,7 +70,7 @@ export function PackingList({ items: saved, disabled, onAdd, onAddMany, onToggle
     const dups = samePackingItems(name.trim(), owner, items)
     if (dups.length > 0) {
       const who = [...new Set(dups.map((d) => ownerName(d.owner)))].join(', ')
-      if (!confirm(`"${name.trim()}"은 이미 있어요 (${who}). 그래도 넣을까요?`)) return
+      if (!confirm(`"${name.trim()}"${topic(name.trim())} 이미 있어요 (${who}). 그래도 넣을까요?`)) return
     }
     setBusy(true)
     try {

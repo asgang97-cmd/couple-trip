@@ -175,4 +175,12 @@ describe('PackingList 중복 알림', () => {
     expect(confirm).toHaveBeenCalledWith(`"여권"은 이미 있어요 (${theme.names.a}, ${theme.names.b}). 그래도 넣을까요?`)
     confirm.mockRestore()
   })
+
+  test('받침 없는 이름은 "는"', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    setup([P({ name: '카메라', owner: 'both' })])
+    await addAs('카메라', 'both')
+    expect(confirm).toHaveBeenCalledWith('"카메라"는 이미 있어요 (같이). 그래도 넣을까요?')
+    confirm.mockRestore()
+  })
 })

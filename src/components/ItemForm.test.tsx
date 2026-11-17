@@ -212,4 +212,16 @@ describe('ItemForm 중복 알림', () => {
     ])
     confirm.mockRestore()
   })
+
+  test('수정할 때 위치만 지우면 창 없음', async () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    const hotel = makeItem({ day: '2027-01-10', place_name: '호텔', google_place_id: 'P1', lat: 35.6, lng: 139.7 })
+    const hotel2 = makeItem({ day: '2027-01-11', place_name: '호텔', google_place_id: 'P1', lat: 35.6, lng: 139.7 })
+    const { onSave, save } = setup({ allItems: [hotel, hotel2], initial: hotel2 })
+    await userEvent.click(screen.getByRole('button', { name: '위치 지우기' }))
+    await userEvent.click(save())
+    expect(confirm).not.toHaveBeenCalled()
+    expect(onSave).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
 })

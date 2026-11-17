@@ -62,7 +62,8 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allI
   /** 같은 장소가 이미 있으면 확인 창 (막지 않음). 수정할 땐 장소를 바꿨을 때만. false = 취소 */
   function confirmDuplicate(): boolean {
     const placeId = location?.placeId ?? null
-    const changed = !initial || placeName.trim() !== initial.place_name || placeId !== initial.google_place_id
+    // 위치만 지운 건(placeId → null) 장소를 바꾼 게 아님
+    const changed = !initial || placeName.trim() !== initial.place_name || (placeId !== null && placeId !== initial.google_place_id)
     if (!changed) return true
     const dups = samePlaceItems({ id: initial?.id, place_name: placeName, google_place_id: placeId }, allItems ?? [])
     if (dups.length === 0) return true
