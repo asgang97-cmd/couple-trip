@@ -22,6 +22,10 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
   const photo = coverUrl ?? fallbackPhoto
   const layers = [
     'linear-gradient(transparent 25%, var(--color-scrim))',
+    // 왼쪽 글자(D-day·여행 이름) 뒤를 어둡게: 밝은 사진에서도 읽히게
+    'linear-gradient(90deg, oklch(22% 0.03 50 / 0.6), transparent 70%)',
+    // 오른쪽 위 버튼 뒤도 살짝
+    'linear-gradient(200deg, oklch(22% 0.03 50 / 0.45), transparent 35%)',
     ...(photo ? [`url("${photo}")`] : []),
     'linear-gradient(160deg, var(--color-pond), var(--color-accent))',
   ]

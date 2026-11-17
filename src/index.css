@@ -141,7 +141,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .cover {
   position: relative;
   margin: 0 calc(-1 * var(--gutter));
-  min-height: 150px; /* 반 화면이던 커버를 띠로: 열자마자 일정이 보이게 (사진은 가운데가 보임) */
+  min-height: 140px; /* 반 화면이던 커버를 띠로: 열자마자 일정이 보이게 (사진은 가운데가 보임) */
   background-size: cover;
   background-position: center;
   color: var(--color-accent-ink);
@@ -179,13 +179,13 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
   gap: var(--space-xs);
   overflow-x: auto;
   margin: 0 calc(-1 * var(--gutter));
-  padding: var(--space-sm) var(--gutter) var(--space-xs);
+  padding: var(--space-xs) var(--gutter);
   scrollbar-width: none;
 }
 .tab {
   flex: 0 0 auto;
   gap: var(--space-2xs);
-  min-height: 48px;
+  min-height: 44px;
   padding: var(--space-2xs) var(--space-sm);
   border-radius: var(--radius-pill);
   background: var(--color-paper-2);
@@ -212,7 +212,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
   display: flex; flex-wrap: wrap; align-items: baseline;
   gap: var(--space-3xs) var(--space-lg);
   padding: 0 var(--space-2xs);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
 }
 .cost-summary > div { display: flex; align-items: baseline; gap: var(--space-xs); }
 .cost-summary small { font-size: var(--text-sm); color: var(--color-muted); }
@@ -283,10 +283,15 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .card.featured .go-link { min-height: 44px; padding: 0 var(--space-md); margin: var(--space-2xs) 0; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--color-accent-ink); font-size: var(--text-md); }
 .card.featured .go-link:hover { background: var(--color-accent-2); text-decoration: none; }
 .card.featured .booking .chip { min-height: 44px; font-size: var(--text-md); border-style: solid; }
-.card.featured .card-vouchers { margin-top: var(--space-2xs); }
+.card.featured > .card-actions { flex-basis: auto; order: 1; margin-left: calc(-1 * var(--space-sm)); margin-right: 0; }
+.card.featured > .card-vouchers { flex-basis: auto; order: 2; margin: 0; }
+.card.featured > .comments { order: 3; }
 .card.featured .card-vouchers .chip { min-height: 28px; font-size: var(--text-xs); }
 /* 다음 일정 아래 나머지: 한 줄 (시간 / 장소 / 요약), 장소를 누르면 펼침 */
-.card.compact { padding-block: var(--space-xs); }
+.card.compact { padding-block: var(--space-xs); grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; }
+.card.compact .when { flex-direction: row; align-items: center; gap: var(--space-2xs); padding: 0; }
+.card.compact .cat { font-size: var(--text-sm); }
+.card.compact .time { font-size: var(--text-lg); }
 .card h3 .row-toggle { all: unset; cursor: pointer; display: block; overflow-wrap: anywhere; }
 .card h3 .row-toggle::after { content: ""; position: absolute; inset: 0; border-radius: inherit; } /* 줄 어디를 눌러도 펼침 */
 .card h3 .row-toggle:focus-visible::after { outline: 2px solid var(--color-focus); outline-offset: 2px; }
@@ -609,7 +614,7 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 .cat-list { display: flex; flex-direction: column; gap: var(--space-sm); }
 .cat-day { font-size: var(--text-sm); color: var(--color-ink-2); margin-top: var(--space-xs); }
 .cat-list .cat-day:first-child { margin-top: 0; }
-.cat-bar { margin: calc(-1 * var(--space-xs)) 0 var(--space-md); }
+.cat-bar { margin: 0 0 var(--space-xs); }
 /* 날짜마다 목록이 나뉘어도 아래 '일정 추가' 버튼 자리는 맨 마지막에만 */
 .cat-list .item-list { padding-bottom: 0; }
 .cat-list .item-list::before { bottom: 0; }
