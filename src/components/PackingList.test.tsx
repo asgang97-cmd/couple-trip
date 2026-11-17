@@ -133,3 +133,46 @@ describe('PackingList 바로 반응', () => {
     expect(screen.queryByRole('button', { name: '자주 챙기는 것 넣기' })).toBeNull()
   })
 })
+
+describe('PackingList 중복 알림', () => {
+  async function addAs(name: string, owner: 'both' | 'a' | 'b') {
+    await userEvent.type(screen.getByLabelText('준비물 이름'), name)
+    await userEvent.selectOptions(screen.getByLabelText('챙길 사람'), owner)
+    await userEvent.click(screen.getByRole('button', { name: '추가' }))
+  }
+
+  test('같이 준비물과 같은 이름이면 확인 창, 취소면 안 넣고 이름 남김', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    const { onAdd } = setup([P({ name: '여권', owner: 'both' })])
+    await addAs('여권', 'a')
+    expect(confirm).toHaveBeenCalledWith('"여권"은 이미 있어요 (같이). 그래도 넣을까요?')
+    expect(onAdd).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('준비물 이름')).toHaveValue('여권')
+    confirm.mockRestore()
+  })
+
+  test('확인이면 넣음', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
+    const { onAdd } = setup([P({ name: '여권', owner: 'both' })])
+    await addAs('여권', 'a')
+    expect(onAdd).toHaveBeenCalledWith('여권', 'a')
+    confirm.mockRestore()
+  })
+
+  test('상대 개인 준비물만 있으면 창 없이 넣음', async () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    const { onAdd } = setup([P({ name: '여권', owner: 'b' })])
+    await addAs('여권', 'a')
+    expect(confirm).not.toHaveBeenCalled()
+    expect(onAdd).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
+
+  test('같이로 넣을 때 개인 것들이 있으면 모두 표시', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    setup([P({ name: '여권', owner: 'a' }), P({ name: '여권', owner: 'b' })])
+    await addAs('여권', 'both')
+    expect(confirm).toHaveBeenCalledWith(`"여권"은 이미 있어요 (${theme.names.a}, ${theme.names.b}). 그래도 넣을까요?`)
+    confirm.mockRestore()
+  })
+})

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { PackingItem } from '../lib/types'
 import { STARTER_ITEMS } from '../lib/packing'
+import { samePackingItems } from '../lib/duplicates'
 import { theme } from '../theme'
 import { Mascot } from './Mascot'
 import { Icon } from './Icon'
@@ -60,6 +61,12 @@ export function PackingList({ items: saved, disabled, onAdd, onAddMany, onToggle
   async function add(e: FormEvent) {
     e.preventDefault()
     if (!canAdd) return
+    // 이미 있는 준비물이면 확인 (막지 않음). 상대 개인 것만 있으면 조용히 넣음
+    const dups = samePackingItems(name.trim(), owner, items)
+    if (dups.length > 0) {
+      const who = [...new Set(dups.map((d) => ownerName(d.owner)))].join(', ')
+      if (!confirm(`"${name.trim()}"은 이미 있어요 (${who}). 그래도 넣을까요?`)) return
+    }
     setBusy(true)
     try {
       await onAdd(name.trim(), owner)
