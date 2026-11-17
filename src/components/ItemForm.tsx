@@ -4,6 +4,7 @@ import { samePlaceItems } from '../lib/duplicates'
 import { theme } from '../theme'
 import { Icon } from './Icon'
 import type { Item, ItemInput, Member, Trip } from '../lib/types'
+import { CATEGORIES, type Category } from '../lib/category'
 
 const dayFmt = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
 
@@ -18,6 +19,8 @@ interface Props {
   initial?: Item
   /** 여행 전체 일정 (같은 장소를 또 넣으면 알리기용). 없으면 비교 안 함 */
   allItems?: Item[]
+  /** 새 일정에 미리 골라 둘 종류 (종류별 모아 보기에서 추가할 때) */
+  defaultCategory?: Category | null
   onSave: (input: ItemInput) => Promise<void>
   onDelete?: () => Promise<void>
   onClose: () => void
@@ -39,7 +42,7 @@ function parseCost(raw: string): number | null {
   return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN
 }
 
-export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allItems, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
+export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allItems, defaultCategory = null, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
   const [location, setLocation] = useState(
     initial?.lat != null && initial?.lng != null
       ? { lat: initial.lat, lng: initial.lng, placeId: initial.google_place_id }
@@ -48,6 +51,7 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allI
   const [itemDay, setItemDay] = useState(initial?.day ?? day)
   const [time, setTime] = useState(initial?.time ?? '')
   const [placeName, setPlaceName] = useState(initial?.place_name ?? '')
+  const [category, setCategory] = useState<Category | null>(initial ? (initial.category ?? null) : defaultCategory)
   const [memo, setMemo] = useState(initial?.memo ?? '')
   const [bookingCode, setBookingCode] = useState(initial?.booking_code ?? '')
   const [bookingUrl, setBookingUrl] = useState(initial?.booking_url ?? '')
@@ -95,6 +99,7 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allI
         lat: location?.lat ?? null,
         lng: location?.lng ?? null,
         google_place_id: location?.placeId ?? null,
+        category,
         created_by: initial?.created_by ?? member,
         sort_order: initial?.sort_order ?? nextSortOrder,
       })
@@ -123,6 +128,13 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allI
         )}
         <label htmlFor="f-place">장소</label>
         <input id="f-place" value={placeName} onChange={(e) => setPlaceName(e.target.value)} maxLength={200} placeholder="예: 센소지" />
+        <div className="cat-pick" role="group" aria-label="종류">
+          {CATEGORIES.map((c) => (
+            <button key={c.value} type="button" aria-pressed={category === c.value} onClick={() => setCategory((cur) => (cur === c.value ? null : c.value))}>
+              {c.icon} {c.label}
+            </button>
+          ))}
+        </div>
 
         <label htmlFor="f-day">날짜</label>
         <select id="f-day" value={itemDay} onChange={(e) => setItemDay(e.target.value)}>

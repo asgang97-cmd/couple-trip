@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 import { TRIP, makeItem } from '../test-fixtures'
@@ -49,6 +49,7 @@ describe('ItemForm', () => {
       google_place_id: null,
       created_by: 'b',
       sort_order: 3,
+      category: null,
     })
   })
 
@@ -223,5 +224,46 @@ describe('ItemForm 중복 알림', () => {
     expect(confirm).not.toHaveBeenCalled()
     expect(onSave).toHaveBeenCalledTimes(1)
     confirm.mockRestore()
+  })
+})
+
+describe('ItemForm 종류', () => {
+  const group = () => screen.getByRole('group', { name: '종류' })
+  const pick = (name: string) => within(group()).getByRole('button', { name })
+
+  test('종류 버튼 6개, 누르면 골라져 저장', async () => {
+    const { onSave, save } = setup()
+    expect(within(group()).getAllByRole('button').map((b) => b.textContent)).toEqual(['🏨 숙소', '🚃 교통', '🍜 식사', '⛩️ 관광', '🛍️ 쇼핑', '📌 기타'])
+    await userEvent.type(screen.getByLabelText('장소'), '이치란')
+    await userEvent.click(pick('🍜 식사'))
+    expect(pick('🍜 식사')).toHaveAttribute('aria-pressed', 'true')
+    expect(pick('🏨 숙소')).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(save())
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: 'food' }))
+  })
+
+  test('고른 걸 다시 누르면 해제, null로 저장', async () => {
+    const { onSave, save } = setup()
+    await userEvent.type(screen.getByLabelText('장소'), '이치란')
+    await userEvent.click(pick('🍜 식사'))
+    await userEvent.click(pick('🍜 식사'))
+    expect(pick('🍜 식사')).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(save())
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ category: null }))
+  })
+
+  test('수정: 저장된 종류가 골라져 있음, 칸 없는 예전 일정은 아무것도 안 골라짐', () => {
+    const { unmount } = render(<ItemForm trip={TRIP} days={DAYS} day={DAY} member="b" nextSortOrder={3} onSave={vi.fn()} onClose={() => {}} initial={makeItem({ category: 'stay' })} />)
+    expect(pick('🏨 숙소')).toHaveAttribute('aria-pressed', 'true')
+    unmount()
+    const old = makeItem()
+    delete (old as { category?: unknown }).category
+    setup({ initial: old })
+    expect(within(group()).getAllByRole('button').filter((b) => b.getAttribute('aria-pressed') === 'true')).toEqual([])
+  })
+
+  test('defaultCategory가 있으면 새 일정에 미리 골라짐', () => {
+    setup({ defaultCategory: 'food' })
+    expect(pick('🍜 식사')).toHaveAttribute('aria-pressed', 'true')
   })
 })

@@ -563,3 +563,14 @@ button[aria-pressed='false'] .hearts { color: var(--color-ink-2); }
 /* 날짜 탭 날씨 (작년 이맘때는 흐리게) */
 .tab-weather { display: block; font-size: var(--text-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .tab-weather.past { color: var(--color-muted); }
+
+/* ── 일정 종류 버튼 줄 (일정 창·목록 위 공용): 넘치면 가로로 밀기 ── */
+.cat-pick { display: flex; gap: var(--space-2xs); overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
+.cat-pick::-webkit-scrollbar { display: none; }
+.cat-pick button {
+  flex-shrink: 0; min-height: 36px; padding: 0 var(--space-sm); white-space: nowrap;
+  background: var(--color-paper-2); color: var(--color-ink-2);
+  border: var(--rule-hair) solid var(--color-rule); border-radius: 999px;
+  font-family: var(--font-body); font-size: var(--text-sm);
+}
+.cat-pick button[aria-pressed='true'] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-paper); }
