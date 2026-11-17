@@ -34,6 +34,7 @@ export interface Item {
   sort_order: number
   created_at: string
   updated_at: string
+  category?: import('./category').Category | null // 종류 (009 실행 전 데이터엔 칸 자체가 없음)
 }
 
 export type ItemInput = Omit<Item, 'id' | 'created_at' | 'updated_at'> & { id?: string }
