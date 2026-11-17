@@ -111,3 +111,22 @@ describe('ItemCard 바우처', () => {
     expect(screen.getByLabelText('디즈니랜드에 바우처 올리기')).toBeDisabled()
   })
 })
+
+describe('ItemCard 종류 아이콘', () => {
+  const CAT_NAME = /^(숙소|교통|식사|관광|쇼핑|기타)$/
+
+  test('종류가 있으면 아이콘, 읽는 이름은 종류 이름', () => {
+    render(<ItemCard {...base} item={makeItem({ category: 'food' })} />)
+    expect(screen.getByRole('img', { name: '식사' })).toHaveTextContent('🍜')
+  })
+
+  test('종류 없거나 칸 없으면 아이콘 없음', () => {
+    const { unmount } = render(<ItemCard {...base} item={makeItem({ category: null })} />)
+    expect(screen.queryByRole('img', { name: CAT_NAME })).toBeNull()
+    unmount()
+    const old = makeItem()
+    delete (old as { category?: unknown }).category
+    render(<ItemCard {...base} item={old} />)
+    expect(screen.queryByRole('img', { name: CAT_NAME })).toBeNull()
+  })
+})

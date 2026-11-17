@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { categoryInfo } from '../lib/category'
 import { hoursMessage, type HoursWarning } from '../lib/hours'
 import { directionsUrl } from '../lib/maps'
 import { formatMoney, toKrw } from '../lib/money'
@@ -76,9 +77,11 @@ export function ItemCard({
     }
   }
 
+  const cat = categoryInfo(item.category)
   return (
     <article className="card">
       <div className="card-head">
+        {cat && <span className="cat" role="img" aria-label={cat.label}>{cat.icon}</span>}
         <span className="time">{item.time ?? '시간 미정'}</span>
         <span aria-label={`작성: ${theme.names[item.created_by]}`}>{theme.emoji[item.created_by]}</span>
       </div>
