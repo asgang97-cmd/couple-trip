@@ -17,12 +17,12 @@ describe('DayTabs 날씨', () => {
         }}
       />,
     )
-    const sunny = screen.getByText('☀️ 12°/4°')
-    expect(sunny).toHaveAttribute('aria-label', '맑음 12도/4도')
+    const sunny = screen.getByText('☀️ 4°/12°')
+    expect(sunny).toHaveAttribute('aria-label', '맑음 4도/12도')
     expect(sunny).not.toHaveClass('past')
-    const past = screen.getByText('작년 ⛅ 11°/3°')
+    const past = screen.getByText('작년 ⛅ 3°/11°')
     expect(past).toHaveClass('tab-weather', 'past')
-    expect(past).toHaveAttribute('aria-label', '작년 이맘때 구름 조금 11도/3도')
+    expect(past).toHaveAttribute('aria-label', '작년 이맘때 구름 조금 3도/11도')
     const third = screen.getByRole('button', { name: /3일차/ })
     expect(third.querySelector('.tab-weather')).toBeNull()
   })

@@ -67,16 +67,16 @@ export function dayLocations(days: string[], byDay: Record<string, Item[]>, fall
   return out
 }
 
-const temps = (w: DayWeather, unit: string) => `${Math.round(w.max)}${unit}/${Math.round(w.min)}${unit}`
+const temps = (w: DayWeather, unit: string) => `${Math.round(w.min)}${unit}/${Math.round(w.max)}${unit}` // 최저/최고
 
-/** 탭에 보이는 글: ☀️ 12°/4° ☔70% · 작년 ⛅ 11°/3° */
+/** 탭에 보이는 글: ☀️ 4°/12° ☔70% · 작년 ⛅ 3°/11° */
 export function weatherText(w: TabWeather): string {
   const base = `${weatherIcon(w.code)} ${temps(w, '°')}`
   if (w.past) return `${w.past} ${base}`
   return w.rain !== null && w.rain >= RAIN_SHOW ? `${base} ☔${w.rain}%` : base
 }
 
-/** 화면 읽기용: 맑음 12도/4도 · 작년 이맘때 구름 조금 11도/3도 */
+/** 화면 읽기용: 맑음 4도/12도 · 작년 이맘때 구름 조금 3도/11도 */
 export function weatherSpeech(w: TabWeather): string {
   const base = `${weatherWord(w.code)} ${temps(w, '도')}`
   if (w.past) return `${w.past} 이맘때 ${base}`

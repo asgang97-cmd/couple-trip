@@ -59,19 +59,19 @@ describe('dayLocations (그날 날씨 위치)', () => {
 
 describe('탭 글', () => {
   const sunny = { code: 0, max: 12.4, min: 3.6, rain: 20, past: null }
-  test('예보: 아이콘 최고°/최저°, 비 40% 이상이면 ☔', () => {
-    expect(weatherText(sunny)).toBe('☀️ 12°/4°')
-    expect(weatherText({ ...sunny, code: 63, rain: 70 })).toBe('🌧 12°/4° ☔70%')
-    expect(weatherText({ ...sunny, rain: 40 })).toBe('☀️ 12°/4° ☔40%')
-    expect(weatherText({ ...sunny, rain: null })).toBe('☀️ 12°/4°')
+  test('예보: 아이콘 최저°/최고°, 비 40% 이상이면 ☔', () => {
+    expect(weatherText(sunny)).toBe('☀️ 4°/12°')
+    expect(weatherText({ ...sunny, code: 63, rain: 70 })).toBe('🌧 4°/12° ☔70%')
+    expect(weatherText({ ...sunny, rain: 40 })).toBe('☀️ 4°/12° ☔40%')
+    expect(weatherText({ ...sunny, rain: null })).toBe('☀️ 4°/12°')
   })
   test('과거: 작년/재작년 표시, 비 확률 없음', () => {
-    expect(weatherText({ code: 2, max: 11, min: 3, rain: null, past: '작년' })).toBe('작년 ⛅ 11°/3°')
-    expect(weatherText({ code: 2, max: 11, min: 3, rain: 90, past: '재작년' })).toBe('재작년 ⛅ 11°/3°')
+    expect(weatherText({ code: 2, max: 11, min: 3, rain: null, past: '작년' })).toBe('작년 ⛅ 3°/11°')
+    expect(weatherText({ code: 2, max: 11, min: 3, rain: 90, past: '재작년' })).toBe('재작년 ⛅ 3°/11°')
   })
   test('읽는 글', () => {
-    expect(weatherSpeech(sunny)).toBe('맑음 12도/4도')
-    expect(weatherSpeech({ code: 1, max: 11, min: 3, rain: null, past: '작년' })).toBe('작년 이맘때 구름 조금 11도/3도')
-    expect(weatherSpeech({ ...sunny, rain: 70 })).toBe('맑음 12도/4도, 비 올 확률 70%')
+    expect(weatherSpeech(sunny)).toBe('맑음 4도/12도')
+    expect(weatherSpeech({ code: 1, max: 11, min: 3, rain: null, past: '작년' })).toBe('작년 이맘때 구름 조금 3도/11도')
+    expect(weatherSpeech({ ...sunny, rain: 70 })).toBe('맑음 4도/12도, 비 올 확률 70%')
   })
 })
