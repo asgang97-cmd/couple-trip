@@ -7,6 +7,7 @@ import { formatDuration } from '../lib/routes'
 import { fastestSec } from '../lib/tight'
 import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
 import { Mascot } from './Mascot'
+import { splitNextUp, timeIn } from '../lib/nextUp'
 import { ItemCard } from './ItemCard'
 
 export interface ItemListProps {
@@ -32,11 +33,13 @@ export interface ItemListProps {
   now?: Date
   /** false면 두 일정 사이 '빠듯한 일정' 경고를 안 구함 (종류별 모아 보기: 날짜가 섞여 있어서) */
   tight?: boolean
+  /** 다음 일정을 맨 위에 크게, 오늘 지난 일정은 아래에 접어 둠 (날짜별 목록) */
+  lead?: boolean
 }
 
 const NO_ITEMS: Item[] = []
 
-export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, loadHours, apiKey, now, tight = true, ...rest }: ItemListProps) {
+export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, loadHours, apiKey, now, tight = true, lead = false, ...rest }: ItemListProps) {
   // 바로 붙은 두 일정 사이에 이동조차 못 하면 경고 (도보·대중교통 중 빠른 쪽 기준)
   const keyOpt = apiKey !== undefined ? { apiKey } : {}
   const warnings = useTightLegs(tight ? items : NO_ITEMS, rest.trip.timezone, { loadLeg, now, ...keyOpt })
@@ -60,25 +63,37 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
       </div>
     )
   }
+  const card = (it: Item, featured: string | null = null) => (
+    <Fragment key={it.id}>
+      <ItemCard
+        item={it}
+        featured={featured}
+        hoursWarning={hoursWarningOf(it)}
+        {...rest}
+        hearts={hearts.filter((h) => h.item_id === it.id)}
+        comments={comments.filter((c) => c.item_id === it.id)}
+        onEdit={() => onEdit(it)}
+        onToggleHeart={(on) => onToggleHeart(it.id, on)}
+        onAddComment={(body) => onAddComment(it.id, body)}
+        vouchers={vouchers.filter((v) => v.item_id === it.id)}
+        onAddVoucher={(file) => onAddVoucher(it.id, file)}
+      />
+      {warnings[it.id] && <TightNote w={warnings[it.id]} />}
+    </Fragment>
+  )
+  if (!lead) return <div className="item-list">{items.map((it) => card(it))}</div>
+  // 다음 일정 먼저: 오늘이면 지금(여행지 시각) 이후 첫 일정, 다른 날이면 그날 첫 일정
+  const next = splitNextUp(items, items[0].day, today, timeIn(rest.trip.timezone, now ?? clock))
   return (
     <div className="item-list">
-      {items.map((it) => (
-        <Fragment key={it.id}>
-          <ItemCard
-            item={it}
-            hoursWarning={hoursWarningOf(it)}
-            {...rest}
-            hearts={hearts.filter((h) => h.item_id === it.id)}
-            comments={comments.filter((c) => c.item_id === it.id)}
-            onEdit={() => onEdit(it)}
-            onToggleHeart={(on) => onToggleHeart(it.id, on)}
-            onAddComment={(body) => onAddComment(it.id, body)}
-            vouchers={vouchers.filter((v) => v.item_id === it.id)}
-            onAddVoucher={(file) => onAddVoucher(it.id, file)}
-          />
-          {warnings[it.id] && <TightNote w={warnings[it.id]} />}
-        </Fragment>
-      ))}
+      {next.lead && card(next.lead, next.label)}
+      {next.rest.map((it) => card(it))}
+      {next.passed.length > 0 && (
+        <details className="passed">
+          <summary>지난 일정 {next.passed.length}개</summary>
+          <div className="passed-list">{next.passed.map((it) => card(it))}</div>
+        </details>
+      )}
     </div>
   )
 }

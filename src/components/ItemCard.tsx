@@ -25,6 +25,8 @@ interface Props {
   onOpenVoucher: (v: Voucher) => void
   onAddVoucher: (file: File) => void
   hoursWarning?: HoursWarning | null // 그날 휴무·영업시간 밖·곧 마감
+  /** 목록 맨 위에 크게 보일 때 시간 옆 표시 ('다음 일정'·'첫 일정'). 있으면 큰 카드 */
+  featured?: string | null
 }
 
 /** 하트: 둘 다 → 하트 두 개, 한 명 → 그 사람 이모지 + 하트, 없음 → 빈 하트 */
@@ -64,7 +66,7 @@ function costLabel(amount: number, currency: string, rate: number | null): strin
 
 export function ItemCard({
   item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment, onEditComment, onDeleteComment,
-  vouchers, onOpenVoucher, onAddVoucher, hoursWarning,
+  vouchers, onOpenVoucher, onAddVoucher, hoursWarning, featured = null,
 }: Props) {
   const [showComments, setShowComments] = useState(false)
   const mine = hearts.some((h) => h.member === member)
@@ -79,11 +81,14 @@ export function ItemCard({
 
   const cat = categoryInfo(item.category)
   return (
-    <article className="card">
+    <article className={featured ? 'card featured' : 'card'}>
       <div className="card-head">
-        {cat && <span className="cat" role="img" aria-label={cat.label}>{cat.icon}</span>}
-        <span className="time">{item.time ?? '시간 미정'}</span>
-        <span aria-label={`작성: ${theme.names[item.created_by]}`}>{theme.emoji[item.created_by]}</span>
+        <span className="when">
+          {cat && <span className="cat" role="img" aria-label={cat.label}>{cat.icon}</span>}
+          <span className="time">{item.time ?? '시간 미정'}</span>
+          {featured && <span className="lead-badge">{featured}</span>}
+        </span>
+        <span className="who" aria-label={`작성: ${theme.names[item.created_by]}`}>{theme.emoji[item.created_by]}</span>
       </div>
       <h3>{item.place_name}</h3>
       {hoursWarning && <p className="hours-warning" role="note">{hoursMessage(hoursWarning)}</p>}

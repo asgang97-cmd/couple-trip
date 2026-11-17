@@ -317,7 +317,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
         </Suspense>
       )}
       {view === 'list' && <CategoryBar value={category} onChange={setCategory} />}
-      {view === 'list' && (byCategory ? <CategoryList category={category} items={tripItems} days={days} {...listProps} /> : <ItemList items={dayItems} {...listProps} />)}
+      {view === 'list' && (byCategory ? <CategoryList category={category} items={tripItems} days={days} {...listProps} /> : <ItemList items={dayItems} lead {...listProps} />)}
       {view === 'money' && (
         <ExpenseView
           shown={expenses.shown}
@@ -350,7 +350,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
       )}
       {view === 'packing' && <PackingList items={data.packing} disabled={disabled} loadError={data.packingError} {...packing} />}
       {(view === 'list' || view === 'map') && (
-        <div className="bottom-bar">
+        <div className="add-float">
           <button onClick={() => setForm({ mode: 'new', category: byCategory ? category! : undefined })} disabled={disabled}><Icon name="plus" />일정 추가</button>
         </div>
       )}

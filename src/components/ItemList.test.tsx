@@ -101,3 +101,37 @@ describe('ItemList 빠듯한 일정 경고', () => {
     expect(screen.queryByText(/⚠️/)).toBeNull()
   })
 })
+
+describe('ItemList 다음 일정 먼저 (lead)', () => {
+  const tokyo = { ...TRIP, timezone: 'Asia/Tokyo' }
+  const D = '2027-01-10'
+  const items = [
+    makeItem({ day: D, time: '09:00', place_name: '아침' }),
+    makeItem({ day: D, time: '13:00', place_name: '점심' }),
+    makeItem({ day: D, time: '19:00', place_name: '저녁' }),
+  ]
+  const noLeg = vi.fn<LoadLeg>(async () => null)
+  const places = () => screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+
+  test('오늘이면 지금 이후 첫 일정이 크게 맨 위, 지난 일정은 아래 접힘', () => {
+    // 도쿄 12:30
+    render(<ItemList {...base} trip={tokyo} items={items} lead now={new Date('2027-01-10T03:30:00Z')} loadLeg={noLeg} loadHours={async () => null} />)
+    expect(screen.getByText('다음 일정')).toBeInTheDocument()
+    expect(places()).toEqual(['점심', '저녁', '아침'])
+    expect(screen.getByRole('heading', { name: '점심' }).closest('article')).toHaveClass('featured')
+    expect(screen.getByText('지난 일정 1개')).toBeInTheDocument()
+  })
+
+  test('다른 날이면 그날 첫 일정이 "첫 일정", 지난 일정 없음', () => {
+    render(<ItemList {...base} trip={tokyo} items={items} lead now={new Date('2027-01-08T03:30:00Z')} loadLeg={noLeg} loadHours={async () => null} />)
+    expect(screen.getByText('첫 일정')).toBeInTheDocument()
+    expect(places()).toEqual(['아침', '점심', '저녁'])
+    expect(screen.queryByText(/지난 일정/)).toBeNull()
+  })
+
+  test('lead 없으면 지금처럼 순서대로, 크게 보이는 카드 없음', () => {
+    const { container } = render(<ItemList {...base} trip={tokyo} items={items} now={new Date('2027-01-10T03:30:00Z')} loadLeg={noLeg} loadHours={async () => null} />)
+    expect(places()).toEqual(['아침', '점심', '저녁'])
+    expect(container.querySelector('.featured')).toBeNull()
+  })
+})
