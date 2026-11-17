@@ -11,7 +11,7 @@ import { useTripData } from '../hooks/useTripData'
 import { groupItemsByDay, itemsInTrip, nextSortOrder, toDateString, tripDays } from '../lib/dates'
 import { itemsWithLocation } from '../lib/maps'
 import {
-  addComment, coverUrl as getCoverUrl, addExpense, removeDecor, signedUrl, uploadDecor, addPacking, addPackingMany, deleteExpense, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
+  addComment, coverUrl as getCoverUrl, addExpense, removeDecor, signedUrl, uploadDecor, addPacking, addPackingMany, deleteExpense, deleteComment, deleteItem, deletePacking, deleteVoucher, downloadVoucherFile, updateVoucher, uploadVoucher, ITEM_GONE, CATEGORY_NEEDS_SQL, saveItem, setPackingChecked, setPackingOwner, toggleHeart, updateComment, updateTrip, uploadCover,
 } from '../lib/repo'
 import type { Item, ItemInput, Member, PackingItem, TripInput, Voucher } from '../lib/types'
 import { CostSummary } from './CostSummary'
@@ -136,6 +136,8 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
         alert('그 사이에 이 일정이 지워졌어요')
         setForm(null)
         await data.reload()
+      } else if (e instanceof Error && e.message === CATEGORY_NEEDS_SQL) {
+        alert(CATEGORY_NEEDS_SQL) // 창은 그대로: 종류를 빼고 저장할 수도 있게
       } else {
         alert('저장하지 못했어요. 다시 시도해 주세요')
       }

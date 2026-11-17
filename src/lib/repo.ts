@@ -29,8 +29,28 @@ export async function listItems(tripId: string): Promise<Item[]> {
 
 export const ITEM_GONE = '이미 지워진 일정이에요'
 
-/** 새 일정은 추가, id가 있으면 수정. 수정하는 사이 상대가 지웠으면 다시 만들지 않고 ITEM_GONE. */
+export const CATEGORY_NEEDS_SQL = '종류를 저장하려면 Supabase에서 009_item_category.sql을 먼저 실행해야 해요'
+
+/** 서버에 category 칸이 아직 없다는 오류인지 (SQL 009 실행 전) */
+const missingCategoryColumn = (e: unknown) =>
+  e instanceof Error && (e as { code?: string }).code === 'PGRST204' && e.message.includes("'category'")
+
+/**
+ * 새 일정은 추가, id가 있으면 수정. 수정하는 사이 상대가 지웠으면 다시 만들지 않고 ITEM_GONE.
+ * SQL 009 전이면: 종류를 안 골랐을 땐 category 빼고 다시(예전처럼), 골랐으면 CATEGORY_NEEDS_SQL.
+ */
 export async function saveItem(input: ItemInput): Promise<Item> {
+  try {
+    return await saveItemOnce(input)
+  } catch (e) {
+    if (!missingCategoryColumn(e)) throw e
+    if (input.category != null) throw new Error(CATEGORY_NEEDS_SQL)
+    const { category: _drop, ...rest } = input
+    return saveItemOnce(rest)
+  }
+}
+
+async function saveItemOnce(input: ItemInput): Promise<Item> {
   const { id, ...fields } = input
   if (!id) return check(await supabase.from('items').insert(fields).select().single()) as Item
   const rows = check(await supabase.from('items').update(fields).eq('id', id).select()) as Item[]

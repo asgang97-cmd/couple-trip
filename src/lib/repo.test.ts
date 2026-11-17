@@ -29,12 +29,40 @@ vi.mock('./supabase', () => ({
   },
 }))
 
-const { removeDecor, signedUrl, uploadDecor, addExpense, deleteExpense, listExpenses, addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover } = await import('./repo')
+const { removeDecor, signedUrl, uploadDecor, addExpense, deleteExpense, listExpenses, addPacking, addPackingMany, coverUrl, deleteVoucher, listVouchers, updateVoucher, uploadVoucher, deletePacking, listPacking, saveItem, setPackingChecked, setPackingOwner, updateTrip, uploadCover, CATEGORY_NEEDS_SQL } = await import('./repo')
 const names = () => calls.map((c) => c[0])
 
 describe('saveItem', () => {
   beforeEach(() => {
     calls = []
+    queue = []
+  })
+
+  // SQL 009 실행 전: 서버에 category 칸이 없음
+  const noColumn = { data: null, error: { code: 'PGRST204', message: "Could not find the 'category' column of 'items' in the schema cache" } }
+
+  test('009 전 + 종류 안 고름: category 빼고 한 번 더 저장 (예전처럼 동작)', async () => {
+    const { id: _id, created_at: _c, updated_at: _u, ...input } = makeItem({ category: null })
+    queue = [noColumn, { data: { ...input, id: 'new' }, error: null }]
+    await saveItem(input)
+    const inserts = calls.filter((c) => c[0] === 'insert')
+    expect(inserts).toHaveLength(2)
+    expect(inserts[1][1]).not.toHaveProperty('category')
+  })
+
+  test('009 전 + 수정에서도 종류 없으면 빼고 다시', async () => {
+    const { created_at: _c, updated_at: _u, ...input } = makeItem({ id: 'x2', category: null })
+    queue = [noColumn, { data: [{ ...input }], error: null }]
+    await saveItem(input)
+    const updates = calls.filter((c) => c[0] === 'update')
+    expect(updates).toHaveLength(2)
+    expect(updates[1][1]).not.toHaveProperty('category')
+  })
+
+  test('009 전 + 종류 고름: SQL 먼저 실행하라고 알림', async () => {
+    const { id: _id, created_at: _c, updated_at: _u, ...input } = makeItem({ category: 'food' })
+    queue = [noColumn]
+    await expect(saveItem(input)).rejects.toThrow(CATEGORY_NEEDS_SQL)
   })
 
   test('새 일정은 insert', async () => {
