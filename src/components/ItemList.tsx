@@ -9,7 +9,7 @@ import type { Comment, Heart, Item, Member, Trip, Voucher } from '../lib/types'
 import { Mascot } from './Mascot'
 import { ItemCard } from './ItemCard'
 
-interface Props {
+export interface ItemListProps {
   items: Item[]
   trip: Trip
   member: Member
@@ -30,12 +30,16 @@ interface Props {
   loadHours?: LoadHours
   apiKey?: string
   now?: Date
+  /** false면 두 일정 사이 '빠듯한 일정' 경고를 안 구함 (종류별 모아 보기: 날짜가 섞여 있어서) */
+  tight?: boolean
 }
 
-export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, loadHours, apiKey, now, ...rest }: Props) {
+const NO_ITEMS: Item[] = []
+
+export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEdit, onToggleHeart, onAddComment, loadLeg, loadHours, apiKey, now, tight = true, ...rest }: ItemListProps) {
   // 바로 붙은 두 일정 사이에 이동조차 못 하면 경고 (도보·대중교통 중 빠른 쪽 기준)
   const keyOpt = apiKey !== undefined ? { apiKey } : {}
-  const warnings = useTightLegs(items, rest.trip.timezone, { loadLeg, now, ...keyOpt })
+  const warnings = useTightLegs(tight ? items : NO_ITEMS, rest.trip.timezone, { loadLeg, now, ...keyOpt })
   // 장소 검색으로 넣은 일정: 그날 휴무·영업시간 밖·1시간 안 마감이면 카드에 경고
   const hours = usePlaceHours(items.flatMap((it) => (it.google_place_id ? [it.google_place_id] : [])), { loadHours, ...keyOpt })
   const clock = useNow() // 앱으로 돌아올 때마다 새로 (자정 넘김 반영)
