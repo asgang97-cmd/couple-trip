@@ -1,6 +1,6 @@
 ---
 name: 우리 여행 (couple-trip)
-description: 두 사람만을 위한 여행 앱. 크림 바탕에 밤색 잉크, 이름과 숫자만 손글씨로.
+description: 두 사람만을 위한 여행 앱. 크림 바탕에 밤색 잉크, 모든 글자는 손글씨.
 colors:
   cream-paper: "oklch(97% 0.016 80)"
   toasted-cream: "oklch(94% 0.026 76)"
@@ -48,19 +48,19 @@ typography:
     fontWeight: 400
     lineHeight: 1.2
   body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, Apple SD Gothic Neo, Malgun Gothic, system-ui, sans-serif"
+    fontFamily: "Ongeulip Daerong, Apple SD Gothic Neo, Malgun Gothic, ui-rounded, sans-serif"
     fontSize: "1.0625rem"
     fontWeight: 400
     lineHeight: 1.6
   label:
-    fontFamily: "-apple-system, BlinkMacSystemFont, Apple SD Gothic Neo, Malgun Gothic, system-ui, sans-serif"
+    fontFamily: "Ongeulip Daerong, Apple SD Gothic Neo, Malgun Gothic, ui-rounded, sans-serif"
     fontSize: "0.95rem"
     fontWeight: 400
     lineHeight: 1.4
   label-small:
-    fontFamily: "-apple-system, BlinkMacSystemFont, Apple SD Gothic Neo, Malgun Gothic, system-ui, sans-serif"
+    fontFamily: "Ongeulip Daerong, Apple SD Gothic Neo, Malgun Gothic, ui-rounded, sans-serif"
     fontSize: "0.875rem"
-    fontWeight: 600
+    fontWeight: 400
     lineHeight: 1.3
 rounded:
   input: "14px"
@@ -170,14 +170,14 @@ components:
 
 크림색 종이 위에 밤색 잉크로 쓴, 두 사람만의 여행 안내판이다. 따뜻함은 만쥬 가게(크림 바탕, 노릇한 밤색, 볼 빨간 분홍)에서 오고, 규율은 출발 안내판에서 온다: 시간은 한 열에 줄을 맞추고, 지금 다음 것 하나만 불이 켜지고, 경고는 늘 같은 분홍 띠로 나온다. 화면은 아이폰 한 손 보기(폭 480px 이하)를 기준으로 만든 한 줄 세로 흐름이다.
 
-손글씨(온글잎 대롱체)는 이름과 숫자에만 쓴다. 시간, 장소 이름, D-day, 날짜 칩, 제목. 메모·금액·버튼·안내 같은 읽어야 하는 글은 기기 글꼴이다. 손글씨는 같은 크기에서 기기 글꼴보다 작아 보여서 늘 한 단계 크게 놓는다.
+앱의 모든 글자는 손글씨(온글잎 대롱체)다 (사용자 요청 2026-11-18). 메모·금액·버튼·안내·입력칸도 손글씨. 손글씨는 같은 크기에서 보통 글꼴보다 작아 보여서, 읽는 글은 한 단계 크게(메모 1.3rem, 작은 안내도 0.95rem 이상) 놓는다. 굵기가 하나뿐이라 굵게는 쓰지 않는다.
 
 화면의 주인공은 두 사람이 직접 넣은 것들이다: 커버의 커플 사진, 캐릭터 사진, 이름 이모지, 하트와 댓글. 이것들은 꾸밈이 아니라 내용이다. 시스템은 이것들이 놓일 자리를 만들 뿐, 대신 그려 넣지 않는다.
 
 **Key Characteristics:**
 - 크림 바탕(브랜드 약속, 사용자 확인) 위 밤색 하나가 주요 행동과 선택 상태를 맡는다.
 - 분홍은 D-day, "다음 일정" 표시, 경고, 내 댓글, 하트에만.
-- 손글씨는 이름과 숫자, 기기 글꼴은 읽는 글. 손글씨는 한 단계 크게.
+- 모든 글자는 손글씨. 읽는 글은 한 단계 크게, 굵게 금지.
 - 다음 일정 한 장만 크게(밤색 2px 테두리), 나머지는 시간 열이 있는 한 줄.
 - 둥근 모양: 알약 버튼·칩, 22px 카드, 둥근 떠 있는 추가 버튼, 화면 아래 고정 탭바.
 
@@ -218,25 +218,25 @@ components:
 ## Typography
 
 **Display Font:** 온글잎 대롱체 Ongeulip Daerong (자체 호스팅 `public/fonts/ongeulip-daerong.woff2`, 대체: Apple SD Gothic Neo, Malgun Gothic)
-**Body Font:** 기기 글꼴 (-apple-system, Apple SD Gothic Neo, Malgun Gothic, system-ui)
+**Body Font:** 온글잎 대롱체 (모든 글자, 대체: Apple SD Gothic Neo, Malgun Gothic)
 
-**Character:** 손으로 쓴 둥근 손글씨가 이름과 숫자에 "우리가 쓴" 느낌을 주고, 기기 글꼴이 작은 글을 길에서도 바로 읽히게 한다. 손글씨는 굵기가 하나(400)뿐이라 위계는 크기와 글꼴 차이로만 만든다.
+**Character:** 손으로 쓴 둥근 손글씨가 화면 전체에 "우리가 쓴" 느낌을 준다. 작은 글도 손글씨라서 크기를 넉넉히 잡아 길에서도 읽히게 한다. 손글씨는 굵기가 하나(400)뿐이라 위계는 크기와 글꼴 차이로만 만든다.
 
 ### Hierarchy
 - **Display** (손글씨 400, 2.5rem, 1): 다음 일정 카드의 시간 숫자 하나.
 - **Headline** (손글씨 400, 2.2rem, 1.15): 다음 일정 카드의 장소 이름, 커버의 D-day, 가계부 총액, 가운데 화면 제목.
 - **Title** (손글씨 400, 1.55rem, 1.25): 보통 카드의 장소 이름과 시간, 커버의 여행 이름, 아래 창 제목.
-- **Title Small** (손글씨 400, 1.3rem, 1.2): 한 줄 일정의 시간, 묶음 제목(준비물 개수, 보관함·가계부 날짜 제목, 빈 화면 제목). 날짜 알약의 "1일차"는 손글씨 1.0625rem로, 옆의 기기 글꼴 날짜(0.8125rem)보다 크다.
-- **Body** (기기 글꼴 400, 1.0625rem, 1.6): 메모, 금액, 버튼 글자, 입력칸(16px 이상이어야 아이폰이 확대하지 않음). 문단은 최대 65ch.
-- **Label** (기기 글꼴 400, 0.95rem): 종류 알약, 경고 띠, 보조 줄, 금액 이름표, 탭바 글자.
-- **Label Small** (기기 글꼴 600, 0.875rem): "다음 일정" 표시, 작은 안내.
+- **Title Small** (손글씨 400, 1.3rem, 1.2): 한 줄 일정의 시간, 묶음 제목(준비물 개수, 보관함·가계부 날짜 제목, 빈 화면 제목). 날짜 알약의 "1일차"는 손글씨 1.0625rem로, 옆의 손글씨 날짜(0.95rem)보다 크다.
+- **Body** (손글씨 400, 1.0625rem, 1.6): 메모, 금액, 버튼 글자, 입력칸(16px 이상이어야 아이폰이 확대하지 않음). 문단은 최대 65ch.
+- **Label** (손글씨 400, 0.95rem): 종류 알약, 경고 띠, 보조 줄, 금액 이름표, 탭바 글자.
+- **Label Small** (손글씨 400, 0.875rem): "다음 일정" 표시, 작은 안내.
 
-금액과 시간은 모두 `tabular-nums`로 숫자 폭을 맞춘다. 굵게(600)는 기기 글꼴의 금액과 선택된 탭 글자에만.
+금액과 시간은 모두 `tabular-nums`로 숫자 폭을 맞춘다. 손글씨는 굵기가 하나라 굵게는 쓰지 않는다(가짜 굵게도 끔).
 
 ### Named Rules
-**The Names-and-Numbers Rule.** 손글씨는 시간, 장소 이름, D-day, 날짜, 제목에만. 버튼, 메모, 금액, 안내, 입력칸은 기기 글꼴이다. 문장을 손글씨로 쓰지 않는다.
+**The All-Handwriting Rule.** 모든 글자는 손글씨다 (사용자가 직접 정함). 손글씨을 섞지 않는다. 대신 읽는 글은 한 단계 크게, 0.95rem 아래로 내리지 않는다.
 
-**The One-Step-Up Rule.** 손글씨는 같은 크기의 기기 글꼴보다 작아 보이므로, 손글씨 글자는 옆에 놓인 기기 글꼴보다 한 단계 큰 크기로 놓는다(예: 메모 1.0625rem 옆 장소 이름 1.55rem).
+**The One-Step-Up Rule.** 손글씨는 같은 크기의 보통 글꼴보다 작아 보이므로, 읽는 글(메모 1.3rem, 금액 이름표·탭바·작은 안내 0.95rem 이상)도 한 단계 크게 놓는다.
 
 ## Layout
 
@@ -269,7 +269,7 @@ components:
 ### Buttons
 따뜻하고 손에 잘 잡히는 알약.
 - **Shape:** 알약(999px), 높이 44px 이상, 좌우 16px.
-- **Primary:** 밤색 바탕, 크림 글자, 기기 글꼴 1.0625rem. 아이콘은 글자 앞 8px 간격.
+- **Primary:** 밤색 바탕, 크림 글자, 손글씨 1.0625rem. 아이콘은 글자 앞 8px 간격.
 - **Hover / Active / Focus:** 올리면 한 단계 진한 밤색(220ms), 누르면 1px 내려감(120ms), 초점은 2px focus-ember 테두리 2px 띄움.
 - **Quiet:** 크림 바탕 + 밤색 1px 테두리 + 밤색 글자. 화면의 둘째 행동(댓글 보내기, 복사, 준비물 시작).
 - **Ghost:** 테두리·바탕 없음, 글자만. 카드 안 하트·댓글·수정.
@@ -279,13 +279,13 @@ components:
 - **Photo Glass:** 커버 사진 위 40px 원, 반투명 어두운 유리 + 크림 아이콘.
 
 ### Chips
-- **Day Pill:** 두 줄 알약. 위 줄은 손글씨 "N일차" + 기기 글꼴 날짜, 아래 줄은 날씨(지난해 기준이면 muted). 고르지 않은 것은 토스트 크림 + 1px 테두리, 고른 것은 밤색 바탕 + 크림 글자 + 왼쪽에 32px 캐릭터 사진(나타날 때 폴짝 뛰어 들어옴, 420ms).
-- **Filter Pill (종류):** 36px 알약, 기기 글꼴 0.95rem. 고른 것만 밤색으로 채움.
+- **Day Pill:** 두 줄 알약. 위 줄은 손글씨 "N일차" + 손글씨 날짜, 아래 줄은 날씨(지난해 기준이면 muted). 고르지 않은 것은 토스트 크림 + 1px 테두리, 고른 것은 밤색 바탕 + 크림 글자 + 왼쪽에 32px 캐릭터 사진(나타날 때 폴짝 뛰어 들어옴, 420ms).
+- **Filter Pill (종류):** 36px 알약, 손글씨 0.95rem. 고른 것만 밤색으로 채움.
 - **Chip:** 32px 알약, 토스트 크림 + 1px 점선 테두리. 예약번호(눌러 복사), 바우처. 다음 일정 카드 안에서는 44px 실선으로 커짐.
 - **Lead Badge:** 다음 일정 시간 옆의 분홍 알약 "다음 일정/첫 일정". 상태 표시이지 장식 제목이 아니다.
 
 ### Cards / Containers
-- **Featured (다음 일정):** 22px, 크림 바탕, 2px 밤색 테두리, Lit Card 그림자, 안 여백 16px. 위 줄에 종류 이모지 + 손글씨 시간(2.5rem) + 분홍 표시, 그 아래 손글씨 장소 이름(2.2rem), 메모·금액(기기 글꼴), 밤색 "여기로 길찾기" 알약, 하트·댓글·수정·바우처 줄.
+- **Featured (다음 일정):** 22px, 크림 바탕, 2px 밤색 테두리, Lit Card 그림자, 안 여백 16px. 위 줄에 종류 이모지 + 손글씨 시간(2.5rem) + 분홍 표시, 그 아래 손글씨 장소 이름(2.2rem), 메모·금액(손글씨), 밤색 "여기로 길찾기" 알약, 하트·댓글·수정·바우처 줄.
 - **Row (나머지 일정):** 22px, 1px 테두리, 위아래 8px. 시간 열(5.5rem) + 장소 이름 한 줄 + 요약 한 줄(예약번호·하트·댓글 수). 장소를 누르면 그 자리에서 펼쳐진다(줄 어디를 눌러도 됨).
 - **Passed (지난 일정):** 맨 아래 접힌 묶음, 열면 78% 불투명도.
 - **Warning Band:** 14px, 분홍 물 바탕, 0.95rem. 카드 사이(빠듯한 이동)나 카드 안(영업시간)에 같은 모양으로.
@@ -297,7 +297,7 @@ components:
 
 ### Navigation
 - **Cover band:** 커플 사진(없으면 금빛→밤색 그라데이션) 위 어두운 그라데이션 3겹, 왼쪽 아래 분홍 손글씨 D-day와 크림 손글씨 여행 이름, 오른쪽 위 유리 아이콘 버튼 3개, 오른쪽 아래 캐릭터 커플 사진.
-- **Bottom Tab Bar:** 5칸(목록/지도/준비물/보관함/가계부), 크림 바탕, 위 1px 선 + Tab Bar Lift. 칸마다 20px 선 아이콘 위, 기기 글꼴 글자 아래. 고른 칸은 토스트 크림 바탕(14px) + 밤색 글자 600.
+- **Bottom Tab Bar:** 5칸(목록/지도/준비물/보관함/가계부), 크림 바탕, 위 1px 선 + Tab Bar Lift. 칸마다 20px 선 아이콘 위, 손글씨 글자 아래. 고른 칸은 토스트 크림 바탕(14px) + 밤색 글자.
 - **View Toggle:** 토스트 크림 알약 홈 안에 버튼들, 고른 것은 크림 바탕 + 1px 테두리.
 
 ### Bottom Sheet
@@ -306,8 +306,8 @@ components:
 ## Do's and Don'ts
 
 ### Do:
-- **Do** 이름과 숫자(시간, 장소, D-day, 날짜, 제목)만 손글씨로, 같은 자리의 기기 글꼴보다 한 단계 크게.
-- **Do** 버튼, 메모, 금액, 안내, 입력칸은 기기 글꼴로.
+- **Do** 모든 글자를 손글씨로, 읽는 글은 한 단계 크게.
+- **Do** 버튼, 메모, 금액, 안내, 입력칸은 손글씨로.
 - **Do** 크림 바탕을 지키고, 채운 밤색은 주요 행동·고른 상태에만.
 - **Do** 분홍은 D-day, 다음 일정 표시, 경고 띠, 내 댓글, 하트에만.
 - **Do** 목록에서는 다음 일정 한 장만 크게 불 켜고, 나머지는 시간 열이 맞춰진 한 줄로.

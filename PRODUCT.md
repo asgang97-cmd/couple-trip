@@ -29,7 +29,7 @@ web
 ## Brand Commitments
 사용자가 새 디자인에서도 꼭 남기라고 한 것(2026-11-17):
 - 크림·밤색의 따뜻한 느낌
-- 손글씨 글꼴 온글잎 대롱체(자체 호스팅 `public/fonts/ongeulip-daerong.woff2`)
+- 손글씨 글꼴 온글잎 대롱체(자체 호스팅 `public/fonts/ongeulip-daerong.woff2`), 앱의 모든 글자에 (2026-11-18 사용자가 "전부 적용" 요청)
 - 커버 커플 사진과 D-day
 - 직접 넣은 캐릭터·배경 사진(꾸미기, `trips.decor`)
 저작권 캐릭터(치이카와 등)는 그리지 않는다. 캐릭터는 사용자가 사진으로 넣는다.

@@ -26,10 +26,10 @@
   --color-pond: oklch(66% 0.09 62);
   --color-scrim: oklch(20% 0.03 45 / 0.72); --color-backdrop: oklch(20% 0.03 45 / 0.4); --color-viewer: oklch(99.5% 0.004 80); --color-glass: oklch(20% 0.03 45 / 0.42);
 
-  /* 온글잎 대롱체 (public/fonts, 웹 사용 가능 확인됨): 이름과 숫자(시간·장소·D-day·제목)에만.
-     메모·금액·안내 같은 작은 글은 읽기 쉬운 기기 글꼴 */
+  /* 온글잎 대롱체 (public/fonts, 웹 사용 가능 확인됨): 앱 전체 (사용자 요청 2026-11-18).
+     굵기가 하나뿐이라 굵게(600 등)는 쓰지 않음 */
   --font-display: "Ongeulip Daerong", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-body: "Ongeulip Daerong", "Apple SD Gothic Neo", "Malgun Gothic", ui-rounded, sans-serif;
   --font-outlier: var(--font-display);
   --radius-card: 22px; --radius-input: 14px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;
   --tracking-display: 0;
