@@ -29,6 +29,33 @@
         ],
         "createdAt": "2026-11-17T14:47:29.251Z",
         "reason": "user confirmed: keep 크림·밤색 따뜻한 느낌 (PRODUCT.md Brand Commitments, 2026-11-17)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "gaegu",
+        "files": [
+          ".impeccable/mocks/decision/next-up.html"
+        ],
+        "createdAt": "2026-11-17T15:16:28.438Z",
+        "reason": "decision sketch only: Gaegu stood in for self-hosted 온글잎 대롱체 because sketches may load only Google Fonts; not shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "gaegu",
+        "files": [
+          ".impeccable/mocks/decision/tab-shell.html"
+        ],
+        "createdAt": "2026-11-17T15:16:28.946Z",
+        "reason": "decision sketch only: Gaegu stood in for self-hosted 온글잎 대롱체 because sketches may load only Google Fonts; not shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "gaegu",
+        "files": [
+          ".impeccable/mocks/decision/rows-sheet.html"
+        ],
+        "createdAt": "2026-11-17T15:16:29.603Z",
+        "reason": "decision sketch only: Gaegu stood in for self-hosted 온글잎 대롱체 because sketches may load only Google Fonts; not shipped"
       }
     ]
   }
