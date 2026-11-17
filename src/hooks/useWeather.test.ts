@@ -91,4 +91,19 @@ describe('useWeather 리뷰 반영', () => {
     await new Promise((r) => setTimeout(r, 10))
     expect(a.history).not.toHaveBeenCalled()
   })
+
+  test('여행 중 이미 지난 날: 작년이 아니라 그날 실제 날씨 (지난 날은 비 올 확률 안 씀)', async () => {
+    const a = api({
+      forecast: vi.fn(async () => ({ '2026-11-15': W(3, 9, 4, 80), '2026-11-17': W(0, 12, 5, 50) })),
+      history: vi.fn(async () => ({ '2026-11-05': W(61, 8, 2) })),
+    })
+    const days = ['2026-11-05', '2026-11-15', '2026-11-17']
+    const byDay = Object.fromEntries(days.map((d) => [d, [loc]]))
+    const { result } = renderHook(() => useWeather(days, byDay, '', 'Asia/Tokyo', { api: a, now: NOW }))
+    await waitFor(() => expect(Object.keys(result.current)).toHaveLength(3))
+    expect(result.current['2026-11-05']).toEqual({ ...W(61, 8, 2), past: null })
+    expect(result.current['2026-11-15']).toEqual({ ...W(3, 9, 4, null), past: null })
+    expect(result.current['2026-11-17']).toEqual({ ...W(0, 12, 5, 50), past: null })
+    expect(a.history.mock.calls[0].slice(1, 3)).toEqual(['2026-11-05', '2026-11-05'])
+  })
 })

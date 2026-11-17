@@ -69,10 +69,12 @@ export function useWeather(
         const out: Record<string, TabWeather> = {}
         const forecast = await api.forecast(loc).catch(() => ({}) as Awaited<ReturnType<WeatherApi['forecast']>>)
         // 예보 없는 날: 작년·재작년 묶음마다 따로 좁은 범위로 (섞어서 1년치를 묻지 않게)
-        const buckets = new Map<Past, { day: string; date: string }[]>()
+        // 묶음: 작년 / 재작년 / null(이미 지난 날의 실제 기록)
+        const buckets = new Map<Past | null, { day: string; date: string }[]>()
         for (const day of days) {
           if (forecast[day]) {
-            out[day] = { ...forecast[day], past: null }
+            // 이미 지난 날은 비 '올 확률'이 의미 없음
+            out[day] = { ...forecast[day], rain: day < today ? null : forecast[day].rain, past: null }
             continue
           }
           const p = pastDate(day, today)

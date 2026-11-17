@@ -43,11 +43,13 @@ function addDays(day: string, n: number): string {
 const ARCHIVE_LAG_DAYS = 8 // 과거 기록은 며칠 늦게 채워짐 → 이보다 최근 날짜는 아직 빈칸일 수 있음
 
 /**
- * 예보 밖 날짜에 보여줄 과거 날짜: 1년 전 같은 날. 아직 기록이 없을 만큼 최근이면 2년 전.
+ * 예보 밖 날짜에 보여줄 과거 날짜. 이미 지나서 기록이 채워진 날이면 그날 자체(past = null, 실제 날씨).
+ * 아니면 1년 전 같은 날. 아직 기록이 없을 만큼 최근이면 2년 전.
  * 2년 전도 아직이면(2년보다 먼 여행) null → 미래 날짜를 묻지 않음.
  */
-export function pastDate(day: string, today: string): { date: string; past: Past } | null {
+export function pastDate(day: string, today: string): { date: string; past: Past | null } | null {
   const latest = addDays(today, -ARCHIVE_LAG_DAYS)
+  if (day <= latest) return { date: day, past: null }
   const last = yearsBack(day, 1)
   if (last <= latest) return { date: last, past: '작년' }
   const before = yearsBack(day, 2)

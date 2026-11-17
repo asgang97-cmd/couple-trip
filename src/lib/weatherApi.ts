@@ -64,10 +64,10 @@ function parseDaily(body: unknown, withRain: boolean): Record<string, DayWeather
 
 const at = (l: Loc) => `latitude=${l.lat}&longitude=${l.lng}`
 
-/** 16일 예보 (3시간마다 새로) */
+/** 16일 예보 + 지난 10일 (과거 기록이 아직 안 채워진 최근 날을 메움, 3시간마다 새로) */
 export function getForecast(loc: Loc, o: Opts = {}): Promise<Record<string, DayWeather>> {
-  const url = `https://api.open-meteo.com/v1/forecast?${at(loc)}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=16`
-  return cached(`wx:f:${loc.lat},${loc.lng}`, url, (b) => parseDaily(b, true), {}, FORECAST_FRESH_MS, o)
+  const url = `https://api.open-meteo.com/v1/forecast?${at(loc)}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=16&past_days=10`
+  return cached(`wx:f2:${loc.lat},${loc.lng}`, url, (b) => parseDaily(b, true), {}, FORECAST_FRESH_MS, o)
 }
 
 /** 과거 실제 날씨 (바뀌지 않으니 한 번 받으면 계속. 단 요청한 날짜가 빠졌으면 아직 안 채워진 것 → 저장 안 함) */

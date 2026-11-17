@@ -26,7 +26,7 @@ describe('getForecast', () => {
     const fetcher = fetcherOf(ok(forecastBody))
     const r = await getForecast(OSAKA, { fetcher, storage: memoryStorage(), now: 0 })
     expect(String(fetcher.mock.calls[0][0])).toBe(
-      'https://api.open-meteo.com/v1/forecast?latitude=34.7&longitude=135.5&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=16',
+      'https://api.open-meteo.com/v1/forecast?latitude=34.7&longitude=135.5&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=16&past_days=10',
     )
     expect(r).toEqual({
       '2027-01-12': { code: 0, max: 12.4, min: 3.6, rain: 10 },

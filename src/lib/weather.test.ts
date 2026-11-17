@@ -31,6 +31,10 @@ describe('pastDate (예보 밖 날짜에 쓸 과거 날짜)', () => {
   test('2년 전도 아직 안 지난 아주 먼 날짜면 null (미래 날짜를 묻지 않음)', () => {
     expect(pastDate('2029-01-01', '2026-11-17')).toBeNull()
   })
+  test('이미 지난 날(기록이 채워진 날)은 그날 실제 날씨 (작년 아님)', () => {
+    expect(pastDate('2026-11-05', '2026-11-17')).toEqual({ date: '2026-11-05', past: null })
+    expect(pastDate('2026-11-09', '2026-11-17')).toEqual({ date: '2026-11-09', past: null }) // 오늘−8일
+  })
   test('2/29는 2/28', () => {
     expect(pastDate('2028-02-29', '2027-06-01')).toEqual({ date: '2027-02-28', past: '작년' })
   })
