@@ -30,4 +30,9 @@ describe('CostSummary', () => {
     const { container } = render(<CostSummary dayItems={[makeItem()]} allItems={[makeItem()]} trip={TRIP} rate={live} />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  test('직접 넣은 환율은 메인 화면에 줄을 따로 쓰지 않음 (한 줄 유지)', () => {
+    render(<CostSummary dayItems={day} allItems={all} trip={TRIP} rate={{ rate: 9.1, source: 'manual', fetchedAt: null }} />)
+    expect(screen.queryByText(/직접 넣은 환율/)).toBeNull()
+  })
 })

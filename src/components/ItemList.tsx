@@ -63,11 +63,12 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
       </div>
     )
   }
-  const card = (it: Item, featured: string | null = null) => (
+  const card = (it: Item, featured: string | null = null, compact = false) => (
     <Fragment key={it.id}>
       <ItemCard
         item={it}
         featured={featured}
+        compact={compact}
         hoursWarning={hoursWarningOf(it)}
         {...rest}
         hearts={hearts.filter((h) => h.item_id === it.id)}
@@ -87,11 +88,11 @@ export function ItemList({ items, hearts, comments, vouchers, onAddVoucher, onEd
   return (
     <div className="item-list">
       {next.lead && card(next.lead, next.label)}
-      {next.rest.map((it) => card(it))}
+      {next.rest.map((it) => card(it, null, true))}
       {next.passed.length > 0 && (
         <details className="passed">
           <summary>지난 일정 {next.passed.length}개</summary>
-          <div className="passed-list">{next.passed.map((it) => card(it))}</div>
+          <div className="passed-list">{next.passed.map((it) => card(it, null, true))}</div>
         </details>
       )}
     </div>

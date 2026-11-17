@@ -19,7 +19,7 @@ export function CostSummary({ dayItems, allItems, trip, rate }: Props) {
 
   let note: string | null = null
   if (rate.source === 'cached' && rate.fetchedAt) note = `저장된 환율 기준 (${timeFmt.format(new Date(rate.fetchedAt))})`
-  else if (rate.source === 'manual' && rate.rate !== null) note = `직접 넣은 환율 기준 (1 ${trip.currency} = ${rate.rate}원)`
+  // 직접 넣은 환율은 둘이 정한 값이라 따로 알리지 않음 (메인 화면 한 줄 유지)
 
   return (
     <section className="cost-summary" aria-label="예상 비용">

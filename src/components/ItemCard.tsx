@@ -27,6 +27,8 @@ interface Props {
   hoursWarning?: HoursWarning | null // 그날 휴무·영업시간 밖·곧 마감
   /** 목록 맨 위에 크게 보일 때 시간 옆 표시 ('다음 일정'·'첫 일정'). 있으면 큰 카드 */
   featured?: string | null
+  /** 한 줄로 접어 두고 장소를 누르면 펼침 (다음 일정 아래 나머지 일정) */
+  compact?: boolean
 }
 
 /** 하트: 둘 다 → 하트 두 개, 한 명 → 그 사람 이모지 + 하트, 없음 → 빈 하트 */
@@ -66,9 +68,11 @@ function costLabel(amount: number, currency: string, rate: number | null): strin
 
 export function ItemCard({
   item, member, rate, hearts, comments, disabled, onEdit, onToggleHeart, onAddComment, onEditComment, onDeleteComment,
-  vouchers, onOpenVoucher, onAddVoucher, hoursWarning, featured = null,
+  vouchers, onOpenVoucher, onAddVoucher, hoursWarning, featured = null, compact = false,
 }: Props) {
   const [showComments, setShowComments] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const open = !compact || expanded
   const mine = hearts.some((h) => h.member === member)
 
   async function copyCode() {
@@ -81,7 +85,7 @@ export function ItemCard({
 
   const cat = categoryInfo(item.category)
   return (
-    <article className={featured ? 'card featured' : 'card'}>
+    <article className={featured ? 'card featured' : compact && !open ? 'card compact' : 'card'}>
       <div className="card-head">
         <span className="when">
           {cat && <span className="cat" role="img" aria-label={cat.label}>{cat.icon}</span>}
@@ -90,8 +94,14 @@ export function ItemCard({
         </span>
         <span className="who" aria-label={`작성: ${theme.names[item.created_by]}`}>{theme.emoji[item.created_by]}</span>
       </div>
-      <h3>{item.place_name}</h3>
+      <h3>
+        {compact ? (
+          <button type="button" className="row-toggle" aria-expanded={open} onClick={() => setExpanded((v) => !v)}>{item.place_name}</button>
+        ) : item.place_name}
+      </h3>
+      {!open && <p className="row-sub">{[item.booking_code, hearts.length > 0 && `하트 ${hearts.length}`, comments.length > 0 && `댓글 ${comments.length}`].filter(Boolean).join(' · ')}</p>}
       {hoursWarning && <p className="hours-warning" role="note">{hoursMessage(hoursWarning)}</p>}
+      {open && <>
       {item.memo && <p className="memo">{item.memo}</p>}
       {item.cost_amount !== null && <p className="cost">{costLabel(item.cost_amount, item.cost_currency, rate)}</p>}
       {item.lat !== null && item.lng !== null && (
@@ -152,6 +162,7 @@ export function ItemCard({
           onDelete={onDeleteComment}
         />
       )}
+      </>}
     </article>
   )
 }

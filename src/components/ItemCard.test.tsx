@@ -130,3 +130,29 @@ describe('ItemCard 종류 아이콘', () => {
     expect(screen.queryByRole('img', { name: CAT_NAME })).toBeNull()
   })
 })
+
+describe('ItemCard 한 줄로 접힌 모양 (compact)', () => {
+  const item = makeItem({ time: '19:00', place_name: '스시 오마카세', memo: '10분 전 도착', booking_code: 'TBL-2291' })
+  test('처음엔 시간·장소·한 줄 요약만, 메모·수정은 안 보임', () => {
+    render(<ItemCard {...base} item={item} compact comments={[{ id: 'c', item_id: item.id, member: 'b', body: 'hi', created_at: '' }]} hearts={[{ item_id: item.id, member: 'a' }]} />)
+    expect(screen.getByRole('heading', { name: '스시 오마카세' })).toBeInTheDocument()
+    expect(screen.getByText('TBL-2291 · 하트 1 · 댓글 1')).toBeInTheDocument()
+    expect(screen.queryByText('10분 전 도착')).toBeNull()
+    expect(screen.queryByRole('button', { name: '수정' })).toBeNull()
+  })
+  test('장소를 누르면 펼쳐져 전부 보임, 다시 누르면 접힘', async () => {
+    render(<ItemCard {...base} item={item} compact />)
+    const toggle = screen.getByRole('button', { name: '스시 오마카세' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('10분 전 도착')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '수정' })).toBeInTheDocument()
+    await userEvent.click(toggle)
+    expect(screen.queryByText('10분 전 도착')).toBeNull()
+  })
+  test('영업시간 경고는 접혀 있어도 보임', () => {
+    render(<ItemCard {...base} item={item} compact hoursWarning={{ kind: 'closedDay' } as never} />)
+    expect(screen.getByRole('note')).toBeInTheDocument()
+  })
+})

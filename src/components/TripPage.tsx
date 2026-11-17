@@ -303,7 +303,6 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
       <OfflineBanner offline={data.offline} savedAt={data.savedAt} />
       <HomeHeader now={now} trip={trip} coverUrl={cover} uploading={uploading} disabled={disabled} onPickPhoto={setCropFile} onOpenSettings={() => setSettingsOpen(true)} onOpenVisitJapan={() => setVjwOpen(true)} />
       {!byCategory && <DayTabs days={days} selected={day} onSelect={setSelected} weather={weather} />}
-      <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       <div className="view-toggle view-tabs" role="group" aria-label="보기">
         <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" />목록</button>
         <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}><Icon name="map" />지도</button>
@@ -317,6 +316,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
         </Suspense>
       )}
       {view === 'list' && <CategoryBar value={category} onChange={setCategory} />}
+      <CostSummary dayItems={dayItems} allItems={tripItems} trip={trip} rate={rate} />
       {view === 'list' && (byCategory ? <CategoryList category={category} items={tripItems} days={days} {...listProps} /> : <ItemList items={dayItems} lead {...listProps} />)}
       {view === 'money' && (
         <ExpenseView
@@ -351,7 +351,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
       {view === 'packing' && <PackingList items={data.packing} disabled={disabled} loadError={data.packingError} {...packing} />}
       {(view === 'list' || view === 'map') && (
         <div className="add-float">
-          <button onClick={() => setForm({ mode: 'new', category: byCategory ? category! : undefined })} disabled={disabled}><Icon name="plus" />일정 추가</button>
+          <button onClick={() => setForm({ mode: 'new', category: byCategory ? category! : undefined })} disabled={disabled} aria-label="일정 추가"><Icon name="plus" size={28} /></button>
         </div>
       )}
       {decorOpen && <DecorSheet member={member} disabled={disabled} onPick={pickDecor} onRemove={dropDecor} onClose={() => setDecorOpen(false)} />}

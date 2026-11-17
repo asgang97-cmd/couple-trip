@@ -20,15 +20,17 @@ export function DayTabs({ days, selected, onSelect, weather = {} }: {
           aria-pressed={d === selected}
           onClick={() => onSelect(d)}
         >
-          {/* 선택한 날 위에 우리 캐릭터. key가 바뀌면 새로 그려져 폴짝 뛰어옴 */}
-          {d === selected && <Mascot key={d} slot="day" size={40} className="tab-mascot" />}
-          <strong>{i + 1}일차</strong>
-          <small>{fmt.format(parseLocalDate(d))}</small>
-          {weather[d] && (
-            <small className={weather[d].past ? 'tab-weather past' : 'tab-weather'} aria-label={weatherSpeech(weather[d])}>
-              {weatherText(weather[d])}
-            </small>
-          )}
+          {/* 선택한 날 알약 안 왼쪽에 우리 캐릭터. key가 바뀌면 새로 그려져 폴짝 */}
+          {d === selected && <Mascot key={d} slot="day" size={32} className="tab-mascot" />}
+          <span className="tab-text">
+            <strong>{i + 1}일차</strong>
+            <small>{fmt.format(parseLocalDate(d))}</small>
+            {weather[d] && (
+              <small className={weather[d].past ? 'tab-weather past' : 'tab-weather'} aria-label={weatherSpeech(weather[d])}>
+                {weatherText(weather[d])}
+              </small>
+            )}
+          </span>
         </button>
       ))}
     </nav>

@@ -120,6 +120,9 @@ describe('ItemList 다음 일정 먼저 (lead)', () => {
     expect(places()).toEqual(['점심', '저녁', '아침'])
     expect(screen.getByRole('heading', { name: '점심' }).closest('article')).toHaveClass('featured')
     expect(screen.getByText('지난 일정 1개')).toBeInTheDocument()
+    // 다음 일정만 펼친 카드, 나머지는 한 줄 (누르면 펼침)
+    expect(screen.getByRole('button', { name: '저녁' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: '점심' })).toBeNull()
   })
 
   test('다른 날이면 그날 첫 일정이 "첫 일정", 지난 일정 없음', () => {

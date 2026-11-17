@@ -51,7 +51,6 @@ export function HomeHeader({ trip, coverUrl, fallbackPhoto = theme.coverPhoto, n
         </label>
       </div>
       <div className="cover-text">
-        <p className="greeting">{theme.greeting}</p>
         <p className="dday">{tripPhaseLabel(trip.start_date, trip.end_date, now)}</p>
         <h1>{trip.title}</h1>
       </div>

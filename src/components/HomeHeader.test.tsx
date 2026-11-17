@@ -8,9 +8,9 @@ import { HomeHeader } from './HomeHeader'
 const base = { trip: TRIP, now: new Date(2027, 0, 1), coverUrl: null, uploading: false, disabled: false, onPickPhoto: () => {}, onOpenSettings: () => {}, onOpenVisitJapan: () => {} }
 
 describe('HomeHeader', () => {
-  test('인사말·D-day·제목', () => {
+  test('D-day·제목만 (위에 작은 인사말 없음)', () => {
     render(<HomeHeader {...base} now={new Date(2027, 0, 1)} />)
-    expect(screen.getByText(theme.greeting)).toBeInTheDocument()
+    expect(screen.queryByText(theme.greeting)).toBeNull()
     expect(screen.getByText('D-9')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: TRIP.title })).toBeInTheDocument()
   })
