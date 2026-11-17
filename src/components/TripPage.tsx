@@ -380,6 +380,7 @@ export function TripPage({ member, onDecor }: { member: Member; onDecor?: (urls:
           member={member}
           nextSortOrder={nextSortOrder(dayItems)}
           initial={form.mode === 'edit' ? form.item : undefined}
+          allItems={data.items}
           onSave={save}
           onDelete={form.mode === 'edit' ? () => remove(form.item) : undefined}
           onClose={() => setForm(null)}

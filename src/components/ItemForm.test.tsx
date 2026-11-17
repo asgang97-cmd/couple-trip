@@ -133,3 +133,83 @@ describe('ItemForm', () => {
     expect(options).toEqual(['JPY', 'KRW'])
   })
 })
+
+describe('ItemForm 중복 알림', () => {
+  const fmt = new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
+  const dayText = (d: string) => fmt.format(new Date(`${d}T00:00:00`))
+  const senso = makeItem({ day: '2027-01-12', time: '14:00', place_name: '센소지', created_by: 'b' })
+
+  test('같은 장소가 다른 날에 있으면 확인 창, 취소면 저장 안 함 (쓴 내용 그대로)', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    const { onSave, save } = setup({ allItems: [senso] })
+    await userEvent.type(screen.getByLabelText('장소'), '센소지')
+    await userEvent.click(save())
+    expect(confirm).toHaveBeenCalledWith(`이미 넣은 장소예요\n· 3일차 ${dayText('2027-01-12')} 14:00 센소지 (밍하)\n그래도 저장할까요?`)
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('장소')).toHaveValue('센소지')
+    confirm.mockRestore()
+  })
+
+  test('확인이면 그대로 저장', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
+    const { onSave, save } = setup({ allItems: [senso] })
+    await userEvent.type(screen.getByLabelText('장소'), '센 소지')
+    await userEvent.click(save())
+    expect(confirm).toHaveBeenCalledTimes(1)
+    expect(onSave).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
+
+  test('겹치는 게 없으면 창 없이 저장', async () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    const { onSave, save } = setup({ allItems: [senso] })
+    await userEvent.type(screen.getByLabelText('장소'), '이치란')
+    await userEvent.click(save())
+    expect(confirm).not.toHaveBeenCalled()
+    expect(onSave).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
+
+  test('수정할 때 장소를 안 바꾸면 창 없음 (메모만 고침)', async () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    const hotel = makeItem({ day: '2027-01-10', place_name: '호텔' })
+    const hotel2 = makeItem({ day: '2027-01-11', place_name: '호텔' })
+    const { onSave, save } = setup({ allItems: [hotel, hotel2], initial: hotel2 })
+    await userEvent.type(screen.getByLabelText('메모'), '체크인')
+    await userEvent.click(save())
+    expect(confirm).not.toHaveBeenCalled()
+    expect(onSave).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
+
+  test('수정할 때 장소를 겹치는 곳으로 바꾸면 확인', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
+    const other = makeItem({ day: '2027-01-10', place_name: '도쿄타워' })
+    setup({ allItems: [senso, other], initial: other })
+    await userEvent.clear(screen.getByLabelText('장소'))
+    await userEvent.type(screen.getByLabelText('장소'), '센소지')
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+    expect(confirm).toHaveBeenCalledTimes(1)
+    confirm.mockRestore()
+  })
+
+  test('겹치는 게 4개면 3줄만, 시간 없으면 시간 빼고, 여행 기간 밖이면 일차 빼고', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+    const many = [
+      makeItem({ day: '2027-01-10', time: null, place_name: '센소지', created_by: 'a' }),
+      makeItem({ day: '2027-01-09', time: '09:00', place_name: '센소지', created_by: 'a' }),
+      senso,
+      makeItem({ day: '2027-01-13', place_name: '센소지' }),
+    ]
+    const { save } = setup({ allItems: many })
+    await userEvent.type(screen.getByLabelText('장소'), '센소지')
+    await userEvent.click(save())
+    const msg = confirm.mock.calls[0][0] as string
+    expect(msg.split('\n').filter((l) => l.startsWith('· '))).toEqual([
+      `· ${dayText('2027-01-09')} 09:00 센소지 (밍석)`,
+      `· 1일차 ${dayText('2027-01-10')} 센소지 (밍석)`,
+      `· 3일차 ${dayText('2027-01-12')} 14:00 센소지 (밍하)`,
+    ])
+    confirm.mockRestore()
+  })
+})

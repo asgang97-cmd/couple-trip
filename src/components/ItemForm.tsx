@@ -1,5 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { parseLocalDate } from '../lib/dates'
+import { samePlaceItems } from '../lib/duplicates'
+import { theme } from '../theme'
 import { Icon } from './Icon'
 import type { Item, ItemInput, Member, Trip } from '../lib/types'
 
@@ -14,6 +16,8 @@ interface Props {
   member: Member
   nextSortOrder: number
   initial?: Item
+  /** 여행 전체 일정 (같은 장소를 또 넣으면 알리기용). 없으면 비교 안 함 */
+  allItems?: Item[]
   onSave: (input: ItemInput) => Promise<void>
   onDelete?: () => Promise<void>
   onClose: () => void
@@ -35,7 +39,7 @@ function parseCost(raw: string): number | null {
   return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN
 }
 
-export function ItemForm({ trip, days, day, member, nextSortOrder, initial, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
+export function ItemForm({ trip, days, day, member, nextSortOrder, initial, allItems, onSave, onDelete, onClose, renderPlaceSearch }: Props) {
   const [location, setLocation] = useState(
     initial?.lat != null && initial?.lng != null
       ? { lat: initial.lat, lng: initial.lng, placeId: initial.google_place_id }
@@ -55,9 +59,25 @@ export function ItemForm({ trip, days, day, member, nextSortOrder, initial, onSa
   const costInvalid = Number.isNaN(costValue)
   const canSave = placeName.trim() !== '' && !costInvalid && !busy
 
+  /** 같은 장소가 이미 있으면 확인 창 (막지 않음). 수정할 땐 장소를 바꿨을 때만. false = 취소 */
+  function confirmDuplicate(): boolean {
+    const placeId = location?.placeId ?? null
+    const changed = !initial || placeName.trim() !== initial.place_name || placeId !== initial.google_place_id
+    if (!changed) return true
+    const dups = samePlaceItems({ id: initial?.id, place_name: placeName, google_place_id: placeId }, allItems ?? [])
+    if (dups.length === 0) return true
+    const lines = dups.slice(0, 3).map((i) => {
+      const n = days.indexOf(i.day)
+      const when = [n >= 0 ? `${n + 1}일차` : '', dayFmt.format(parseLocalDate(i.day)), i.time ?? ''].filter(Boolean).join(' ')
+      return `· ${when} ${i.place_name} (${theme.names[i.created_by]})`
+    })
+    return confirm(['이미 넣은 장소예요', ...lines, '그래도 저장할까요?'].join('\n'))
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!canSave) return
+    if (!confirmDuplicate()) return
     setBusy(true)
     try {
       await onSave({
