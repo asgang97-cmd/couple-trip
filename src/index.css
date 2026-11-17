@@ -143,14 +143,14 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
   margin: 0 calc(-1 * var(--gutter));
   min-height: 140px; /* 반 화면이던 커버를 띠로: 열자마자 일정이 보이게 (사진은 가운데가 보임) */
   background-size: cover;
-  background-position: center;
+  background-position: center 30%; /* 띠로 줄여도 얼굴(보통 사진 위쪽)이 보이게 */
   color: var(--color-accent-ink);
   display: flex;
   align-items: flex-end;
   padding: var(--space-xl) var(--gutter) var(--space-sm);
   border-radius: 0 0 28px 28px;
 }
-.cover .dday { color: var(--color-blush-soft); font-family: var(--font-display); font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.cover .dday { color: var(--color-blush-soft); font-family: var(--font-display); font-size: 2.2rem; /* 왼쪽에 머물게 (가운데 얼굴을 덮지 않게) */ line-height: 1; font-variant-numeric: tabular-nums; }
 .cover h1 { margin-top: var(--space-2xs); font-size: var(--text-xl); line-height: 1.25; } /* 손글씨는 같은 크기에서 기기 글꼴보다 작아 보여서 한 단계 크게 */
 .cover-characters { position: absolute; right: var(--space-md); bottom: -2px; display: flex; align-items: flex-end; }
 .cover-characters .mascot + .mascot { margin-left: calc(-1 * var(--space-xs)); }
@@ -288,7 +288,7 @@ a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; bo
 .card.featured > .comments { order: 3; }
 .card.featured .card-vouchers .chip { min-height: 28px; font-size: var(--text-xs); }
 /* 다음 일정 아래 나머지: 한 줄 (시간 / 장소 / 요약), 장소를 누르면 펼침 */
-.card.compact { padding-block: var(--space-xs); grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; }
+.card.compact { padding-block: var(--space-xs); grid-template-columns: 5.5rem minmax(0, 1fr); align-items: first baseline; } /* 시간은 장소 이름 줄에 맞춤 */
 .card.compact .when { flex-direction: row; align-items: center; gap: var(--space-2xs); padding: 0; }
 .card.compact .cat { font-size: var(--text-sm); }
 .card.compact .time { font-size: var(--text-lg); }
