@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-18T00:00:00Z",
+  "title": "Design System: 우리 여행 (couple-trip)",
+  "extensions": {
+    "colorMeta": {
+      "cream-paper": { "role": "neutral", "displayName": "Cream Paper 만쥬 크림", "canonical": "oklch(97% 0.016 80)", "tonalRamp": ["oklch(15% 0.01 80)", "oklch(27% 0.014 80)", "oklch(40% 0.016 80)", "oklch(53% 0.018 80)", "oklch(66% 0.018 80)", "oklch(79% 0.018 80)", "oklch(90% 0.017 80)", "oklch(97% 0.016 80)"] },
+      "toasted-cream": { "role": "neutral", "displayName": "Toasted Cream", "canonical": "oklch(94% 0.026 76)", "tonalRamp": ["oklch(15% 0.015 76)", "oklch(27% 0.02 76)", "oklch(40% 0.024 76)", "oklch(53% 0.026 76)", "oklch(66% 0.026 76)", "oklch(79% 0.026 76)", "oklch(88% 0.026 76)", "oklch(94% 0.026 76)"] },
+      "golden-crust": { "role": "neutral", "displayName": "Golden Crust", "canonical": "oklch(90% 0.038 72)" },
+      "chestnut-ink": { "role": "neutral", "displayName": "Chestnut Ink", "canonical": "oklch(27% 0.035 50)", "tonalRamp": ["oklch(15% 0.02 50)", "oklch(27% 0.035 50)", "oklch(40% 0.035 50)", "oklch(48% 0.03 55)", "oklch(60% 0.04 60)", "oklch(74% 0.035 65)", "oklch(86% 0.03 70)", "oklch(95% 0.015 75)"] },
+      "chestnut-ink-soft": { "role": "neutral", "displayName": "Chestnut Ink Soft", "canonical": "oklch(40% 0.035 50)" },
+      "muted-bark": { "role": "neutral", "displayName": "Muted Bark", "canonical": "oklch(48% 0.03 55)" },
+      "crumb-rule": { "role": "neutral", "displayName": "Crumb Rule", "canonical": "oklch(86% 0.03 70)" },
+      "field-edge": { "role": "neutral", "displayName": "Field Edge", "canonical": "oklch(60% 0.04 60)" },
+      "chestnut-shell": { "role": "primary", "displayName": "Chestnut Shell 밤 껍질", "canonical": "oklch(46% 0.09 50)", "tonalRamp": ["oklch(18% 0.04 50)", "oklch(28% 0.065 50)", "oklch(40% 0.085 48)", "oklch(46% 0.09 50)", "oklch(58% 0.085 55)", "oklch(70% 0.07 62)", "oklch(82% 0.05 70)", "oklch(94% 0.02 76)"] },
+      "chestnut-shell-deep": { "role": "primary", "displayName": "Chestnut Shell Deep", "canonical": "oklch(40% 0.085 48)" },
+      "on-chestnut": { "role": "primary", "displayName": "On Chestnut", "canonical": "oklch(98% 0.012 80)" },
+      "focus-ember": { "role": "primary", "displayName": "Focus Ember", "canonical": "oklch(50% 0.14 45)" },
+      "cheek-blush": { "role": "secondary", "displayName": "Cheek Blush 볼터치 분홍", "canonical": "oklch(58% 0.19 3)", "tonalRamp": ["oklch(20% 0.07 3)", "oklch(32% 0.12 3)", "oklch(45% 0.16 3)", "oklch(58% 0.19 3)", "oklch(70% 0.14 3)", "oklch(84% 0.09 3)", "oklch(90% 0.05 3)", "oklch(94% 0.03 3)"] },
+      "cheek-blush-soft": { "role": "secondary", "displayName": "Cheek Blush Soft", "canonical": "oklch(84% 0.09 3)" },
+      "cheek-blush-wash": { "role": "secondary", "displayName": "Cheek Blush Wash", "canonical": "oklch(94% 0.03 3)" },
+      "baked-dot": { "role": "neutral", "displayName": "Baked Dot", "canonical": "oklch(80% 0.07 70)" },
+      "cover-fallback-gold": { "role": "neutral", "displayName": "Cover Fallback Gold", "canonical": "oklch(66% 0.09 62)" },
+      "error-red": { "role": "neutral", "displayName": "Error Red", "canonical": "oklch(50% 0.18 27)" },
+      "photo-scrim": { "role": "neutral", "displayName": "Photo Scrim", "canonical": "oklch(20% 0.03 45 / 0.72)" },
+      "photo-glass": { "role": "neutral", "displayName": "Photo Glass", "canonical": "oklch(20% 0.03 45 / 0.42)" },
+      "sheet-backdrop": { "role": "neutral", "displayName": "Sheet Backdrop", "canonical": "oklch(20% 0.03 45 / 0.4)" },
+      "photo-veil": { "role": "neutral", "displayName": "Photo Veil", "canonical": "oklch(97% 0.016 80 / 0.86)" },
+      "viewer-white": { "role": "neutral", "displayName": "Viewer White", "canonical": "oklch(99.5% 0.004 80)" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (손글씨)", "purpose": "다음 일정 카드의 시간 숫자 하나." },
+      "headline": { "displayName": "Headline (손글씨)", "purpose": "다음 일정 장소 이름, 커버 D-day, 가계부 총액, 가운데 화면 제목." },
+      "title": { "displayName": "Title (손글씨)", "purpose": "보통 카드의 장소·시간, 커버 여행 이름, 아래 창 제목." },
+      "title-small": { "displayName": "Title Small (손글씨)", "purpose": "한 줄 일정의 시간, 묶음 제목, 빈 화면 제목." },
+      "body": { "displayName": "Body (기기 글꼴)", "purpose": "메모, 금액, 버튼 글자, 입력칸. 16px 이상." },
+      "label": { "displayName": "Label (기기 글꼴)", "purpose": "종류 알약, 경고 띠, 보조 줄, 탭바 글자." },
+      "label-small": { "displayName": "Label Small (기기 글꼴 600)", "purpose": "다음 일정 표시, 작은 안내." }
+    },
+    "shadows": [
+      { "name": "lit-card", "value": "0 12px 24px -16px oklch(27% 0.035 50 / 0.5)", "purpose": "다음 일정 카드 한 장에만." },
+      { "name": "floating-add", "value": "0 12px 22px -12px oklch(27% 0.035 50 / 0.6)", "purpose": "떠 있는 둥근 일정 추가 버튼." },
+      { "name": "tab-bar-lift", "value": "0 -8px 20px -16px oklch(27% 0.035 50 / 0.4)", "purpose": "아래 고정 탭바 윗선." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "버튼 색 바뀜, 누름, 캐릭터 폴짝 등 기본 전환." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "불러오는 중 캐릭터가 계속 뛰는 반복 동작." },
+      { "name": "dur-micro", "value": "120ms", "purpose": "누를 때 1px 내려감." },
+      { "name": "dur-short", "value": "220ms", "purpose": "바탕색 바뀜, 접기 화살표 회전." },
+      { "name": "dur-long", "value": "420ms", "purpose": "고른 날짜 알약에 캐릭터가 폴짝 들어옴(hop-in)." }
+    ],
+    "breakpoints": [
+      { "name": "container", "value": "480px" },
+      { "name": "phone", "value": "40rem" },
+      { "name": "tablet", "value": "60rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "주요 행동 하나. 밤색 알약, 기기 글꼴.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z M12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z\"/></svg>여기로 길찾기</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-accent, oklch(46% 0.09 50)); border-radius: 999px; background: var(--color-accent, oklch(46% 0.09 50)); color: var(--color-accent-ink, oklch(98% 0.012 80)); font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 1.0625rem; cursor: pointer; transition: background-color 220ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: var(--color-accent-2, oklch(40% 0.085 48)); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "둘째 행동. 크림 바탕에 밤색 테두리와 글자.",
+      "html": "<button class=\"ds-btn-quiet\">보내기</button>",
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-accent, oklch(46% 0.09 50)); border-radius: 999px; background: var(--color-paper, oklch(97% 0.016 80)); color: var(--color-accent, oklch(46% 0.09 50)); font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 1.0625rem; cursor: pointer; transition: background-color 220ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-quiet:hover { background: var(--color-paper-2, oklch(94% 0.026 76)); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Floating Add Button",
+      "kind": "button",
+      "refersTo": "button-fab",
+      "description": "탭바 바로 위 오른쪽에 떠 있는 56px 둥근 일정 추가 버튼.",
+      "html": "<button class=\"ds-fab\" aria-label=\"일정 추가\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14 M5 12h14\"/></svg></button>",
+      "css": ".ds-fab { display: inline-grid; place-items: center; width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-accent, oklch(46% 0.09 50)); border-radius: 50%; background: var(--color-accent, oklch(46% 0.09 50)); color: var(--color-accent-ink, oklch(98% 0.012 80)); box-shadow: 0 12px 22px -12px oklch(27% 0.035 50 / 0.6); cursor: pointer; transition: background-color 220ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-fab:hover { background: var(--color-accent-2, oklch(40% 0.085 48)); } .ds-fab:active { transform: translateY(1px); } .ds-fab:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Day Pills",
+      "kind": "chip",
+      "refersTo": "day-pill",
+      "description": "두 줄 날짜 알약. 손글씨 'N일차' + 기기 글꼴 날짜·날씨, 고른 날은 밤색.",
+      "html": "<div class=\"ds-days\"><button class=\"ds-day ds-day-on\" aria-pressed=\"true\"><span class=\"ds-day-t\"><strong>1일차</strong><small>1. 10. (일)</small><small class=\"ds-day-w\">맑음 8°</small></span></button><button class=\"ds-day\" aria-pressed=\"false\"><span class=\"ds-day-t\"><strong>2일차</strong><small>1. 11. (월)</small><small class=\"ds-day-w\">흐림 6°</small></span></button></div>",
+      "css": ".ds-days { display: flex; gap: 8px; } .ds-day { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 4px 12px; border-radius: 999px; background: var(--color-paper-2, oklch(94% 0.026 76)); border: 1px solid var(--color-rule, oklch(86% 0.03 70)); color: var(--color-ink, oklch(27% 0.035 50)); cursor: pointer; } .ds-day:hover { background: var(--color-paper-3, oklch(90% 0.038 72)); } .ds-day:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; } .ds-day-t { display: grid; grid-template-columns: auto auto; column-gap: 4px; align-items: baseline; text-align: left; line-height: 1.2; } .ds-day strong { font-family: 'Ongeulip Daerong', 'Apple SD Gothic Neo', sans-serif; font-weight: 400; font-size: 1.0625rem; } .ds-day small { font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.8125rem; color: var(--color-ink-2, oklch(40% 0.035 50)); white-space: nowrap; } .ds-day-w { grid-column: 1 / -1; font-size: 0.875rem; } .ds-day-on { background: var(--color-accent, oklch(46% 0.09 50)); border-color: var(--color-accent, oklch(46% 0.09 50)); color: var(--color-accent-ink, oklch(98% 0.012 80)); } .ds-day-on small { color: var(--color-accent-ink, oklch(98% 0.012 80)); }"
+    },
+    {
+      "name": "Category Filter Pills",
+      "kind": "chip",
+      "refersTo": "filter-pill",
+      "description": "일정 종류 거르기 알약. 기기 글꼴, 고른 것만 밤색.",
+      "html": "<div class=\"ds-cats\"><button class=\"ds-cat\" aria-pressed=\"true\">전체</button><button class=\"ds-cat\" aria-pressed=\"false\">숙소</button><button class=\"ds-cat\" aria-pressed=\"false\">식사</button></div>",
+      "css": ".ds-cats { display: flex; gap: 4px; } .ds-cat { min-height: 36px; padding: 0 12px; white-space: nowrap; background: var(--color-paper-2, oklch(94% 0.026 76)); color: var(--color-ink-2, oklch(40% 0.035 50)); border: 1px solid var(--color-rule, oklch(86% 0.03 70)); border-radius: 999px; font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.95rem; cursor: pointer; } .ds-cat:hover { background: var(--color-paper-3, oklch(90% 0.038 72)); } .ds-cat:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; } .ds-cat[aria-pressed='true'] { background: var(--color-accent, oklch(46% 0.09 50)); border-color: var(--color-accent, oklch(46% 0.09 50)); color: var(--color-paper, oklch(97% 0.016 80)); }"
+    },
+    {
+      "name": "Next Item Card",
+      "kind": "card",
+      "refersTo": "card-featured",
+      "description": "목록에서 한 장만 크게 불 켜지는 다음 일정 카드: 2px 밤색 테두리, 부드러운 그림자, 손글씨 시간·장소, 분홍 표시.",
+      "html": "<article class=\"ds-next\"><div class=\"ds-next-when\"><span class=\"ds-next-time\">15:30</span><span class=\"ds-badge\">다음 일정</span></div><h3 class=\"ds-next-place\">나카미세 거리 간식</h3><p class=\"ds-next-memo\">멜론빵, 닌교야키</p><p class=\"ds-next-cost\">¥1,200 (≈ ₩10,920)</p></article>",
+      "css": ".ds-next { background: var(--color-paper, oklch(97% 0.016 80)); color: var(--color-ink, oklch(27% 0.035 50)); border: 2px solid var(--color-accent, oklch(46% 0.09 50)); border-radius: 22px; padding: 16px 16px 12px; box-shadow: 0 12px 24px -16px oklch(27% 0.035 50 / 0.5); } .ds-next-when { display: flex; align-items: center; gap: 8px; } .ds-next-time { font-family: 'Ongeulip Daerong', 'Apple SD Gothic Neo', sans-serif; font-size: 2.5rem; line-height: 1; color: var(--color-accent, oklch(46% 0.09 50)); font-variant-numeric: tabular-nums; } .ds-badge { align-self: flex-start; padding: 2px 8px; border-radius: 999px; background: var(--color-blush-wash, oklch(94% 0.03 3)); color: var(--color-ink, oklch(27% 0.035 50)); font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; } .ds-next-place { margin: 8px 0 4px; font-family: 'Ongeulip Daerong', 'Apple SD Gothic Neo', sans-serif; font-weight: 400; font-size: 2.2rem; line-height: 1.15; } .ds-next-memo { margin: 0 0 4px; font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 1.0625rem; color: var(--color-ink-2, oklch(40% 0.035 50)); } .ds-next-cost { margin: 0; font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Compact Item Row",
+      "kind": "card",
+      "refersTo": "card-row",
+      "description": "다음 일정 아래 나머지 일정: 시간 열 + 장소 한 줄 + 요약, 눌러 펼침.",
+      "html": "<article class=\"ds-row\"><span class=\"ds-row-time\">19:00</span><h3 class=\"ds-row-place\"><button class=\"ds-row-toggle\" aria-expanded=\"false\">스시 오마카세 저녁</button></h3><p class=\"ds-row-sub\">ABC123 · 하트 2</p></article>",
+      "css": ".ds-row { position: relative; display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); column-gap: 12px; align-items: first baseline; background: var(--color-paper, oklch(97% 0.016 80)); color: var(--color-ink, oklch(27% 0.035 50)); border: 1px solid var(--color-rule, oklch(86% 0.03 70)); border-radius: 22px; padding: 8px 16px; } .ds-row > * { grid-column: 2; } .ds-row-time { grid-column: 1; grid-row: 1 / span 2; font-family: 'Ongeulip Daerong', 'Apple SD Gothic Neo', sans-serif; font-size: 1.3rem; line-height: 1.15; color: var(--color-accent, oklch(46% 0.09 50)); font-variant-numeric: tabular-nums; } .ds-row-place { margin: 0; font-family: 'Ongeulip Daerong', 'Apple SD Gothic Neo', sans-serif; font-weight: 400; font-size: 1.55rem; line-height: 1.25; } .ds-row-toggle { all: unset; cursor: pointer; display: block; } .ds-row-toggle::after { content: ''; position: absolute; inset: 0; border-radius: inherit; } .ds-row-toggle:focus-visible::after { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; } .ds-row-sub { margin: 0; font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.95rem; color: var(--color-ink-2, oklch(40% 0.035 50)); }"
+    },
+    {
+      "name": "Warning Band",
+      "kind": "custom",
+      "refersTo": "warning-band",
+      "description": "빠듯한 이동·영업시간 경고. 카드 사이든 안이든 같은 분홍 띠.",
+      "html": "<p class=\"ds-warn\" role=\"note\">다음 장소까지 이동 시간이 빠듯해요</p>",
+      "css": ".ds-warn { margin: 0; padding: 8px 12px; border-radius: 14px; background: var(--color-blush-wash, oklch(94% 0.03 3)); color: var(--color-ink-2, oklch(40% 0.035 50)); font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.95rem; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "크림 바탕 입력칸, 16px 이상 글자(아이폰 확대 방지).",
+      "html": "<input class=\"ds-input\" placeholder=\"장소 이름\" />",
+      "css": ".ds-input { width: 100%; min-height: 44px; padding: 12px; border: 1px solid var(--color-field-edge, oklch(60% 0.04 60)); border-radius: 14px; background: var(--color-paper, oklch(97% 0.016 80)); color: var(--color-ink, oklch(27% 0.035 50)); font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 1.0625rem; } .ds-input::placeholder { color: var(--color-muted, oklch(48% 0.03 55)); } .ds-input:hover { border-color: var(--color-ink-2, oklch(40% 0.035 50)); } .ds-input:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: -1px; }"
+    },
+    {
+      "name": "Bottom Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "화면 아래 고정 탭 5개. 선 아이콘 위, 기기 글꼴 글자 아래.",
+      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab\" aria-pressed=\"true\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M9 6h11 M9 12h11 M9 18h11 M4.5 6h.01 M4.5 12h.01 M4.5 18h.01\"/></svg>목록</button><button class=\"ds-tab\" aria-pressed=\"false\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z M9 4v14 M15 6v14\"/></svg>지도</button><button class=\"ds-tab\" aria-pressed=\"false\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7Z M4 7l11-3v3 M16 13.5h.01\"/></svg>가계부</button></nav>",
+      "css": ".ds-tabbar { display: flex; padding: 4px 8px; background: var(--color-paper, oklch(97% 0.016 80)); border-top: 1px solid var(--color-rule, oklch(86% 0.03 70)); box-shadow: 0 -8px 20px -16px oklch(27% 0.035 50 / 0.4); } .ds-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px; border: 0; border-radius: 14px; background: transparent; color: var(--color-ink-2, oklch(40% 0.035 50)); font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif; font-size: 0.95rem; cursor: pointer; } .ds-tab:hover { background: var(--color-paper-2, oklch(94% 0.026 76)); } .ds-tab:focus-visible { outline: 2px solid var(--color-focus, oklch(50% 0.14 45)); outline-offset: 2px; } .ds-tab[aria-pressed='true'] { background: var(--color-paper-2, oklch(94% 0.026 76)); color: var(--color-accent, oklch(46% 0.09 50)); font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "만쥬 가게의 출발 안내판",
+    "overview": "크림색 종이 위에 밤색 잉크로 쓴, 두 사람만의 여행 안내판이다. 따뜻함은 만쥬 가게(크림 바탕, 노릇한 밤색, 볼 빨간 분홍)에서 오고, 규율은 출발 안내판에서 온다: 시간은 한 열에 줄을 맞추고, 지금 다음 것 하나만 불이 켜지고, 경고는 늘 같은 분홍 띠로 나온다. 화면은 아이폰 한 손 보기(폭 480px 이하)를 기준으로 만든 한 줄 세로 흐름이다.\n\n손글씨(온글잎 대롱체)는 이름과 숫자에만 쓴다. 시간, 장소 이름, D-day, 날짜 칩, 제목. 메모·금액·버튼·안내 같은 읽어야 하는 글은 기기 글꼴이다. 손글씨는 같은 크기에서 기기 글꼴보다 작아 보여서 늘 한 단계 크게 놓는다.\n\n화면의 주인공은 두 사람이 직접 넣은 것들이다: 커버의 커플 사진, 캐릭터 사진, 이름 이모지, 하트와 댓글. 이것들은 꾸밈이 아니라 내용이다. 시스템은 이것들이 놓일 자리를 만들 뿐, 대신 그려 넣지 않는다.",
+    "keyCharacteristics": [
+      "크림 바탕(브랜드 약속, 사용자 확인) 위 밤색 하나가 주요 행동과 선택 상태를 맡는다.",
+      "분홍은 D-day, \"다음 일정\" 표시, 경고, 내 댓글, 하트에만.",
+      "손글씨는 이름과 숫자, 기기 글꼴은 읽는 글. 손글씨는 한 단계 크게.",
+      "다음 일정 한 장만 크게(밤색 2px 테두리), 나머지는 시간 열이 있는 한 줄.",
+      "둥근 모양: 알약 버튼·칩, 22px 카드, 둥근 떠 있는 추가 버튼, 화면 아래 고정 탭바."
+    ],
+    "rules": [
+      { "name": "The One Chestnut Rule", "body": "채운 밤색은 \"지금 할 행동\"과 \"지금 고른 것\"에만 쓴다. 한 화면에 채운 밤색 버튼은 주요 행동 하나와 떠 있는 추가 버튼뿐이고, 나머지 버튼(댓글 보내기, 복사, 준비물 시작)은 크림 바탕에 밤색 테두리·글자로 조용하게.", "section": "colors" },
+      { "name": "The Blush Is a Signal Rule", "body": "분홍은 장식색이 아니다. D-day, 다음 일정 표시, 경고 띠, 내 댓글, 하트처럼 \"우리에게 지금 중요한 것\"에만 쓴다.", "section": "colors" },
+      { "name": "The Cream Ground Rule", "body": "바탕은 늘 크림(cream-paper)이다. 흰 바탕이나 어두운 바탕 화면을 만들지 않는다(바우처 크게 보기와 사진 자르기 화면만 예외).", "section": "colors" },
+      { "name": "The Names-and-Numbers Rule", "body": "손글씨는 시간, 장소 이름, D-day, 날짜, 제목에만. 버튼, 메모, 금액, 안내, 입력칸은 기기 글꼴이다. 문장을 손글씨로 쓰지 않는다.", "section": "typography" },
+      { "name": "The One-Step-Up Rule", "body": "손글씨는 같은 크기의 기기 글꼴보다 작아 보이므로, 손글씨 글자는 옆에 놓인 기기 글꼴보다 한 단계 큰 크기로 놓는다(예: 메모 1.0625rem 옆 장소 이름 1.55rem).", "section": "typography" },
+      { "name": "The Only-the-Next-One-Glows Rule", "body": "목록에서 그림자와 2px 밤색 테두리를 받는 카드는 다음 일정 한 장뿐이다. 다른 카드는 1px 테두리, 그림자 없음.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 이름과 숫자(시간, 장소, D-day, 날짜, 제목)만 손글씨로, 같은 자리의 기기 글꼴보다 한 단계 크게.",
+      "Do 버튼, 메모, 금액, 안내, 입력칸은 기기 글꼴로.",
+      "Do 크림 바탕을 지키고, 채운 밤색은 주요 행동·고른 상태에만.",
+      "Do 분홍은 D-day, 다음 일정 표시, 경고 띠, 내 댓글, 하트에만.",
+      "Do 목록에서는 다음 일정 한 장만 크게 불 켜고, 나머지는 시간 열이 맞춰진 한 줄로.",
+      "Do 아이콘은 `Icon` 컴포넌트의 선 아이콘(1.8 굵기, 둥근 끝, 글자색 따라감)을 쓴다.",
+      "Do 커플 사진, 캐릭터 사진, 이름 이모지는 사용자가 넣은 내용으로 다루고 자리만 마련한다.",
+      "Do 터치 목표 44px, 입력 글자 16px 이상, 아래 고정 요소는 `safe-area-inset-bottom`만큼 띄운다."
+    ],
+    "donts": [
+      "Don't 문장, 버튼 글자, 금액, 메모를 손글씨로 쓰지 않는다.",
+      "Don't 흰색이나 어두운 바탕 화면을 만들지 않는다(바우처 보기·사진 자르기 제외).",
+      "Don't 모든 일정 카드를 같은 크기로 만들지 않는다. 2px 밤색 테두리와 그림자는 다음 일정 한 장에만.",
+      "Don't 분홍을 장식이나 배경 면으로 넓게 쓰지 않는다.",
+      "Don't 저작권 캐릭터를 그려 넣거나 캐릭터·사진을 일러스트로 대신하지 않는다.",
+      "Don't 딱딱한 오프셋 그림자나 진한 그림자를 쓰지 않는다. 그림자는 떠 있는 세 가지(다음 일정, 추가 버튼, 탭바)에만.",
+      "Don't 코드 주석의 옛 이름(연잎, 개구리, 연못 `pond`/`pad`)을 지금 디자인 개념으로 되살리지 않는다. 지금 그 자리는 \"점선 길과 점\"이다."
+    ]
+  }
+}

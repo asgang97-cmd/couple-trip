@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/next-up.html"
+        ],
+        "createdAt": "2026-11-17T14:47:28.754Z",
+        "reason": "user confirmed: keep 크림·밤색 따뜻한 느낌 (PRODUCT.md Brand Commitments, 2026-11-17)"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/tab-shell.html"
+        ],
+        "createdAt": "2026-11-17T14:47:29.000Z",
+        "reason": "user confirmed: keep 크림·밤색 따뜻한 느낌 (PRODUCT.md Brand Commitments, 2026-11-17)"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/rows-sheet.html"
+        ],
+        "createdAt": "2026-11-17T14:47:29.251Z",
+        "reason": "user confirmed: keep 크림·밤색 따뜻한 느낌 (PRODUCT.md Brand Commitments, 2026-11-17)"
+      }
+    ]
+  }
+}
