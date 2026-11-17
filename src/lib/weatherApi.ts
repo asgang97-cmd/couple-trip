@@ -1,4 +1,4 @@
-// Open-Meteo(무료, 키 없음): 예보·과거 기록·지명 검색. 받은 건 폰에 저장
+// 날씨: Open-Meteo(무료, 키 없음) 예보·과거 기록 + 여행지 이름 검색은 구글. 받은 건 폰에 저장
 import type { DayWeather, Loc } from './weather'
 
 interface Opts { fetcher?: typeof fetch; storage?: Storage; now?: number }
@@ -29,12 +29,13 @@ function write<T>(storage: Storage, key: string, savedAt: number, value: T): voi
 async function cached<T>(
   key: string, url: string, parse: (body: unknown) => T, fallback: T, freshMs: number, o: Opts,
   keep: (value: T) => boolean = () => true, // false면 이번 값은 쓰되 저장 안 함 (다음에 다시)
+  init?: RequestInit,
 ): Promise<T> {
   const { fetcher = globalThis.fetch, storage = globalThis.localStorage, now = Date.now() } = o
   const saved = read<T>(storage, key)
   if (saved && now - saved.savedAt < freshMs) return saved.value
   try {
-    const res = await fetcher(url)
+    const res = await (init ? fetcher(url, init) : fetcher(url))
     if (!res.ok) return saved ? saved.value : fallback
     const value = parse(await res.json())
     if (keep(value)) write(storage, key, now, value)
@@ -76,12 +77,26 @@ export function getHistory(loc: Loc, start: string, end: string, o: Opts = {}): 
   return cached(`wx:h:${loc.lat},${loc.lng}:${start}:${end}`, url, (b) => parseDaily(b, false), {}, Infinity, o, (v) => !!v[start] && !!v[end])
 }
 
-/** 여행지 이름 → 위치 (한국어 검색 첫 결과, 없음도 저장) */
-export function geocode(name: string, o: Opts = {}): Promise<Loc | null> {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=ko`
+/** "오사카·교토", "오사카 → 교토" 처럼 여러 도시를 적었으면 첫 도시만 */
+const firstCity = (name: string) => name.split(/[·・,，、/&+→~|]|\s-\s/)[0].trim() || name.trim()
+
+/**
+ * 여행지 이름 → 위치. 구글 장소 검색(Places API New, 영업시간과 같은 키·같은 API)의 첫 결과.
+ * 위치 1가지만 요청(요금 최소화). 결과 없음도 저장, 실패(오프라인·권한 없음)는 저장 안 함 → 다음에 다시.
+ */
+export function geocode(name: string, o: Opts & { apiKey?: string } = {}): Promise<Loc | null> {
+  const { apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined } = o
+  if (!apiKey) return Promise.resolve(null)
+  const query = firstCity(name)
   const parse = (b: unknown): Loc | null => {
-    const r = (b as { results?: { latitude?: number; longitude?: number }[] } | null)?.results?.[0]
-    return r && typeof r.latitude === 'number' && typeof r.longitude === 'number' ? { lat: r.latitude, lng: r.longitude } : null
+    const p = (b as { places?: { location?: { latitude?: number; longitude?: number } }[] } | null)?.places?.[0]?.location
+    return p && typeof p.latitude === 'number' && typeof p.longitude === 'number' ? { lat: p.latitude, lng: p.longitude } : null
   }
-  return cached(`wx:g:${name}`, url, parse, null, Infinity, o)
+  const init: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': 'places.location' },
+    body: JSON.stringify({ textQuery: query, languageCode: 'ko', pageSize: 1 }),
+  }
+  // wx:g2: 예전(Open-Meteo)에 '못 찾음'으로 저장된 값은 버리고 새로 찾게
+  return cached(`wx:g2:${query}`, 'https://places.googleapis.com/v1/places:searchText', parse, null, Infinity, o, () => true, init)
 }

@@ -27,7 +27,7 @@
 ```
 
 ## 동작 (내가 정한 부분)
-- 위치: 그날 일정 중 **처음 나오는** 장소 있는 일정의 위치. 장소 있는 일정이 없으면 여행 설정 "여행지" 이름을 Open-Meteo 지명 검색으로 찾은 위치(한국어 검색, 첫 결과). 둘 다 없으면 그날 날씨 없음.
+- 위치: 그날 일정 중 **처음 나오는** 장소 있는 일정의 위치. 장소 있는 일정이 없으면 여행 설정 "여행지" 이름을 구글 장소 검색(Places API New searchText, 위치만 요청)으로 찾은 위치(한국어, 첫 결과. "오사카·교토"처럼 여러 도시면 첫 도시. Open-Meteo 지명 검색은 한국어에 약해 2026-11-17에 바꿈). 둘 다 없으면 그날 날씨 없음.
 - 요청 줄이기: 위치를 소수점 1자리(약 10km)로 반올림해 같은 위치끼리 묶음. 예보는 위치마다 1번(16일치), 과거는 위치마다 필요한 날짜 범위 1번.
 - 예보: `api.open-meteo.com/v1/forecast` 의 daily `weather_code, temperature_2m_max, temperature_2m_min, precipitation_probability_max`, `timezone=auto`, `forecast_days=16`. 그 날짜가 응답에 있으면 예보 사용.
 - 과거: `archive-api.open-meteo.com/v1/archive` 의 daily `weather_code, temperature_2m_max, temperature_2m_min`. 1년 전 같은 날짜(2/29는 2/28). 1년 전이 아직 기록이 없을 만큼 최근(오늘 −8일 이후 — 과거 기록은 며칠 늦게 채워짐)이면 2년 전을 쓰고 `재작년`으로 표시. 2년 전도 아직이면(2년보다 먼 여행) 그날은 날씨 없음. 작년·재작년은 따로 요청. 요청한 날짜가 빠진 과거 응답은 저장하지 않음.

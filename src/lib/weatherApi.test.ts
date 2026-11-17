@@ -68,26 +68,42 @@ describe('getHistory', () => {
   })
 })
 
-describe('geocode', () => {
-  test('여행지 이름 → 위치 (한국어 검색, 첫 결과)', async () => {
-    const fetcher = fetcherOf(ok({ results: [{ latitude: 34.69, longitude: 135.5, name: '오사카' }] }))
-    expect(await geocode('오사카', { fetcher, storage: memoryStorage() })).toEqual({ lat: 34.69, lng: 135.5 })
-    expect(String(fetcher.mock.calls[0][0])).toBe(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent('오사카')}&count=1&language=ko`,
-    )
+describe('geocode (구글 장소 검색)', () => {
+  const found = (lat: number, lng: number) => ok({ places: [{ location: { latitude: lat, longitude: lng } }] })
+  test('여행지 이름 → 위치 (한국어, 첫 결과, 위치만 요청)', async () => {
+    const fetcher = fetcherOf(found(35.17, 129.07))
+    expect(await geocode('부산', { apiKey: 'K', fetcher, storage: memoryStorage() })).toEqual({ lat: 35.17, lng: 129.07 })
+    const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://places.googleapis.com/v1/places:searchText')
+    expect(init.method).toBe('POST')
+    expect(init.headers).toMatchObject({ 'X-Goog-Api-Key': 'K', 'X-Goog-FieldMask': 'places.location' })
+    expect(JSON.parse(String(init.body))).toEqual({ textQuery: '부산', languageCode: 'ko', pageSize: 1 })
+  })
+  test('여러 도시를 적은 이름은 첫 도시로 찾음', async () => {
+    for (const name of ['오사카·교토', '오사카, 교토', '오사카/교토', '오사카 → 교토', '오사카&교토', '오사카 + 교토']) {
+      const fetcher = fetcherOf(found(34.69, 135.5))
+      await geocode(name, { apiKey: 'K', fetcher, storage: memoryStorage() })
+      expect(JSON.parse(String((fetcher.mock.calls[0] as unknown as [string, RequestInit])[1].body)).textQuery).toBe('오사카')
+    }
   })
   test('결과 없음도 저장 → 다시 안 물음', async () => {
     const storage = memoryStorage()
     const fetcher = fetcherOf(ok({}))
-    expect(await geocode('없는곳', { fetcher, storage })).toBeNull()
-    expect(await geocode('없는곳', { fetcher, storage })).toBeNull()
+    expect(await geocode('없는곳', { apiKey: 'K', fetcher, storage })).toBeNull()
+    expect(await geocode('없는곳', { apiKey: 'K', fetcher, storage })).toBeNull()
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
-  test('오프라인이면 null, 저장 안 함', async () => {
+  test('오프라인·실패(권한 없음 등)면 null, 저장 안 함 → 다음에 다시', async () => {
     const storage = memoryStorage()
-    const fetcher = fetcherOf(new TypeError('Failed to fetch'), ok({ results: [{ latitude: 1, longitude: 2 }] }))
-    expect(await geocode('오사카', { fetcher, storage })).toBeNull()
-    expect(await geocode('오사카', { fetcher, storage })).toEqual({ lat: 1, lng: 2 })
+    const fetcher = fetcherOf(new TypeError('Failed to fetch'), new Response('x', { status: 403 }), found(1, 2))
+    expect(await geocode('오사카', { apiKey: 'K', fetcher, storage })).toBeNull()
+    expect(await geocode('오사카', { apiKey: 'K', fetcher, storage })).toBeNull()
+    expect(await geocode('오사카', { apiKey: 'K', fetcher, storage })).toEqual({ lat: 1, lng: 2 })
+  })
+  test('구글 키가 없으면 묻지 않고 null', async () => {
+    const fetcher = fetcherOf()
+    expect(await geocode('오사카', { apiKey: '', fetcher, storage: memoryStorage() })).toBeNull()
+    expect(fetcher).not.toHaveBeenCalled()
   })
 })
 
