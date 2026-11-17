@@ -92,6 +92,23 @@ describe('useWeather 리뷰 반영', () => {
     expect(a.history).not.toHaveBeenCalled()
   })
 
+  test('오프라인으로 열었다가 인터넷이 돌아오면 다시 물음', async () => {
+    const forecast = vi
+      .fn()
+      .mockResolvedValueOnce({}) // 처음: 오프라인이라 빈 값
+      .mockResolvedValue({ '2026-11-30': W(0, 12, 4, 10) })
+    const geocode = vi.fn().mockResolvedValueOnce(null).mockResolvedValue({ lat: 34.69, lng: 135.5 })
+    const a = api({ forecast, geocode, history: vi.fn(async () => ({})) })
+    const days = ['2026-11-30', '2026-12-01'] // 12-01은 장소 없음 → 여행지 이름 검색
+    const { result } = renderHook(() => useWeather(days, { '2026-11-30': [loc] }, '오사카', 'Asia/Tokyo', { api: a, now: NOW }))
+    await waitFor(() => expect(forecast).toHaveBeenCalledTimes(1))
+    await new Promise((r) => setTimeout(r, 10))
+    expect(result.current).toEqual({})
+    window.dispatchEvent(new Event('online'))
+    await waitFor(() => expect(result.current['2026-11-30']).toEqual({ ...W(0, 12, 4, 10), past: null }))
+    expect(geocode).toHaveBeenCalledTimes(2) // 여행지 이름도 다시 찾음
+  })
+
   test('여행 중 이미 지난 날: 작년이 아니라 그날 실제 날씨 (지난 날은 비 올 확률 안 씀)', async () => {
     const a = api({
       forecast: vi.fn(async () => ({ '2026-11-15': W(3, 9, 4, 80), '2026-11-17': W(0, 12, 5, 50) })),

@@ -31,6 +31,14 @@ export function useWeather(
     apiRef.current = opts.api ?? DEFAULT_API
   })
 
+  // 인터넷이 돌아오면 다시 물음 (받아 둔 건 폰 저장본에서 바로 나오니 실패했던 것만 실제로 다시 요청됨)
+  const [online, setOnline] = useState(0)
+  useEffect(() => {
+    const again = () => setOnline((n) => n + 1)
+    window.addEventListener('online', again)
+    return () => window.removeEventListener('online', again)
+  }, [])
+
   // 장소 없는 날이 있을 때만 여행지 이름으로 위치 찾기
   const name = destination.trim()
   const needsFallback = days.some((d) => !(byDay[d] ?? []).some((i) => i.lat !== null && i.lng !== null))
@@ -45,7 +53,7 @@ export function useWeather(
     return () => {
       alive = false
     }
-  }, [needsFallback, name])
+  }, [needsFallback, name, online])
   const fallback = found?.name === name && found.loc ? roundLoc(found.loc) : null
 
   // 다시 물을지는 날짜별 (반올림한) 위치 + 오늘로만 판단 → 일정 내용이 바뀌어도 위치가 같으면 그대로
@@ -97,7 +105,7 @@ export function useWeather(
     return () => {
       alive = false
     }
-  }, [key])
+  }, [key, online])
 
   return key !== null && done?.key === key ? done.weather : NONE
 }
