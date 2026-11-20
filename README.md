@@ -24,6 +24,7 @@ Supabase 대시보드 → 프로젝트 → **SQL Editor** → **New query**에 �
 7. `supabase/007_decor.sql` — 캐릭터·배경 꾸미기
 8. `supabase/008_decor_slot.sql` — 꾸미기를 둘이 동시에 바꿔도 안 덮어쓰게
 9. `supabase/009_item_category.sql` — 일정 종류(숙소·식사 등). 앱을 새로 배포하기 전에 먼저 실행
+10. `supabase/010_function_search_path.sql` — 함수 보안 설정(Supabase 보안 경고 해결). 앱 배포와 상관없이 아무 때나 실행
 
 > 1·2번은 이미 실행했으면 다시 실행하지 마세요 (에러가 나요). 3번부터는 각 파일 맨 위 안내를 확인하세요.
 
