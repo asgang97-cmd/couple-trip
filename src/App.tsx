@@ -6,6 +6,7 @@ import { PasswordGate } from './components/PasswordGate'
 import { TripPage } from './components/TripPage'
 import { getMember, hasStoredSession, isSignedIn, onSignedOut, setMember } from './lib/session'
 import type { Member } from './lib/types'
+import { wipeOnSignOut } from './lib/wipe'
 import { theme } from './theme'
 
 // theme.ts에서 고른 색을 디자인 토큰에 연결
@@ -24,7 +25,11 @@ export default function App() {
 
   useEffect(() => {
     isSignedIn().then(setSignedIn, () => setSignedIn(false))
-    return onSignedOut(() => setSignedIn(false))
+    return onSignedOut(() => {
+      setSignedIn(false)
+      setDecor({})
+      void wipeOnSignOut()
+    })
   }, [])
 
   function pick(m: Member) {

@@ -50,7 +50,7 @@ export async function getRate(currency: string, opts: RateOptions = {}): Promise
   if (manualRate !== null) return { rate: manualRate, source: 'manual', fetchedAt: null }
 
   try {
-    const res = await fetcher(`https://api.frankfurter.dev/v1/latest?base=${currency}&symbols=KRW`)
+    const res = await fetcher(`https://api.frankfurter.dev/v1/latest?base=${encodeURIComponent(currency)}&symbols=KRW`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json()
     const rate = json?.rates?.KRW
